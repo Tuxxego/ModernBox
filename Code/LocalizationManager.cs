@@ -63,7 +63,6 @@ namespace ModernBox
 
         
         private Dictionary<Language, Dictionary<string, string>> localizationDatabase;
-        private readonly HashSet<string> reportedMissingKeys = new HashSet<string>(StringComparer.Ordinal);
 
         
         void Start()
@@ -133,32 +132,13 @@ namespace ModernBox
         
         public string Localize(string key)
         {
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                return string.Empty;
-            }
-
-            if (localizationDatabase == null)
-            {
-                return key;
-            }
-
-            if (!localizationDatabase.TryGetValue(currentLanguage, out Dictionary<string, string> entries) || entries == null)
-            {
-                return key;
-            }
-
-            if (entries.TryGetValue(key, out string value))
+            if (localizationDatabase[currentLanguage].TryGetValue(key, out string value))
             {
              
                 return value;
             }
 
-            if (reportedMissingKeys.Add($"{currentLanguage}:{key}"))
-            {
-                ModernBoxLogger.Warning($"Localization key not found: {key} for language: {currentLanguage}");
-            }
-
+            ModernBoxLogger.Warning($"Localization key not found: {key} for language: {currentLanguage}");
             return key; 
         }
 

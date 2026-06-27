@@ -8,7 +8,6 @@ namespace ModernBox
 {
     public static class MissingAssetDiagnostics
     {
-        private const bool Enabled = false;
         private static readonly HashSet<string> _seenProjectileMissing = new HashSet<string>();
         private static readonly HashSet<string> _seenNullSpriteSet = new HashSet<string>();
         private static readonly HashSet<string> _seenActorNullRender = new HashSet<string>();
@@ -143,8 +142,6 @@ namespace ModernBox
         [HarmonyPatch(typeof(ProjectileManager), "spawn")]
         private static class Patch_ProjectileManager_Spawn_Diagnostics
         {
-            private static bool Prepare() => Enabled;
-
             private static void Prefix(BaseSimObject pInitiator, BaseSimObject pTargetObject, string pAssetID, Vector3 pLaunchPosition, Vector3 pTargetPosition)
             {
                 try
@@ -179,8 +176,6 @@ namespace ModernBox
         [HarmonyPatch(typeof(Actor), "checkSpriteToRender")]
         private static class Patch_Actor_CheckSpriteToRender_Diagnostics
         {
-            private static bool Prepare() => Enabled;
-
             private static void Postfix(Actor __instance, ref Sprite __result)
             {
                 try
@@ -212,8 +207,6 @@ namespace ModernBox
         [HarmonyPatch(typeof(GroupSpriteObject), "setSprite")]
         private static class Patch_GroupSpriteObject_SetSprite_Diagnostics
         {
-            private static bool Prepare() => Enabled;
-
             private static void Prefix(GroupSpriteObject __instance, Sprite pSprite)
             {
                 try
@@ -246,8 +239,6 @@ namespace ModernBox
         [HarmonyPatch(typeof(SpriteTextureLoader), "getSprite", new Type[] { typeof(string) })]
         private static class Patch_SpriteTextureLoader_GetSprite_Diagnostics
         {
-            private static bool Prepare() => Enabled;
-
             private static void Postfix(string pPath, ref Sprite __result)
             {
                 try
@@ -267,8 +258,6 @@ namespace ModernBox
         [HarmonyPatch(typeof(SpriteTextureLoader), "getSpriteList", new Type[] { typeof(string), typeof(bool) })]
         private static class Patch_SpriteTextureLoader_GetSpriteList_Diagnostics
         {
-            private static bool Prepare() => Enabled;
-
             private static void Postfix(string pPath, bool pSkipIfEmpty, ref Sprite[] __result)
             {
                 try
@@ -292,8 +281,6 @@ namespace ModernBox
         [HarmonyPatch(typeof(Actor), "addDefaultItemAttackActions")]
         private static class Patch_Actor_AddDefaultItemAttackActions_Guard
         {
-            private static bool Prepare() => Enabled;
-
             private static bool Prefix(Actor __instance, ItemAsset pItemAsset)
             {
                 try
@@ -328,8 +315,6 @@ namespace ModernBox
         [HarmonyPatch(typeof(Actor), "addItemActions")]
         private static class Patch_Actor_AddItemActions_Guard
         {
-            private static bool Prepare() => Enabled;
-
             private static bool Prefix(Actor __instance, ItemAsset pItemAsset)
             {
                 try
@@ -364,8 +349,6 @@ namespace ModernBox
         [HarmonyPatch(typeof(Actor), "checkCalibrateTargetPosition")]
         private static class Patch_Actor_CheckCalibrateTargetPosition_Guard
         {
-            private static bool Prepare() => Enabled;
-
             private static bool Prefix(Actor __instance)
             {
                 try
@@ -414,8 +397,6 @@ namespace ModernBox
         [HarmonyPatch(typeof(Building), "calculateColoredSprite")]
         private static class Patch_Building_CalculateColoredSprite_Diagnostics
         {
-            private static bool Prepare() => Enabled;
-
             private static bool Prefix(Building __instance, Sprite pMainSprite, ref Sprite __result)
             {
                 try
@@ -499,8 +480,6 @@ namespace ModernBox
         [HarmonyPatch(typeof(DynamicSprites), nameof(DynamicSprites.getRecoloredBuilding))]
         private static class Patch_DynamicSprites_GetRecoloredBuilding_Diagnostics
         {
-            private static bool Prepare() => Enabled;
-
             private static bool Prefix(Sprite pBuildingSprite, ColorAsset pColor, DynamicSpritesAsset pAtlasAsset, ref Sprite __result)
             {
                 try

@@ -307,7 +307,7 @@ public static void toggleMGL()
     {
         public static void init()
         {
-            // Deferred on purpose: sprites are filled lazily by EquipmentAsset_GetSpritesLazyLoadPatch.
+            FixAllWeapons();
         }
 
         public static void FixAllWeapons()
@@ -402,40 +402,6 @@ public static void toggleMGL()
             {
                 var sprite = Resources.Load<Sprite>("weapons/" + id);
                 return sprite != null ? new Sprite[] { sprite } : Array.Empty<Sprite>();
-            }
-        }
-
-        [HarmonyPatch(typeof(EquipmentAsset), nameof(EquipmentAsset.getSprites))]
-        private static class EquipmentAsset_GetSpritesLazyLoadPatch
-        {
-            [HarmonyPostfix]
-            private static void Postfix(EquipmentAsset __instance, ref Sprite[] __result)
-            {
-                if (__instance == null)
-                {
-                    return;
-                }
-
-                if (__result != null && __result.Length > 0)
-                {
-                    return;
-                }
-
-                if (__instance.gameplay_sprites != null && __instance.gameplay_sprites.Length > 0)
-                {
-                    __result = __instance.gameplay_sprites;
-                    return;
-                }
-
-                if (string.IsNullOrEmpty(__instance.id))
-                {
-                    __result = Array.Empty<Sprite>();
-                    return;
-                }
-
-                Sprite[] sprites = FetchSprites(__instance.id);
-                __instance.gameplay_sprites = sprites ?? Array.Empty<Sprite>();
-                __result = __instance.gameplay_sprites;
             }
         }
     }

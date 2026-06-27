@@ -201,14 +201,17 @@ public class ButtonBuilder
             {
                 case ButtonType.Click:
                     PowerButtons.CreateButton(id, sprite, title, description, position, type, parent, function);
+                    ModernBoxLogger.Log($"[ButtonBuilder] Created button with: ID={id}, Type=Click, Title={title}, Position={position}, Parent={parent?.name}");
                     break;
 
                 case ButtonType.Toggle:
                     PowerButtons.CreateButton(id, sprite, title, description, position, type, parent, function);
+                    ModernBoxLogger.Log($"[ButtonBuilder] Created button with: ID={id}, Type=Toggle, Title={title}, Position={position}, Parent={parent?.name}");
                     break;
 
                 case ButtonType.GodPower:
                     PowerButtons.CreateButton(id, sprite, title, description, position, type, parent, function);
+                    ModernBoxLogger.Log($"[ButtonBuilder] Created button with: ID={id}, Type=GodPower, Title={title}, Position={position}, Parent={parent?.name}");
                     break;
 
                 default:

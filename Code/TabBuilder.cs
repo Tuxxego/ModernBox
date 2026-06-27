@@ -15,8 +15,6 @@ namespace ModernBox
         private bool black;
         private int xPos;
         private Sprite icon;
-        private bool toolbarButtonVisible = true;
-        private string repeatPressReturnTabID;
 
         public TabBuilder SetTabID(string id)
         {
@@ -46,23 +44,10 @@ namespace ModernBox
         }
         public TabBuilder SetIcon(string resourcePath)
         {
-        
+           // icon = ResourceLoader.LoadSprite(resourcePath);
             icon = Resources.Load<Sprite>(resourcePath);
             return this;
         }
-
-        public TabBuilder SetToolbarButtonVisible(bool isVisible)
-        {
-            toolbarButtonVisible = isVisible;
-            return this;
-        }
-
-        public TabBuilder SetRepeatPressReturnTab(string tabID)
-        {
-            repeatPressReturnTabID = tabID;
-            return this;
-        }
-
         public void Build()
         {
             GameObject otherTabButton = FindAllGameObjectsCreditToNikonForThisFunctionBTW("button_other");
@@ -98,14 +83,7 @@ namespace ModernBox
             tipButton.textOnClick = buttonID;
             tipButton.textOnClickDescription = $"{buttonID} Description";
             tipButton.text_description_2 = "Tuxxego_mod_creator";
-            float toolbarX = xPos;
-            if (toolbarButtonVisible)
-            {
-                toolbarX = otherTabButton.transform.localPosition.x + 36f;
-                newTabButton.transform.SetSiblingIndex(otherTabButton.transform.GetSiblingIndex() + 1);
-            }
-
-            newTabButton.transform.localPosition = new Vector3(toolbarX, otherTabButton.transform.localPosition.y, 0f);
+            newTabButton.transform.localPosition = new Vector3(xPos, 49.57f);
             newTabButton.transform.localScale = Vector3.one;
             if (icon != null)
             {
@@ -134,14 +112,15 @@ namespace ModernBox
 
             if (black)
              {
-
+                // Target ONLY the main newTab object
+                // 1. Check for SpriteRenderer
                 SpriteRenderer mainSR = newTab.GetComponent<SpriteRenderer>();
                 if (mainSR != null) 
                 {
                     mainSR.color = Color.black;
                 }
 
-               
+                // 2. Check for UI Image (Common for window backgrounds)
                 UnityEngine.UI.Image mainImg = newTab.GetComponent<UnityEngine.UI.Image>();
                 if (mainImg != null) 
                 {
@@ -159,63 +138,30 @@ namespace ModernBox
             powersTabComponent.powerButton = buttonComponent;
             powersTabComponent._power_buttons.Clear();
             powersTabComponent.powerButton.onClick = new Button.ButtonClickedEvent();
-            powersTabComponent.powerButton.onClick.AddListener(() => SwitchTab(tabID, repeatPressReturnTabID));
+            powersTabComponent.powerButton.onClick.AddListener(() => ShowTab(tabID));
             newTab.SetActive(true);
-            powersTabComponent.powerButton.gameObject.SetActive(toolbarButtonVisible);
+            powersTabComponent.powerButton.gameObject.SetActive(true);
 
             var asset = new PowerTabAsset
             {
                 id = tabID,
                 locale_key = "tab_modernbox",
-                tab_type_main = toolbarButtonVisible,
+                tab_type_main = true,
                 get_power_tab = () => powersTabComponent
             };
             AssetManager.power_tab_library.add(asset);
             powersTabComponent._asset = asset;
 
         }
-
-        public static void SwitchTab(string tabID)
-        {
-            SwitchTab(tabID, null);
-        }
-
-        public static void SwitchTab(string tabID, string returnToTabID)
-        {
-            PowersTab activeTab = PowersTab.getActiveTab();
-            if (TryGetPowersTab(tabID, out PowersTab targetTab))
-            {
-                if (activeTab == targetTab && !string.IsNullOrEmpty(returnToTabID))
-                {
-                    ShowTab(returnToTabID);
-                    return;
-                }
-
-                targetTab.showTab(targetTab.powerButton);
-            }
-        }
-
         private static void ShowTab(string tabID)
         {
-            if (TryGetPowersTab(tabID, out PowersTab powersTabComponent))
+            GameObject additionalTab = FindAllGameObjectsCreditToNikonForThisFunctionBTW(tabID);
+            if (additionalTab != null)
             {
+                PowersTab powersTabComponent = additionalTab.GetComponent<PowersTab>();
                 powersTabComponent.showTab(powersTabComponent.powerButton);
             }
         }
-
-        private static bool TryGetPowersTab(string tabID, out PowersTab powersTab)
-        {
-            powersTab = null;
-            GameObject additionalTab = FindAllGameObjectsCreditToNikonForThisFunctionBTW(tabID);
-            if (additionalTab == null)
-            {
-                return false;
-            }
-
-            powersTab = additionalTab.GetComponent<PowersTab>();
-            return powersTab != null;
-        }
-
         // FindAllGameObjectsCreditToNikonForThisFunctionBTW is from NCMS (made by Nikon)
         public static GameObject FindAllGameObjectsCreditToNikonForThisFunctionBTW(string Name)
         {

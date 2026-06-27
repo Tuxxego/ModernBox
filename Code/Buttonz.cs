@@ -26,13 +26,6 @@ namespace ModernBox
 			PowersTab tab4 = getPowersTab("ModernBoxEras");
 			PowersTab tab5 = getPowersTab("ModernBoxItems");
 			PowersTab tab6 = getPowersTab("ModernBoxSpace");
-            PowersTab otherTab = getPowersTab("other");
-
-            if (tab == null || tab2 == null || tab3 == null || tab4 == null || tab5 == null || tab6 == null)
-            {
-                ModernBoxLogger.Error("[Buttonz] One or more ModernBox tabs are missing during Init().");
-                return;
-            }
 
 			GameObject largeImageObject = new GameObject("LargeImage");
 			largeImageObject.transform.SetParent(tab.transform);
@@ -250,87 +243,6 @@ namespace ModernBox
             .SetTransform(tab.transform)
             .SetFunction(openAchievmentsWindow)
             .Build();
-
-        new ButtonBuilder("modernbox_tab_units")
-            .SetSprite(Resources.Load<Sprite>("ui/icons/warhamma"))
-            .SetTitle("ModernBox Units")
-            .SetDescription("Open the Units tab.")
-            .SetPosition(16, 0)
-            .SetType(ButtonType.Click)
-            .SetTransform(tab.transform)
-            .SetFunction(() => openModernBoxSubTab("ModernBoxUnits"))
-            .Build();
-
-        new ButtonBuilder("modernbox_tab_bombs")
-            .SetSprite(Resources.Load<Sprite>("ui/icons/Overload"))
-            .SetTitle("ModernBox Bombs")
-            .SetDescription("Open the Bombs tab.")
-            .SetPosition(16, 1)
-            .SetType(ButtonType.Click)
-            .SetTransform(tab.transform)
-            .SetFunction(() => openModernBoxSubTab("ModernBoxBombs"))
-            .Build();
-
-        new ButtonBuilder("modernbox_tab_eras")
-            .SetSprite(Resources.Load<Sprite>("ui/icons/Industrial"))
-            .SetTitle("ModernBox Eras")
-            .SetDescription("Open the Eras tab.")
-            .SetPosition(17, 0)
-            .SetType(ButtonType.Click)
-            .SetTransform(tab.transform)
-            .SetFunction(() => openModernBoxSubTab("ModernBoxEras"))
-            .Build();
-
-        new ButtonBuilder("modernbox_tab_space")
-            .SetSprite(Resources.Load<Sprite>("Stars/Gravitonstar"))
-            .SetTitle("ModernBox Space")
-            .SetDescription("Open the Space tab.")
-            .SetPosition(17, 1)
-            .SetType(ButtonType.Click)
-            .SetTransform(tab.transform)
-            .SetFunction(() => openModernBoxSubTab("ModernBoxSpace"))
-            .Build();
-
-        new ButtonBuilder("modernbox_tab_items")
-            .SetSprite(Resources.Load<Sprite>("ui/icons/firearm"))
-            .SetTitle("ModernBox Items")
-            .SetDescription("Open the Items tab.")
-            .SetPosition(18, 0)
-            .SetType(ButtonType.Click)
-            .SetTransform(tab.transform)
-            .SetFunction(() => openModernBoxSubTab("ModernBoxItems"))
-            .Build();
-
-        new ButtonBuilder("modernbox_tab_trainbox")
-            .SetSprite(Resources.Load<Sprite>("ui/icons/Industrial"))
-            .SetTitle("Trainbox")
-            .SetDescription("Open the Trainbox tab.")
-            .SetPosition(19, 1)
-            .SetType(ButtonType.Click)
-            .SetTransform(tab.transform)
-            .SetFunction(openTrainboxTab)
-            .Build();
-
-        new ButtonBuilder("modernbox_tab_kaiju")
-            .SetSprite(Resources.Load<Sprite>("ui/icons/Godzilla"))
-            .SetTitle("Kaiju")
-            .SetDescription("Open the Kaiju tab.")
-            .SetPosition(18, 1)
-            .SetType(ButtonType.Click)
-            .SetTransform(tab.transform)
-            .SetFunction(() => openModernBoxSubTab("Tab_kaiju"))
-            .Build();
-
-            if (otherTab != null)
-            {
-                EnsureOtherTabButton("modernbox_launcher", "ui/icons/tabIconModernWarfare", "ModernBox", "Open the main ModernBox hub.", 0, 0, otherTab.transform, openModernBoxHub);
-                EnsureOtherTabButton("modernbox_other_units", "ui/icons/warhamma", "MB Units", "Open the Units tab.", 1, 0, otherTab.transform, () => openModernBoxSubTab("ModernBoxUnits"));
-                EnsureOtherTabButton("modernbox_other_bombs", "ui/icons/Overload", "MB Bombs", "Open the Bombs tab.", 2, 0, otherTab.transform, () => openModernBoxSubTab("ModernBoxBombs"));
-                EnsureOtherTabButton("modernbox_other_trainbox", "ui/icons/Industrial", "Trainbox", "Open the Trainbox tab.", 3, 0, otherTab.transform, openTrainboxTab);
-                EnsureOtherTabButton("modernbox_other_eras", "ui/icons/Industrial", "MB Eras", "Open the Eras tab.", 0, 1, otherTab.transform, () => openModernBoxSubTab("ModernBoxEras"));
-                EnsureOtherTabButton("modernbox_other_space", "Stars/Gravitonstar", "MB Space", "Open the Space tab.", 1, 1, otherTab.transform, () => openModernBoxSubTab("ModernBoxSpace"));
-                EnsureOtherTabButton("modernbox_other_items", "ui/icons/firearm", "MB Items", "Open the Items tab.", 2, 1, otherTab.transform, () => openModernBoxSubTab("ModernBoxItems"));
-            }
 
             new ButtonBuilder("nukes_toggle")
                 .SetSprite(Resources.Load<Sprite>("ui/Icons/MIRV_nuke"))
@@ -833,7 +745,6 @@ namespace ModernBox
         private void SetupEras()
         {
             PowersTab tab4 = getPowersTab("ModernBoxEras");
-            StatManager.Instance.EnableAllErasByDefault();
 
             new ButtonBuilder("era_no_set")
             .SetSprite(Resources.Load<Sprite>("ui/icons/Primalism"))
@@ -905,9 +816,9 @@ namespace ModernBox
             .SetFunction(StatManager.Instance.toggleMedieval)
             .Build();
 
-            if (StatManager.Instance.enableMedieval) {
+            if (Main.savedSettings.boolOptions["MedievalOption"]) {
                 PowerButtons.ToggleButton("era_mediaval_toggle");
-                StatManager.Instance.SetMedievalEnabled(true);
+                StatManager.Instance.toggleMedieval();
             }
 
             new ButtonBuilder("era_renaissance_toggle")
@@ -920,9 +831,9 @@ namespace ModernBox
             .SetFunction(StatManager.Instance.toggleRenaissance)
             .Build();
 
-            if (StatManager.Instance.enableRenaissance) {
+            if (Main.savedSettings.boolOptions["RenaissanceOption"]) {
                 PowerButtons.ToggleButton("era_renaissance_toggle");
-                StatManager.Instance.SetRenaissanceEnabled(true);
+                StatManager.Instance.toggleRenaissance();
             }
 
             new ButtonBuilder("era_modern_toggle")
@@ -935,9 +846,9 @@ namespace ModernBox
             .SetFunction(StatManager.Instance.toggleModern)
             .Build();
 
-            if (StatManager.Instance.enableModern) {
-                PowerButtons.ToggleButton("era_modern_toggle");
-                StatManager.Instance.SetModernEnabled(true);
+            if (Main.savedSettings.boolOptions["MedievalOption"]) {
+                PowerButtons.ToggleButton("era_mediaval_toggle");
+                StatManager.Instance.toggleMedieval();
             }
 
             new ButtonBuilder("era_hyperfuture_toggle")
@@ -950,9 +861,9 @@ namespace ModernBox
             .SetFunction(StatManager.Instance.toggleHyperfuture)
             .Build();
 
-            if (StatManager.Instance.enableHyperfuture) {
+            if (Main.savedSettings.boolOptions["HyperfutureOption"]) {
                 PowerButtons.ToggleButton("era_hyperfuture_toggle");
-                StatManager.Instance.SetHyperfutureEnabled(true);
+                StatManager.Instance.toggleHyperfuture();
             }
         }
 
@@ -1041,39 +952,6 @@ namespace ModernBox
                 ModernBoxLogger.Log("There's nothing here!");
              }
 
-        private static void openModernBoxSubTab(string tabID)
-        {
-            TabBuilder.SwitchTab(tabID, "ModernBoxTab");
-        }
-
-        private static void openModernBoxHub()
-        {
-            TabBuilder.SwitchTab("ModernBoxTab");
-        }
-
-        private static void openTrainboxTab()
-        {
-            global::Trainbox.TrainPowers.OpenTrainboxTab();
-        }
-
-        private static void EnsureOtherTabButton(string id, string spritePath, string title, string description, int gridX, int gridY, Transform parent, UnityAction action)
-        {
-            if (GameObjects.FindEvenInactive(id) != null)
-            {
-                return;
-            }
-
-            new ButtonBuilder(id)
-                .SetSprite(Resources.Load<Sprite>(spritePath))
-                .SetTitle(title)
-                .SetDescription(description)
-                .SetPosition(gridX, gridY)
-                .SetType(ButtonType.Click)
-                .SetTransform(parent)
-                .SetFunction(action)
-                .Build();
-        }
-
         private static void openAchievmentsWindow() {
 
 			 Windows.ShowWindow("AchievementsWindow");
@@ -1087,7 +965,7 @@ namespace ModernBox
 
           public static PowersTab getPowersTab(string id) {
             GameObject gameObject = GameObjects.FindEvenInactive(id);
-            return gameObject != null ? gameObject.GetComponent<PowersTab>() : null;
+            return gameObject.GetComponent<PowersTab>();
         }
 
         public static bool Stuff_Drop(WorldTile pTile, GodPower pPower)

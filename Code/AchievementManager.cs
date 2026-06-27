@@ -6,7 +6,6 @@ namespace ModernBox
     public class AchievementManager : MonoBehaviour
     {
         public static AchievementManager Instance;
-        private static readonly Dictionary<string, Texture2D> iconTextureCache = new Dictionary<string, Texture2D>();
         private Dictionary<string, M3Achievement> m3achievements = new Dictionary<string, M3Achievement>();
         private List<AchievementNotification> notifications = new List<AchievementNotification>();
         private bool showNotification = false;
@@ -129,7 +128,17 @@ namespace ModernBox
 			};
 
 			AchievementNotification currentNotification = notifications[0];
-			Texture2D iconTexture = GetAchievementIconTexture(currentNotification.M3Achievement.SpritePath);
+			Sprite iconSprite = Resources.Load<Sprite>(currentNotification.M3Achievement.SpritePath);
+			Texture2D iconTexture = null;
+
+			if (iconSprite != null)
+			{
+				iconTexture = SpriteToTexture2D(iconSprite);
+			}
+			else
+			{
+				ModernBoxLogger.Error("Achievement image not found: " + currentNotification.M3Achievement.SpritePath);
+			}
 
 			GUI.Label(new Rect(startX, startY + 5, bannerWidth, 25), "NEW M2 ACHIEVEMENT UNLOCKED", titleStyle);
 
@@ -153,31 +162,7 @@ namespace ModernBox
 			}
 		}
 
-		private Texture2D GetAchievementIconTexture(string spritePath)
-		{
-			if (string.IsNullOrEmpty(spritePath))
-			{
-				return null;
-			}
-
-			if (iconTextureCache.TryGetValue(spritePath, out Texture2D cachedTexture))
-			{
-				return cachedTexture;
-			}
-
-			Sprite iconSprite = Resources.Load<Sprite>(spritePath);
-			if (iconSprite == null)
-			{
-				ModernBoxLogger.Error("Achievement image not found: " + spritePath);
-				return null;
-			}
-
-			Texture2D iconTexture = SpriteToTexture2D(iconSprite);
-			iconTextureCache[spritePath] = iconTexture;
-			return iconTexture;
-		}
-
-		private static Texture2D SpriteToTexture2D(Sprite sprite)
+		private Texture2D SpriteToTexture2D(Sprite sprite)
 		{
 			if (sprite == null) return null;
 

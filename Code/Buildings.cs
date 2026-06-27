@@ -95,7 +95,7 @@ house.upgrade_to = "House_rain_alliance";
     if (hall != null)
     {
         hall.cost = new ConstructionCost(1, 0, 0, 0);
-        hall.max_houses = Mathf.Max(hall.max_houses, 8);
+        hall.max_houses = 1;
 hall.upgrade_level = 0;
 hall.can_be_upgraded = true;
 hall.upgrade_to = "Hall_rain_alliance";
@@ -321,7 +321,7 @@ AssetManager.buildings.add(Temple_rain_alliance);
 		Hall_rain_alliance.loot_generation = 3;
 		Hall_rain_alliance.ignore_other_buildings_for_upgrade = true;
 		Hall_rain_alliance.build_place_batch = true;
-		Hall_rain_alliance.max_houses = Mathf.Max(Hall_rain_alliance.max_houses, 12);
+		Hall_rain_alliance.max_houses = 1;
 		Hall_rain_alliance.produce_biome_food = true;
 		Hall_rain_alliance.setShadow(0.56f, 0.41f, 0.43f);
 		Hall_rain_alliance.draw_light_size = 0.3f;
@@ -572,13 +572,10 @@ allianceorder.requirements_types = AssetLibrary<CityBuildOrderAsset>.a<string>("
 allianceBuild.addUpgrade("order_bonfire_rain_alliance");
 allianceorder = allianceBuild.list.Last();
 allianceorder.requirements_types = AssetLibrary<CityBuildOrderAsset>.a<string>("type_hall");
-  allianceBuild.addUpgrade("order_bonfire_modern_alliance");
-  allianceorder = allianceBuild.list.Last();
-  allianceorder.requirements_types = AssetLibrary<CityBuildOrderAsset>.a<string>("type_hall");
-  allianceBuild.addUpgrade("order_bonfire_future_alliance");
-  allianceorder = allianceBuild.list.Last();
-  allianceorder.requirements_types = AssetLibrary<CityBuildOrderAsset>.a<string>("type_hall");
-  allianceorder = allianceBuild.addBuilding("order_stockpile", 1);
+allianceBuild.addUpgrade("order_bonfire_modern_alliance");
+allianceorder = allianceBuild.list.Last();
+allianceorder.requirements_types = AssetLibrary<CityBuildOrderAsset>.a<string>("type_hall");
+allianceorder = allianceBuild.addBuilding("order_stockpile", 1);
 allianceorder = allianceBuild.addBuilding("order_hall_0", 1);
 allianceorder.requirements_types = AssetLibrary<CityBuildOrderAsset>.a<string>("type_house");
 allianceBuild.addUpgrade("order_hall_0");
@@ -666,7 +663,7 @@ foreach (string hardenciv in hardencivs)
     if (hall != null)
     {
         hall.cost = new ConstructionCost(1, 0, 0, 0);
-        hall.max_houses = Mathf.Max(hall.max_houses, 8);
+        hall.max_houses = 1;
         hall.upgrade_level = 0;
         hall.can_be_upgraded = true;
         hall.upgrade_to = "Hall_rain_harden";
@@ -809,7 +806,7 @@ House_rain_harden.priority = 100;
 House_rain_harden.fundament = new BuildingFundament(1, 1, 2, 0);
 House_rain_harden.cost = new ConstructionCost(0, 0, 0, 0);
 House_rain_harden.group = "human";
-House_rain_harden.sprite_path = "buildings/House_rain_alliance";
+House_rain_harden.sprite_path = "buildings/House_rain_harden";
 House_rain_harden.base_stats["health"] = 5000f;
 House_rain_harden.burnable = false;
 House_rain_harden.has_sprites_main_disabled = false;
@@ -832,7 +829,7 @@ Barracks_rain_harden.priority = 100;
 Barracks_rain_harden.fundament = new BuildingFundament(2, 2, 2, 0);
 Barracks_rain_harden.cost = new ConstructionCost(0, 0, 0, 0);
 Barracks_rain_harden.group = "human";
-Barracks_rain_harden.sprite_path = "buildings/Barracks_rain_alliance";
+Barracks_rain_harden.sprite_path = "buildings/Barracks_rain_harden";
 Barracks_rain_harden.base_stats["health"] = 6000f;
 Barracks_rain_harden.burnable = false;
 Barracks_rain_harden.has_sprites_main_disabled = false;
@@ -868,7 +865,7 @@ Temple_rain_harden.sound_destroyed = "event:/SFX/BUILDINGS/DestroyBuildingStone"
 Temple_rain_harden.base_stats["health"] = 10000f;
 Temple_rain_harden.burnable = false;
 Temple_rain_harden.can_be_upgraded = false;
-Temple_rain_harden.sprite_path = "buildings/Temple_rain_alliance";
+Temple_rain_harden.sprite_path = "buildings/Temple_rain_harden";
 Temple_rain_harden.has_sprites_main_disabled = false;
 Temple_rain_harden.has_sprites_main = true;
 Temple_rain_harden.has_sprites_ruin = true;
@@ -892,7 +889,7 @@ Hall_rain_harden.housing_happiness = 10;
 Hall_rain_harden.loot_generation = 3;
 Hall_rain_harden.ignore_other_buildings_for_upgrade = true;
 Hall_rain_harden.build_place_batch = true;
-Hall_rain_harden.max_houses = Mathf.Max(Hall_rain_harden.max_houses, 12);
+Hall_rain_harden.max_houses = 1;
 Hall_rain_harden.produce_biome_food = true;
 Hall_rain_harden.setShadow(0.56f, 0.41f, 0.43f);
 Hall_rain_harden.draw_light_size = 0.3f;
@@ -904,7 +901,7 @@ Hall_rain_harden.sound_built = "event:/SFX/BUILDINGS/SpawnBuildingWood";
 Hall_rain_harden.sound_destroyed = "event:/SFX/BUILDINGS/DestroyBuildingWood";
 Hall_rain_harden.cost = new ConstructionCost(0, 0, 0, 0);
 Hall_rain_harden.group = "human";
-Hall_rain_harden.sprite_path = "buildings/Hall_rain_alliance";
+Hall_rain_harden.sprite_path = "buildings/Hall_rain_harden";
 Hall_rain_harden.has_sprites_main_disabled = false;
 Hall_rain_harden.has_sprites_main = true;
 Hall_rain_harden.has_sprites_ruin = true;
@@ -1146,9 +1143,6 @@ hardenorder.requirements_types = AssetLibrary<CityBuildOrderAsset>.a<string>("ty
 hardenBuild.addUpgrade("order_bonfire_modern_harden");
 hardenorder = hardenBuild.list.Last();
 hardenorder.requirements_types = AssetLibrary<CityBuildOrderAsset>.a<string>("type_hall");
-hardenBuild.addUpgrade("order_bonfire_future_harden");
-hardenorder = hardenBuild.list.Last();
-hardenorder.requirements_types = AssetLibrary<CityBuildOrderAsset>.a<string>("type_hall");
 hardenorder = hardenBuild.addBuilding("order_stockpile", 1);
 hardenorder = hardenBuild.addBuilding("order_hall_0", 1);
 hardenorder.requirements_types = AssetLibrary<CityBuildOrderAsset>.a<string>("type_house");
@@ -1238,7 +1232,7 @@ foreach (string gaiaciv in gaiacivs)
     if (hall != null)
     {
         hall.cost = new ConstructionCost(1, 0, 0, 0);
-        hall.max_houses = Mathf.Max(hall.max_houses, 8);
+        hall.max_houses = 1;
         hall.upgrade_level = 0;
         hall.can_be_upgraded = true;
         hall.upgrade_to = "Hall_rain_gaia";
@@ -1381,7 +1375,7 @@ House_rain_gaia.priority = 100;
 House_rain_gaia.fundament = new BuildingFundament(1, 1, 2, 0);
 House_rain_gaia.cost = new ConstructionCost(0, 0, 0, 0);
 House_rain_gaia.group = "human";
-House_rain_gaia.sprite_path = "buildings/House_rain_alliance";
+House_rain_gaia.sprite_path = "buildings/House_rain_gaia";
 House_rain_gaia.base_stats["health"] = 5000f;
 House_rain_gaia.burnable = false;
 House_rain_gaia.has_sprites_main_disabled = false;
@@ -1404,7 +1398,7 @@ Barracks_rain_gaia.priority = 100;
 Barracks_rain_gaia.fundament = new BuildingFundament(2, 2, 2, 0);
 Barracks_rain_gaia.cost = new ConstructionCost(0, 0, 0, 0);
 Barracks_rain_gaia.group = "human";
-Barracks_rain_gaia.sprite_path = "buildings/Barracks_rain_alliance";
+Barracks_rain_gaia.sprite_path = "buildings/Barracks_rain_gaia";
 Barracks_rain_gaia.base_stats["health"] = 6000f;
 Barracks_rain_gaia.burnable = false;
 Barracks_rain_gaia.has_sprites_main_disabled = false;
@@ -1440,7 +1434,7 @@ Temple_rain_gaia.sound_destroyed = "event:/SFX/BUILDINGS/DestroyBuildingStone";
 Temple_rain_gaia.base_stats["health"] = 10000f;
 Temple_rain_gaia.burnable = false;
 Temple_rain_gaia.can_be_upgraded = false;
-Temple_rain_gaia.sprite_path = "buildings/Temple_rain_alliance";
+Temple_rain_gaia.sprite_path = "buildings/Temple_rain_gaia";
 Temple_rain_gaia.has_sprites_main_disabled = false;
 Temple_rain_gaia.has_sprites_main = true;
 Temple_rain_gaia.has_sprites_ruin = true;
@@ -1464,7 +1458,7 @@ Hall_rain_gaia.housing_happiness = 10;
 Hall_rain_gaia.loot_generation = 3;
 Hall_rain_gaia.ignore_other_buildings_for_upgrade = true;
 Hall_rain_gaia.build_place_batch = true;
-Hall_rain_gaia.max_houses = Mathf.Max(Hall_rain_gaia.max_houses, 12);
+Hall_rain_gaia.max_houses = 1;
 Hall_rain_gaia.produce_biome_food = true;
 Hall_rain_gaia.setShadow(0.56f, 0.41f, 0.43f);
 Hall_rain_gaia.draw_light_size = 0.3f;
@@ -1476,7 +1470,7 @@ Hall_rain_gaia.sound_built = "event:/SFX/BUILDINGS/SpawnBuildingWood";
 Hall_rain_gaia.sound_destroyed = "event:/SFX/BUILDINGS/DestroyBuildingWood";
 Hall_rain_gaia.cost = new ConstructionCost(0, 0, 0, 0);
 Hall_rain_gaia.group = "human";
-Hall_rain_gaia.sprite_path = "buildings/Hall_rain_alliance";
+Hall_rain_gaia.sprite_path = "buildings/Hall_rain_gaia";
 Hall_rain_gaia.has_sprites_main_disabled = false;
 Hall_rain_gaia.has_sprites_main = true;
 Hall_rain_gaia.has_sprites_ruin = true;
@@ -1718,9 +1712,6 @@ gaiaorder.requirements_types = AssetLibrary<CityBuildOrderAsset>.a<string>("type
 gaiaBuild.addUpgrade("order_bonfire_modern_gaia");
 gaiaorder = gaiaBuild.list.Last();
 gaiaorder.requirements_types = AssetLibrary<CityBuildOrderAsset>.a<string>("type_hall");
-gaiaBuild.addUpgrade("order_bonfire_future_gaia");
-gaiaorder = gaiaBuild.list.Last();
-gaiaorder.requirements_types = AssetLibrary<CityBuildOrderAsset>.a<string>("type_hall");
 gaiaorder = gaiaBuild.addBuilding("order_stockpile", 1);
 gaiaorder = gaiaBuild.addBuilding("order_hall_0", 1);
 gaiaorder.requirements_types = AssetLibrary<CityBuildOrderAsset>.a<string>("type_house");
@@ -1810,7 +1801,7 @@ string[] hordecivs = new string[] { "orc", "necromancer", "civ_fox", "civ_wolf",
         if (hall != null)
         {
             hall.cost = new ConstructionCost(1, 0, 0, 0);
-            hall.max_houses = Mathf.Max(hall.max_houses, 8);
+            hall.max_houses = 1;
             hall.upgrade_level = 0;
             hall.can_be_upgraded = true;
             hall.upgrade_to = "Hall_rain_horde";
@@ -1953,7 +1944,7 @@ string[] hordecivs = new string[] { "orc", "necromancer", "civ_fox", "civ_wolf",
     House_rain_horde.fundament = new BuildingFundament(1, 1, 2, 0);
     House_rain_horde.cost = new ConstructionCost(0, 0, 0, 0);
     House_rain_horde.group = "human";
-    House_rain_horde.sprite_path = "buildings/House_rain_alliance";
+    House_rain_horde.sprite_path = "buildings/House_rain_horde";
     House_rain_horde.base_stats["health"] = 5000f;
     House_rain_horde.burnable = false;
     House_rain_horde.has_sprites_main_disabled = false;
@@ -1976,7 +1967,7 @@ string[] hordecivs = new string[] { "orc", "necromancer", "civ_fox", "civ_wolf",
     Barracks_rain_horde.fundament = new BuildingFundament(2, 2, 2, 0);
     Barracks_rain_horde.cost = new ConstructionCost(0, 0, 0, 0);
     Barracks_rain_horde.group = "human";
-    Barracks_rain_horde.sprite_path = "buildings/Barracks_rain_alliance";
+    Barracks_rain_horde.sprite_path = "buildings/Barracks_rain_horde";
     Barracks_rain_horde.base_stats["health"] = 6000f;
     Barracks_rain_horde.burnable = false;
     Barracks_rain_horde.has_sprites_main_disabled = false;
@@ -2012,7 +2003,7 @@ string[] hordecivs = new string[] { "orc", "necromancer", "civ_fox", "civ_wolf",
     Temple_rain_horde.base_stats["health"] = 10000f;
     Temple_rain_horde.burnable = false;
     Temple_rain_horde.can_be_upgraded = false;
-    Temple_rain_horde.sprite_path = "buildings/Temple_rain_alliance";
+    Temple_rain_horde.sprite_path = "buildings/Temple_rain_horde";
     Temple_rain_horde.has_sprites_main_disabled = false;
     Temple_rain_horde.has_sprites_main = true;
     Temple_rain_horde.has_sprites_ruin = true;
@@ -2036,7 +2027,7 @@ string[] hordecivs = new string[] { "orc", "necromancer", "civ_fox", "civ_wolf",
     Hall_rain_horde.loot_generation = 3;
     Hall_rain_horde.ignore_other_buildings_for_upgrade = true;
     Hall_rain_horde.build_place_batch = true;
-    Hall_rain_horde.max_houses = Mathf.Max(Hall_rain_horde.max_houses, 12);
+    Hall_rain_horde.max_houses = 1;
     Hall_rain_horde.produce_biome_food = true;
     Hall_rain_horde.setShadow(0.56f, 0.41f, 0.43f);
     Hall_rain_horde.draw_light_size = 0.3f;
@@ -2048,7 +2039,7 @@ string[] hordecivs = new string[] { "orc", "necromancer", "civ_fox", "civ_wolf",
     Hall_rain_horde.sound_destroyed = "event:/SFX/BUILDINGS/DestroyBuildingWood";
     Hall_rain_horde.cost = new ConstructionCost(0, 0, 0, 0);
     Hall_rain_horde.group = "human";
-    Hall_rain_horde.sprite_path = "buildings/Hall_rain_alliance";
+    Hall_rain_horde.sprite_path = "buildings/Hall_rain_horde";
     Hall_rain_horde.has_sprites_main_disabled = false;
     Hall_rain_horde.has_sprites_main = true;
     Hall_rain_horde.has_sprites_ruin = true;
@@ -2290,9 +2281,6 @@ string[] hordecivs = new string[] { "orc", "necromancer", "civ_fox", "civ_wolf",
     hordeBuild.addUpgrade("order_bonfire_modern_horde");
     hordeorder = hordeBuild.list.Last();
     hordeorder.requirements_types = AssetLibrary<CityBuildOrderAsset>.a<string>("type_hall");
-    hordeBuild.addUpgrade("order_bonfire_future_horde");
-    hordeorder = hordeBuild.list.Last();
-    hordeorder.requirements_types = AssetLibrary<CityBuildOrderAsset>.a<string>("type_hall");
     hordeorder = hordeBuild.addBuilding("order_stockpile", 1);
     hordeorder = hordeBuild.addBuilding("order_hall_0", 1);
     hordeorder.requirements_types = AssetLibrary<CityBuildOrderAsset>.a<string>("type_house");
@@ -2381,8 +2369,6 @@ necromancer.build_order_template_id = "build_order_horde_epochs";
 var greg = AssetManager.actor_library.get("greg");
 greg.build_order_template_id = "build_order_horde_epochs";
 
-   RegisterCustomHousePlacementAliases();
-
 
 
 
@@ -2392,47 +2378,6 @@ greg.build_order_template_id = "build_order_horde_epochs";
 
 
         }
-    private static void RegisterCustomHousePlacementAliases()
-    {
-        RegisterHousePlacementAlias("house_rain_alliance", "House_rain_alliance");
-        RegisterHousePlacementAlias("house_modern_alliance", "House_modern_alliance");
-        RegisterHousePlacementAlias("house_future_alliance", "House_future_alliance");
-
-        RegisterHousePlacementAlias("house_rain_harden", "House_rain_harden");
-        RegisterHousePlacementAlias("house_modern_harden", "House_modern_harden");
-        RegisterHousePlacementAlias("house_future_harden", "House_future_harden");
-
-        RegisterHousePlacementAlias("house_rain_gaia", "House_rain_gaia");
-        RegisterHousePlacementAlias("house_modern_gaia", "House_modern_gaia");
-        RegisterHousePlacementAlias("house_future_gaia", "House_future_gaia");
-
-        RegisterHousePlacementAlias("house_rain_horde", "House_rain_horde");
-        RegisterHousePlacementAlias("house_modern_horde", "House_modern_horde");
-        RegisterHousePlacementAlias("house_future_horde", "House_future_horde");
-    }
-
-    private static void RegisterHousePlacementAlias(string aliasId, string sourceId)
-    {
-        if (AssetManager.buildings.get(aliasId) != null)
-        {
-            return;
-        }
-
-        BuildingAsset source = AssetManager.buildings.get(sourceId);
-        if (source == null)
-        {
-            ModernBoxLogger.Warning($"[MOD] Could not create placement alias '{aliasId}' because source building '{sourceId}' was missing.");
-            return;
-        }
-
-        BuildingAsset alias = AssetManager.buildings.clone(aliasId, sourceId);
-        alias.type = source.type;
-        alias.group = source.group;
-        alias.sprite_path = source.sprite_path;
-        alias.atlas_asset = source.atlas_asset;
-        AssetManager.buildings.add(alias);
-    }
-
     private static void AddCustomOrdersToArchitectures()
     {
         var customOrders = new Dictionary<string, string> {
@@ -2735,6 +2680,10 @@ public static class Patch_CustomBuildOrder
             __result = AssetManager.buildings.get(buildingId);
             return false;
         }
+        if (order.StartsWith("order_"))
+        {
+            __result = null;
+        }
         return true;
     }
 }
@@ -2789,7 +2738,9 @@ public static class Patch_ArchitectureAsset_GetBuildingID
             __result = fallback;
             return false;
         }
-        return true;
+        ModernBoxLogger.Error($"[MOD] No mapping for build order '{pOrderID}' in architecture '{__instance.id}'");
+        __result = null;
+        return false;
     }
 }
  [HarmonyPatch(typeof(Docks), "buildBoatFromHere")]

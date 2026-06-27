@@ -16,36 +16,18 @@ namespace ModernBox
         private static GameObject spaceGameObject;
         private static List<GameObject> existingGameObjects = new List<GameObject>();
         private static bool isSpaceEnabled = false;
-        private static bool supportInitialized = false;
         public static bool startup = false;
         public static SpaceManager instance;
 		public static string otherfilePath;
 		private static MusicBox musicBox;
 		public PlayWavDirectly PlayWavDirectly = new PlayWavDirectly();
 
-        public static SpaceManager EnsureInstance()
-        {
-            if (instance != null)
-            {
-                return instance;
-            }
-
-            GameObject managerObject = new GameObject("ModernBoxSpaceManager");
-            return managerObject.AddComponent<SpaceManager>();
-        }
-
         private void Awake()
         {
-                if (instance != null && instance != this)
-                {
-                    Destroy(gameObject);
-                    return;
-                }
 
                 instance = this;
-                DontDestroyOnLoad(gameObject);
+                DontDestroyOnLoad(gameObject); 
 				InitializeMusicBox();
-                InitializeSpaceSupportIfNeeded();
         }
 
 		private void InitializeMusicBox()
@@ -62,18 +44,14 @@ namespace ModernBox
 			}
 		}
 
-        private void InitializeSpaceSupportIfNeeded()
+        private void Start()
         {
-            if (supportInitialized)
-            {
-                return;
-            }
-
-            supportInitialized = true;
 			ListObjectsWithDiscordTracker();
 			ModifyDiscordSetting(true);
             CleanUpModernBoxData(); 
-	    }
+
+
+	}
 
         public static void CleanUpModernBoxData()
         {
@@ -228,14 +206,8 @@ namespace ModernBox
 
         public static void EnableSpace()
         {
-            SpaceManager manager = EnsureInstance();
-            if (manager == null || isSpaceEnabled)
-            {
-                return;
-            }
-
-            manager.InitializeSpaceSupportIfNeeded();
-            manager.StartCoroutine(manager.EnableSpaceCoroutine());
+            if (instance == null || isSpaceEnabled) return;
+            instance.StartCoroutine(instance.EnableSpaceCoroutine());
         }
 
         private IEnumerator EnableSpaceCoroutine()

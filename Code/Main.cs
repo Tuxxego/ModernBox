@@ -22,6 +22,7 @@ using System.Threading.Tasks;
 using static Config;
 using System.Reflection.Emit;
 using UnityEngine.Tilemaps;
+using UnityEngine.Purchasing.MiniJSON;
 using System.Text.RegularExpressions;
 using System.Runtime.CompilerServices;
 using UnityEngine.CrashReportHandler;
@@ -49,6 +50,7 @@ using NeoModLoader.General;
 // using TuxModLoader.Builders;
 
 namespace ModernBox{
+    [ModEntry]
     class Main : MonoBehaviour{
         #region
         public static Main instance;
@@ -60,28 +62,21 @@ namespace ModernBox{
         public const string mainPath = "Mods/MX";
         public Buttonz Buttonz = new Buttonz();
         public PlayWavDirectly PlayWavDirectly = new PlayWavDirectly();
-        public SpaceManager SpaceManager;
-        public PlanetGenerator PlanetGenerator;
-        public AchievementManager AchievementManager;
-        public LocalizationManager LocalizationManager;
-        public BombUtilities testBombDebugger;
+        public SpaceManager SpaceManager = new SpaceManager();
+        public PlanetGenerator PlanetGenerator = new PlanetGenerator();
+        public AchievementManager AchievementManager = new AchievementManager();
+        public LocalizationManager LocalizationManager = new LocalizationManager();
+        public BombUtilities testBombDebugger = new BombUtilities();
         public Bombs Bombs = new Bombs();
-        public StatManager StatManager;
-        public UnitTracker UnitTracker;
-        public FirstTimeSetup FirstTimeSetup;
-        public StupidWorldboxia StupidWorldboxia;
+        public StatManager StatManager = new StatManager();
+        public UnitTracker UnitTracker = new UnitTracker();
+        public FirstTimeSetup FirstTimeSetup = new FirstTimeSetup();
+        public StupidWorldboxia StupidWorldboxia = new StupidWorldboxia();
         private static string correctSettingsVersion = "5.01"; 
         public const string settingsKey = "MBoxSettings"; 
         public static bool isNewVersion;
         public static SavedSettings savedSettings = new SavedSettings();
-        public static PizzaManager PizzaManager;
-        private const bool EnableStartupAssetPreload = false;
-        private const bool EnableRuntimeUiEffects = false;
-        private const string PreferredModernBoxFolderName = "M5TrainsUpdateBeta";
-        private bool modernBoxUiInitialized;
-
-        private static readonly FieldInfo LocalizedTextLanguageField = AccessTools.Field(typeof(LocalizedTextManager), "language");
-        private static readonly FieldInfo LocalizedTextDictionaryField = AccessTools.Field(typeof(LocalizedTextManager), "_localized_text");
+        public static PizzaManager PizzaManager = new PizzaManager();
 
         internal static string ModName
         {
@@ -92,36 +87,82 @@ namespace ModernBox{
         {
             try
             {
-                if (ShouldSuppressDuplicateBootstrap())
-                {
-                    ModernBoxLogger.Log("[MX] Legacy ModernBox copy detected in StreamingAssets. Bootstrap suppressed in favor of Mods\\M5TrainsUpdateBeta.");
-                    enabled = false;
-                    return;
-                }
-
-                instance = this;
-                ModernBoxLogger.Log("[MX] Main.Awake entered");
 	            loadSettings();
+
+                FuckWorldboxia();
 
                 harmony = new Harmony("com.Tuxxego.MX");
 
                 Assembly targetAssembly = Assembly.GetExecutingAssembly();
                 harmony.PatchAll(targetAssembly);
 
+                new TabBuilder()
+				.SetTabID("ModernBoxTab")
+				.SetName("ModernBox")
+				.SetDescription("Eras, Space, Politics, and more.")
+				.SetPosition(200)
+                .isAfrican(false)
+				.SetIcon("ui/icons/tabIconModernWarfare")
+				.Build();
+
+                new TabBuilder()
+				.SetTabID("ModernBoxUnits")
+				.SetName("ModernBox Units")
+				.SetDescription("A BUNCH of guys to spawn!")
+				.SetPosition(200)
+                .isAfrican(true)
+				.SetIcon("ui/icons/warhamma")
+				.Build();
+
+                new TabBuilder()
+				.SetTabID("ModernBoxBombs")
+				.SetName("ModernBox Bombs")
+				.SetDescription("A BUNCH of weapons made by foreign terrorists to spawn!")
+				.SetPosition(200)
+                .isAfrican(true)
+				.SetIcon("ui/icons/Overload")
+				.Build();
+
+                new TabBuilder()
+				.SetTabID("ModernBoxEras")
+				.SetName("ModernBox Eras")
+				.SetDescription("Everything related to eras!")
+				.SetPosition(200)
+                .isAfrican(true)
+				.SetIcon("ui/icons/Industrial")
+				.Build();
+
+                new TabBuilder()
+				.SetTabID("ModernBoxSpace")
+				.SetName("ModernBox Space")
+				.SetDescription("Explore the vastness of space!")
+				.SetPosition(200)
+                .isAfrican(true)
+				.SetIcon("Stars/Gravitonstar")
+				.Build();
+
+                new TabBuilder()
+				.SetTabID("ModernBoxItems")
+				.SetName("ModernBox Items")
+				.SetDescription("Toggle specific item types.")
+				.SetPosition(200)
+                .isAfrican(true)
+				.SetIcon("ui/icons/firearm")
+				.Build();
+
                 ModernBoxPrefs.Load();
 
             //    PowersTab tab = TabManager.CreateTab("ModernBox", "ModernBox", "Best Mod Ever", Resources.Load<Sprite>("ui/icon"));
 
-                  ModernBoxLogger.Log("[M2] Space Manager set to lazy-load.");
+                  ModernBoxLogger.Log("[M2] Space Manager starting...");
+                SpaceManager = gameObject.AddComponent<SpaceManager>();
+                ModernBoxLogger.Log("[M2] That big manager has started.");
         		AchievementManager = gameObject.AddComponent<AchievementManager>();
         		StatManager = gameObject.AddComponent<StatManager>();
-                if (EnableRuntimeUiEffects)
-                {
-                    gameObject.AddComponent<YourMomIsFat>();
-                }
+                gameObject.AddComponent<YourMomIsFat>();
         		UnitTracker = gameObject.AddComponent<UnitTracker>();
         		testBombDebugger = gameObject.AddComponent<BombUtilities>();
-                PizzaManager = gameObject.AddComponent<PizzaManager>();
+                gameObject.AddComponent<PizzaManager>();
                 ModernBoxLogger.Log("SpaceBoxModernBox: Pls no lag!");
 
                 ModernBoxLogger.Log("[MX] Initializing Bombs...");
@@ -151,6 +192,10 @@ namespace ModernBox{
                  AchievementsWindow.init();
                  ModernBoxLogger.Log("[MX] AchievementsWindow loaded!");
                                  Vehicles.init();
+                ModernBoxLogger.Log("[MX] Initializing Buttonz...");
+                Buttonz.Init();
+                ModernBoxLogger.Log("[MX] Buttonz loaded!");
+
                 ModernBoxLogger.Log("[MX] Initializing Zombies...");
                 Zombies.create_Zombies();
                 ModernBoxLogger.Log("[MX] Zombies loaded!");
@@ -172,135 +217,11 @@ namespace ModernBox{
             }
         }
 
-        private static bool ShouldSuppressDuplicateBootstrap()
-        {
-            try
-            {
-                string gameRoot = Directory.GetParent(Application.dataPath).FullName;
-                string preferredModJson = Path.Combine(gameRoot, "Mods", PreferredModernBoxFolderName, "mod.json");
-                return File.Exists(preferredModJson);
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
 
         void Start()
         {
-            InitializeEmbeddedTrainbox();
-            StartCoroutine(InitializeModernBoxUiWhenReady());
             InitializeComponents();
 
-        }
-
-        private void InitializeEmbeddedTrainbox()
-        {
-            try
-            {
-                string modsRoot = Path.Combine(Application.streamingAssetsPath, "mods");
-                string modFolder = Path.Combine(modsRoot, "M5TrainsUpdateBeta");
-                if (!Directory.Exists(modFolder))
-                {
-                    modFolder = Path.Combine(modsRoot, "M5OceansPlusKaijuBox");
-                }
-
-                if (!Directory.Exists(modFolder) && Directory.Exists(modsRoot))
-                {
-                    modFolder = Directory.GetDirectories(modsRoot)
-                        .FirstOrDefault(dir =>
-                            File.Exists(Path.Combine(dir, "Code", "choochoo.cs")) &&
-                            File.Exists(Path.Combine(dir, "Code", "Buttonz.cs")) &&
-                            File.Exists(Path.Combine(dir, "mod.json")));
-                }
-
-                global::Trainbox.Main.Bootstrap(modFolder);
-                ModernBoxLogger.Log("[MX] Embedded Trainbox bootstrap loaded.");
-            }
-            catch (Exception ex)
-            {
-                ModernBoxLogger.Error($"[MX] Embedded Trainbox bootstrap failed: {ex.Message}");
-                ModernBoxLogger.Error($"[MX] Embedded Trainbox bootstrap stack: {ex.StackTrace}");
-            }
-        }
-
-        private IEnumerator InitializeModernBoxUiWhenReady()
-        {
-            if (modernBoxUiInitialized)
-            {
-                yield break;
-            }
-
-            const int maxFramesToWait = 600;
-            int waited = 0;
-            while (waited < maxFramesToWait)
-            {
-                GameObject buttonOther = TabBuilder.FindAllGameObjectsCreditToNikonForThisFunctionBTW("button_other");
-                GameObject otherTab = TabBuilder.FindAllGameObjectsCreditToNikonForThisFunctionBTW("other");
-                if (buttonOther != null && otherTab != null && otherTab.GetComponent<PowersTab>() != null)
-                {
-                    break;
-                }
-
-                waited++;
-                yield return null;
-            }
-
-            BuildModernBoxTabsIfMissing();
-            yield return null;
-
-            try
-            {
-                ModernBoxLogger.Log("[MX] Initializing Buttonz...");
-                Buttonz.Init();
-                ModernBoxLogger.Log("[MX] Buttonz loaded!");
-                modernBoxUiInitialized = true;
-            }
-            catch (Exception ex)
-            {
-                ModernBoxLogger.Error($"[MX] Exception while initializing tabs/buttons: {ex.Message}");
-                ModernBoxLogger.Error($"[MX] Stack Trace: {ex.StackTrace}");
-            }
-        }
-
-        private static void BuildModernBoxTabsIfMissing()
-        {
-            EnsureTabBuilt("ModernBoxTab", "ModernBox", "Eras, Space, Politics, and more.", 128, false, true, null, "ui/icons/tabIconModernWarfare");
-            EnsureTabBuilt("ModernBoxUnits", "ModernBox Units", "A BUNCH of guys to spawn!", 200, true, false, "ModernBoxTab", "ui/icons/warhamma");
-            EnsureTabBuilt("ModernBoxBombs", "ModernBox Bombs", "A BUNCH of weapons made by foreign terrorists to spawn!", 200, true, false, "ModernBoxTab", "ui/icons/Overload");
-            EnsureTabBuilt("ModernBoxEras", "ModernBox Eras", "Everything related to eras!", 200, true, false, "ModernBoxTab", "ui/icons/Industrial");
-            EnsureTabBuilt("ModernBoxSpace", "ModernBox Space", "Explore the vastness of space!", 200, true, false, "ModernBoxTab", "Stars/Gravitonstar");
-            EnsureTabBuilt("ModernBoxItems", "ModernBox Items", "Toggle specific item types.", 200, true, false, "ModernBoxTab", "ui/icons/firearm");
-            EnsureTabBuilt("Tab_kaiju", "Kaiju", "Kaiju species and other crazy stuff", 200, true, false, "ModernBoxTab", "ui/icons/Godzilla");
-        }
-
-        private static void EnsureTabBuilt(string tabId, string tabName, string tabDescription, int positionX, bool isAfrican, bool toolbarVisible, string returnTabId, string iconPath)
-        {
-            if (GameObjects.FindEvenInactive(tabId) != null)
-            {
-                return;
-            }
-
-            TabBuilder builder = new TabBuilder()
-                .SetTabID(tabId)
-                .SetName(tabName)
-                .SetDescription(tabDescription)
-                .SetPosition(positionX)
-                .SetToolbarButtonVisible(toolbarVisible)
-                .SetIcon(iconPath);
-
-            if (isAfrican)
-            {
-                builder.isAfrican(true);
-            }
-
-            if (!string.IsNullOrEmpty(returnTabId))
-            {
-                builder.SetRepeatPressReturnTab(returnTabId);
-            }
-
-            builder.Build();
         }
 
         void InitializeComponents()
@@ -308,26 +229,24 @@ namespace ModernBox{
             try
             {
                 modsResources = Reflection.GetField(typeof(ResourcesPatch), null, "modsResources") as Dictionary<string, UnityEngine.Object>;
+                ModernBoxLogger.Log("Meow meow meow, FEED ME YOU MOTHERF");
+                ModernBoxLogger.Log("No thanks Morfos.");
+
                 Traits.init();
                Itemz.init();
 
                WeaponsProjectilesEffects.init();
+               WeaponsProjectilesEffects.FixAllWeapons();
 
 
                 Buildings.init();
-
-                Kaiju.init();
-                new KaijuUI().init();
 
 
                 instance = this;
 
                 PizzaWindow.init();
 
-                if (EnableStartupAssetPreload)
-                {
-                    PreloadHelpers.preloadBuildingSprites();
-                }
+                PreloadHelpers.preloadBuildingSprites();
                 ModernBoxLogger.Log("[MX] All components initialized successfully");
 
                 DateTime cutoffEastern = new DateTime(2025, 10, 18, 16, 5, 0, DateTimeKind.Unspecified);
@@ -373,6 +292,7 @@ namespace ModernBox{
                 }
                 else
                 {
+                    Debug.Log("⏰ NML is gay");
                 }
 
             }
@@ -400,96 +320,51 @@ namespace ModernBox{
 
         public static void StupidStuff()
         {
-            if (!EnableStartupAssetPreload)
-            {
-                return;
-            }
-
             WeaponsProjectilesEffects.FixAllWeapons();
             Type Stupid = typeof(DynamicSprites).Assembly.GetType("HandRendererTexturePreloader");
-            if (Stupid == null)
-            {
-                return;
-            }
-
             MethodInfo EvenMoreStupid = Stupid.GetMethod("preloadItemsIntoAtlas", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-            if (EvenMoreStupid == null)
-            {
-                return;
-            }
 
             EvenMoreStupid.Invoke(null, null);
         }
 
 
-
-
-
-    [HarmonyPatch(typeof(LocalizedTextManager), "getText", new Type[] { typeof(string), typeof(Text), typeof(bool) })]
-    public static class LocalizedTextManager_GetTextSafePatch
-    {
-        static bool Prefix(string pKey, ref string __result)
-        {
-            if (string.IsNullOrWhiteSpace(pKey))
-            {
-                __result = string.Empty;
-                return false;
-            }
-
-            LocalizedTextManager manager = LocalizedTextManager.instance;
-            if (manager == null)
-            {
-                __result = pKey;
-                return false;
-            }
-
-            string language = LocalizedTextLanguageField?.GetValue(manager) as string;
-            if (language == "boat")
-            {
-                __result = LocalizedTextManager.transformToBoat(pKey);
-                return false;
-            }
-
-            if (language == "keys")
-            {
-                __result = LocalizedTextManager.transformToKeys(pKey);
-                return false;
-            }
-
-            Dictionary<string, string> localizedTexts = LocalizedTextDictionaryField?.GetValue(manager) as Dictionary<string, string>;
-            if (localizedTexts != null && localizedTexts.TryGetValue(pKey, out string translation))
-            {
-                __result = translation;
-            }
-            else
-            {
-                if (pKey.IndexOf("_placeholder", StringComparison.Ordinal) >= 0)
-                {
-                    __result = string.Empty;
-                }
-                else
-                {
-                    __result = pKey;
-                }
-            }
-
-            if (pKey.StartsWith("world_law_", StringComparison.Ordinal))
-            {
-                __result = __result.Replace("\n\n", "\n");
-            }
-
-            return false;
-        }
-    }
-
-
-
-
-
         // from ancient warfare mod
         public static void FuckWorldboxia()
         {
-            // Disabled: do not override or load custom loading screen images.
+            string path = $"{Mod.Info.Path}/EmbededResources/LoadingScreenMX";
+
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+                ExportResources.init_LoadingScreen(path);
+                string filePath = Path.Combine(path, "ass.txt");
+                File.WriteAllText(filePath, "");
+            }
+
+            string[] files1 = Directory.GetDirectories(path);
+            if (files1.Length == 0)
+            {
+                ExportResources.init_LoadingScreen(path);
+            }
+            LoadingScreen transitionScreen = World.world.transition_screen;
+            transitionScreen.enabled = false;
+            Image backgroundImage = transitionScreen.background;
+            backgroundImage.type = Image.Type.Simple;
+            RectTransform backgroundRect = backgroundImage.GetComponent<RectTransform>();
+            backgroundRect.anchoredPosition = new Vector2(0, 0);
+            backgroundRect.sizeDelta = new Vector2(Screen.width, Screen.height);
+            var imageExtensions = new[] { ".png", ".jpg", ".jpeg", ".bmp", ".gif" };
+            var files = Directory
+                .GetFiles(path, "*.*")
+                .Where(s => imageExtensions.Any(s.EndsWith))
+                .ToList();
+            var randomGenerator = new System.Random();
+
+            var selectedFile = Path.GetFileName(files[randomGenerator.Next(files.Count)]);
+
+            backgroundImage.sprite = Toolbox.LoadSprite($"{path}/{selectedFile}");
+            transitionScreen.enabled = true;
+            StupidStuffOne();
         }
 
         public static void resetToDefaults()
@@ -549,8 +424,7 @@ namespace ModernBox{
 
             foreach (var key in keys)
             {
-                int defaultValue = savedSettings.boolOptions[key] ? 1 : 0;
-                savedSettings.boolOptions[key] = PlayerPrefs.GetInt(key, defaultValue) == 1;
+                savedSettings.boolOptions[key] = PlayerPrefs.GetInt(key) == 1;
             }
 
             return true;
@@ -572,7 +446,6 @@ namespace ModernBox{
             }
 
         }
-
     }
 
 

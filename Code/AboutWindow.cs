@@ -65,24 +65,10 @@ namespace ModernBox
             .SetFunction(openCreditsWindow)
             .Build();
 
-        new ButtonBuilder("openmodernboxtab")
-            .SetSprite(Resources.Load<Sprite>("ui/Icons/tabIconModernWarfare"))
-            .SetTitle("Open ModernBox Tab")
-            .SetDescription("Jump straight to the main ModernBox tab.")
-            .SetPosition(2, 2)
-            .SetType(ButtonType.Click)
-            .SetTransform(content.transform)
-            .SetFunction(openModernBoxTab)
-            .Build();
-
     }
             private static void openCreditsWindow() {
 
 			 Windows.ShowWindow("CreditsWindow");
              }
-
-            private static void openModernBoxTab() {
-                TabBuilder.SwitchTab("ModernBoxTab");
-            }
   }
 }

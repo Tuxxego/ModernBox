@@ -7,13 +7,6 @@ namespace ModernBox
     [HarmonyPatch(typeof(Actor), "calculateMainSprite")]
     public static class Patch_Actor_calculateMainSprite
     {
-        private const bool Enabled = false;
-
-        static bool Prepare()
-        {
-            return Enabled;
-        }
-
         static bool Prefix(Actor __instance, ref Sprite __result)
         {
             try

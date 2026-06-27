@@ -3,7 +3,6 @@ using UnityEngine.UI;
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
-using System;
 using NCMS;
 using NCMS.Utils;
 using ModernBox;
@@ -52,10 +51,6 @@ public class StatManager : MonoBehaviour
     private bool cursorVisible = true;
     private float cursorTimer = 0f;
     private string activeTypingLine = "";
-    private float nextStatScanAt = 0f;
-    private float nextLabelRefreshAt = 0f;
-    private const float StatScanIntervalSeconds = 2f;
-    private const float LabelRefreshIntervalSeconds = 0.75f;
 
     void Awake()
     {
@@ -66,43 +61,24 @@ public class StatManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        ApplySavedEraSettings();
     }
 
     void Start()
     {
-        RefreshPlanetStats();
-    }
-
-    public void ApplySavedEraSettings()
-    {
-        enableMedieval = IsEraEnabledByDefault("MedievalOption");
-        enableRenaissance = IsEraEnabledByDefault("RenaissanceOption");
-        enableModern = IsEraEnabledByDefault("ModernOption");
-        enableHyperfuture = IsEraEnabledByDefault("HyperfutureOption");
-    }
-
-    private static bool IsEraEnabledByDefault(string optionKey)
-    {
-        if (Main.savedSettings?.boolOptions != null &&
-            Main.savedSettings.boolOptions.TryGetValue(optionKey, out bool enabled))
-        {
-            return enabled;
-        }
-
-        return true;
+        currentPlanet = PlanetManager.instance.GetCurrentPlanet();
+        currentPlanetType = PlanetManager.instance.GetCurrentPlanetType();
     }
 
         public void toggleMedieval()
                 {
-                    SetMedievalEnabled(!enableMedieval);
+                    Main.modifyBoolOption("MedievalOption", PowerButtons.GetToggleValue("era_mediaval_toggle"));
+                    if (PowerButtons.GetToggleValue("era_mediaval_toggle"))
+                    {
+                        turnOnMedieval();
+                        return;
+                    }
+                    turnOffMedieval();
                 }
-
-        public void SetMedievalEnabled(bool enabled)
-        {
-            enableMedieval = enabled;
-            Main.modifyBoolOption("MedievalOption", enabled);
-        }
 
         public void turnOnMedieval()
         {
@@ -116,14 +92,14 @@ public class StatManager : MonoBehaviour
 
         public void toggleRenaissance()
                 {
-                    SetRenaissanceEnabled(!enableRenaissance);
+                    Main.modifyBoolOption("RenaissanceOption", PowerButtons.GetToggleValue("era_renaissance_toggle"));
+                    if (PowerButtons.GetToggleValue("era_renaissance_toggle"))
+                    {
+                        turnOnRenaissance();
+                        return;
+                    }
+                    turnOffRenaissance();
                 }
-
-        public void SetRenaissanceEnabled(bool enabled)
-        {
-            enableRenaissance = enabled;
-            Main.modifyBoolOption("RenaissanceOption", enabled);
-        }
 
         public void turnOnRenaissance()
         {
@@ -137,14 +113,18 @@ public class StatManager : MonoBehaviour
 
         public void toggleModern()
                 {
-                    SetModernEnabled(!enableModern);
+                    Main.modifyBoolOption("ModernOption", PowerButtons.GetToggleValue("era_modern_toggle"));
+                    if (PowerButtons.GetToggleValue("era_modern_toggle"))
+                    {
+                        turnOnModern();
+                        return;
+                    }
+                    Debug.Log(enableMedieval);
+                    Debug.Log(enableRenaissance);
+                    Debug.Log(enableModern);
+                    Debug.Log(enableHyperfuture);
+                    turnOffModern();
                 }
-
-        public void SetModernEnabled(bool enabled)
-        {
-            enableModern = enabled;
-            Main.modifyBoolOption("ModernOption", enabled);
-        }
 
         public void turnOnModern()
         {
@@ -158,22 +138,14 @@ public class StatManager : MonoBehaviour
 
         public void toggleHyperfuture()
                 {
-                    SetHyperfutureEnabled(!enableHyperfuture);
+                    Main.modifyBoolOption("HyperfutureOption", PowerButtons.GetToggleValue("era_hyperfuture_toggle"));
+                    if (PowerButtons.GetToggleValue("era_hyperfuture_toggle"))
+                    {
+                        turnOnHyperfuture();
+                        return;
+                    }
+                    turnOffHyperfuture();
                 }
-
-        public void SetHyperfutureEnabled(bool enabled)
-        {
-            enableHyperfuture = enabled;
-            Main.modifyBoolOption("HyperfutureOption", enabled);
-        }
-
-        public void EnableAllErasByDefault()
-        {
-            SetMedievalEnabled(true);
-            SetRenaissanceEnabled(true);
-            SetModernEnabled(true);
-            SetHyperfutureEnabled(true);
-        }
 
         public void turnOnHyperfuture()
         {
@@ -216,29 +188,38 @@ public class StatManager : MonoBehaviour
 
     public void SetEra(string era)
     {
-        eraoverride = string.IsNullOrWhiteSpace(era) ? null : era.ToLowerInvariant();
-        if (!string.IsNullOrEmpty(eraoverride))
-        {
-            Traits.ApplyEraOverrideToWorld(eraoverride);
-        }
+        eraoverride = era;
     }
 
     void Update()
     {
         timePlayed += Time.deltaTime;
 
-        bool shouldRefreshLabels = Time.time >= nextLabelRefreshAt;
-        if (Time.time >= nextStatScanAt)
+        int potentialUnits = 0;
+        foreach (Actor actor in MapBox.instance.units)
         {
-            RefreshPopulationStats();
-            nextStatScanAt = Time.time + StatScanIntervalSeconds;
-            shouldRefreshLabels = true;
+            if (actor != null && actor.hasTrait("Unitpotential"))
+            {
+                potentialUnits++;
+            }
+        }
+        currentVehicles = potentialUnits;
+
+        int zomboos = 0;
+        foreach (Actor actor in MapBox.instance.units)
+        {
+            if (actor != null && actor.hasTrait("zombie"))
+            {
+                zomboos++;
+            }
         }
 
         if (statLabel != null)
         {
-            if (shouldRefreshLabels && !isTyping)
+
+            if (!isTyping)
             {
+
                 statLabel.text = GoofyShit();
             }
 
@@ -267,7 +248,7 @@ public class StatManager : MonoBehaviour
             }
         }
 
-        if (shouldRefreshLabels && statLabel2 != null)
+        if (statLabel2 != null)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"<b>Current Era:</b> {currentEra}");
@@ -275,20 +256,13 @@ public class StatManager : MonoBehaviour
             statLabel2.text = sb.ToString();
         }
 
-        if (shouldRefreshLabels && statLabel3 != null)
+        if (statLabel3 != null)
         {
-            RefreshPlanetStats();
             StringBuilder sb = new StringBuilder();
-            int visitedPlanets = GetVisitedPlanetCount();
             sb.AppendLine($"<color=#70D4FC><b>Planet</b></color>  <color=#F0F0E0>{currentPlanet}</color>");
             sb.AppendLine($"<color=#70D4FC><b>Planet Type</b></color>  <color=#A8E08A>{currentPlanetType}</color>");
-            sb.AppendLine($"<color=#70D4FC><b>Planets Visited</b></color>  <color=#F0F0E0>{visitedPlanets}</color>");
+            sb.AppendLine($"<color=#70D4FC><b>Planets Visited</b></color>  <color=#F0F0E0>{PlanetManager.instance.getplanettotalcount()}</color>");
             statLabel3.text = sb.ToString();
-        }
-
-        if (shouldRefreshLabels)
-        {
-            nextLabelRefreshAt = Time.time + LabelRefreshIntervalSeconds;
         }
 
         if (glowingImage != null)
@@ -346,98 +320,6 @@ public class StatManager : MonoBehaviour
         }
     }
 
-    private void RefreshPopulationStats()
-    {
-        if (MapBox.instance?.units == null)
-        {
-            currentVehicles = 0;
-            zomboos = 0;
-            return;
-        }
-
-        int potentialUnits = 0;
-        int zombieUnits = 0;
-        foreach (Actor actor in MapBox.instance.units)
-        {
-            if (actor == null)
-            {
-                continue;
-            }
-
-            if (actor.hasTrait("Unitpotential"))
-            {
-                potentialUnits++;
-            }
-
-            if (actor.hasTrait("zombie"))
-            {
-                zombieUnits++;
-            }
-        }
-
-        currentVehicles = potentialUnits;
-        zomboos = zombieUnits;
-    }
-
-    private void RefreshPlanetStats()
-    {
-        PlanetManager planetManager = PlanetManager.instance;
-        if (planetManager == null)
-        {
-            currentPlanet = "Unknown";
-            currentPlanetType = "Unknown";
-            return;
-        }
-
-        string nextPlanet = SafeGetPlanetName(planetManager);
-        string nextPlanetType = SafeGetPlanetType(planetManager);
-
-        currentPlanet = string.IsNullOrWhiteSpace(nextPlanet) ? "Unknown" : nextPlanet;
-        currentPlanetType = string.IsNullOrWhiteSpace(nextPlanetType) ? "Unknown" : nextPlanetType;
-    }
-
-    private int GetVisitedPlanetCount()
-    {
-        PlanetManager planetManager = PlanetManager.instance;
-        if (planetManager == null)
-        {
-            return planetsVisited;
-        }
-
-        try
-        {
-            return planetManager.getplanettotalcount();
-        }
-        catch
-        {
-            return planetsVisited;
-        }
-    }
-
-    private static string SafeGetPlanetName(PlanetManager planetManager)
-    {
-        try
-        {
-            return planetManager?.GetCurrentPlanet();
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    private static string SafeGetPlanetType(PlanetManager planetManager)
-    {
-        try
-        {
-            return planetManager?.GetCurrentPlanetType();
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
     private string FormatTime(float time)
     {
         int totalSeconds = Mathf.FloorToInt(time);
@@ -474,11 +356,6 @@ public class StatManager : MonoBehaviour
 
     private IEnumerator TypeLine(string lineToType)
     {
-        if (statLabel == null)
-        {
-            yield break;
-        }
-
         isTyping = true;
         activeTypingLine = "";
 
@@ -489,12 +366,6 @@ public class StatManager : MonoBehaviour
 
         while (i < lineToType.Length)
         {
-            if (statLabel == null)
-            {
-                isTyping = false;
-                activeTypingLine = "";
-                yield break;
-            }
 
             if (lineToType[i] == '<')
             {
@@ -525,10 +396,7 @@ public class StatManager : MonoBehaviour
             yield return new WaitForSeconds(0.03f);
         }
 
-        if (statLabel != null)
-        {
-            statLabel.text = GoofyShit() + "\n" + visibleText.ToString();
-        }
+        statLabel.text = GoofyShit() + "\n" + visibleText.ToString();
 
         isTyping = false;
         activeTypingLine = "";

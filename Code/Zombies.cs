@@ -25,11 +25,6 @@ namespace ModernBox
 {
     class Zombies
     {
-        private const float ZombieCountRefreshSeconds = 1.5f;
-        private static float nextZombieCountRefreshAt;
-        private static object cachedZombieWorldToken;
-        private static int cachedZombieCount;
-
         public static void init(){
           create_Zombies();
         }
@@ -390,7 +385,15 @@ namespace ModernBox
 
         public static bool zombie_spawnerEffect(BaseSimObject pTarget, WorldTile pTile = null)
         {
-            if (GetZombieCount() > 3000)
+
+            int zombieCount = 0;
+            foreach (Actor a in MapBox.instance.units)
+            {
+                if (a != null && a.hasTrait("zombie"))
+                    zombieCount++;
+            }
+
+            if (zombieCount > 3000)
                 return false;
 
             Actor actor = pTarget?.a;
@@ -417,40 +420,6 @@ namespace ModernBox
             }
 
             return false;
-        }
-
-        private static int GetZombieCount()
-        {
-            object worldToken = World.world;
-            if (!ReferenceEquals(cachedZombieWorldToken, worldToken))
-            {
-                cachedZombieWorldToken = worldToken;
-                nextZombieCountRefreshAt = 0f;
-                cachedZombieCount = 0;
-            }
-
-            if (Time.time < nextZombieCountRefreshAt)
-            {
-                return cachedZombieCount;
-            }
-
-            nextZombieCountRefreshAt = Time.time + ZombieCountRefreshSeconds;
-            cachedZombieCount = 0;
-
-            if (MapBox.instance?.units == null)
-            {
-                return 0;
-            }
-
-            foreach (Actor actor in MapBox.instance.units)
-            {
-                if (actor != null && actor.hasTrait("zombie"))
-                {
-                    cachedZombieCount++;
-                }
-            }
-
-            return cachedZombieCount;
         }
 
     }

@@ -26,7 +26,7 @@ namespace ModernBox
 				
 	  private static PowersTab getPowersTab(string id) {
 		GameObject gameObject = GameObjects.FindEvenInactive(id);
-		return gameObject != null ? gameObject.GetComponent<PowersTab>() : null;
+		return gameObject.GetComponent<PowersTab>();
 	  }
         public static void init()
         {

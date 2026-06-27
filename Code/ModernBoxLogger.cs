@@ -47,6 +47,7 @@ public static class ModernBoxLogger
     public static void Log(string message)
     {
         string finalMessage = $"[ModernBox] {message}";
+        Debug.Log(finalMessage);
         normalLogs++;
         totalLogs++;
         AppendEntry(finalMessage);

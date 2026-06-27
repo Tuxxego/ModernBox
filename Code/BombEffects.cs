@@ -205,7 +205,7 @@ public class BombEffects
         TestyWesty.id = "fx_testy_westy";
         TestyWesty.use_basic_prefab = true;
         TestyWesty.sorting_layer_id = "EffectsTop";
-        TestyWesty.sprite_path = "effects/DankEffect";
+        TestyWesty.sprite_path = "Effects/TestyWesty";
         TestyWesty.show_on_mini_map = true;
         TestyWesty.draw_light_area = true;
         TestyWesty.draw_light_size = 2f;
@@ -218,7 +218,7 @@ public class BombEffects
         Kwell.id = "fx_kwell_1";
         Kwell.use_basic_prefab = true;
         Kwell.sorting_layer_id = "EffectsTop";
-        Kwell.sprite_path = "effects/greenplasmaboom";
+        Kwell.sprite_path = "Effects/Kwell";
         Kwell.show_on_mini_map = true;
         Kwell.draw_light_area = true;
         Kwell.draw_light_size = 2f;
@@ -231,7 +231,7 @@ public class BombEffects
         Kwell2.id = "fx_kwell_2";
         Kwell2.use_basic_prefab = true;
         Kwell2.sorting_layer_id = "EffectsTop";
-        Kwell2.sprite_path = "effects/blueplasmaboom";
+        Kwell2.sprite_path = "Effects/Kwell2";
         Kwell2.show_on_mini_map = true;
         Kwell2.draw_light_area = true;
         Kwell2.draw_light_size = 2f;
@@ -244,7 +244,7 @@ public class BombEffects
         StraightUp.id = "fx_upward_explosion";
         StraightUp.use_basic_prefab = true;
         StraightUp.sorting_layer_id = "EffectsTop";
-        StraightUp.sprite_path = "effects/N2explosion";
+        StraightUp.sprite_path = "Effects/ExplodingPillarThingy";
         StraightUp.show_on_mini_map = true;
         StraightUp.draw_light_area = true;
         StraightUp.draw_light_size = 2f;
@@ -257,7 +257,7 @@ public class BombEffects
         FilledMap.id = "fx_filled_map";
         FilledMap.use_basic_prefab = true;
         FilledMap.sorting_layer_id = "EffectsTop";
-        FilledMap.sprite_path = "effects/groundshake";
+        FilledMap.sprite_path = "Effects/MapFull";
         FilledMap.show_on_mini_map = true;
         FilledMap.draw_light_area = true;
         FilledMap.draw_light_size = 2f;
@@ -270,7 +270,7 @@ public class BombEffects
         GroundExplosion.id = "fx_ground_explosion";
         GroundExplosion.use_basic_prefab = true;
         GroundExplosion.sorting_layer_id = "EffectsTop";
-        GroundExplosion.sprite_path = "effects/explosion";
+        GroundExplosion.sprite_path = "Effects/GroundExplosion";
         GroundExplosion.show_on_mini_map = true;
         GroundExplosion.draw_light_area = true;
         GroundExplosion.draw_light_size = 2f;

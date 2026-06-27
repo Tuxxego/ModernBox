@@ -74,8 +74,6 @@ namespace ModernBox
                     .SetName("Pizza")
                     .SetDescription("Yeah uh, can I get a large... no, extra large pizza... but I want half of it deep-dish and the other half thin crust... but like, swirl 'em together? Also I want triple cheese, but only vegan cheese on the left side, and blue cheese drizzle on the right. Toppings? Yeah okay: I need double anchovies, pineapple rings stacked like Saturn’s rings, crushed jalapeño poppers, fried pickles, and six uncut mozzarella sticks buried under the sauce like treasure. And before you bake it, I want you to spell 'PIZZA GOD' in pepperoni. Also, crust has to be stuffed—with peanut butter. No substitutions. Oh—and can you lightly dust the whole thing with powdered sugar? My cousins on a weird diet. And put it in a box shaped like a hexagon. Thanks.")
                     .SetPosition(200)
-                    .SetToolbarButtonVisible(false)
-                    .SetRepeatPressReturnTab("ModernBoxTab")
                     .SetIcon("ui/icons/Pizza")
                     .Build();
                     
