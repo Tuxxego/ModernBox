@@ -1,8 +1,8 @@
 {
-    "name": "ModernBox 2",
+    "name": "ModernBox",
     "author": "Tuxxego",
-    "version": "2.1.0.1",
+    "version": "10.0.0",
     "targetGameBuild": 558,
-    "description": "Welcome to the Modern and Space Age.",
+    "description": "Welcome to the Modern Age.",
     "iconPath": "Icon.jpg"
 }

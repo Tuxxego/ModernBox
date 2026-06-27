@@ -1,4 +1,4 @@
-//========= MODERNBOX 2.1.0.1 ============//
+//========= MODERNBOX 10.0 ============//
 //
 // Made by Tuxxego
 //
@@ -22,9 +22,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Net.Http;
 using System.Threading.Tasks;
-using WorldBoxConsole;
-
-namespace M2
+namespace ModernBox
 {
  [ModEntry]
  class Main : MonoBehaviour
@@ -34,19 +32,14 @@ namespace M2
  public Commerce Commerce = new Commerce();
  public Resourcez Resourcez = new Resourcez();
  public static SavedSettings savedSettings = new SavedSettings();
- private static string correctSettingsVersion = "2.1.0.1";
+ private static string correctSettingsVersion = "10.0.0"; 
+ public DebugLogger DebugLogger = new DebugLogger();
  public ModernKingdoms ModernKingdoms = new ModernKingdoms();
- public const string settingsKey = "MBoxSettings";
- public SpaceManager SpaceManager = new SpaceManager();
- public PlanetGenerator PlanetGenerator = new PlanetGenerator();
- // public DeveloperConsole DeveloperConsole = new DeveloperConsole();
- public PlanetManager PlanetManager = new PlanetManager();
- public LocalizationManager LocalizationManager = new LocalizationManager ();
+ public NCMSChecker NCMSChecker = new NCMSChecker();
+ public const string settingsKey = "MBoxSettings"; 
  private AudioSource audioSource;
  public DeveloperMode DeveloperMode = new DeveloperMode();
  public static bool isNewVersion;
- public PlayWavDirectly PlayWavDirectly = new PlayWavDirectly();
-
  void PlayMP3(string fileName)
  {
  AudioClip clip = Resources.Load<AudioClip>(fileName);
@@ -63,242 +56,119 @@ namespace M2
  }
  static void PatchStuff()
  {
-// Harmony.CreateAndPatchAll(typeof(Docks));
- //Harmony.CreateAndPatchAll(typeof(BuildingRenderer));
- //Harmony.CreateAndPatchAll(typeof(City));
- //Harmony.CreateAndPatchAll(typeof(ProduceItemPatch));
- //Harmony.CreateAndPatchAll(typeof(TryProduceItemPatch));
- //Harmony.CreateAndPatchAll(typeof(setLanguage));
- var harmony = new Harmony("com.tuxxego.m2");
-	harmony.PatchAll();
+ Harmony.CreateAndPatchAll(typeof(Docks));
+ Harmony.CreateAndPatchAll(typeof(BuildingRenderer));
+ Harmony.CreateAndPatchAll(typeof(City));
+ Harmony.CreateAndPatchAll(typeof(ProduceItemPatch)); 
+ Harmony.CreateAndPatchAll(typeof(TryProduceItemPatch)); 
  Debug.Log("Loading ModernBox shit");
  }
 public void Awake()
 {
 	 loadSettings();
- NavalVehicles.init();
- Debug.Log("[M2] Mod Core has been called, booting mod core.");
-     tab.createTab("Button Tab_ModernBox", "Tab_ModernBox", "M2", "Guns, Vehicles, Drugs, Casinos, MIRVs, and SPACE. Welcome to the Modern Age.", -150);
 
-	         // Find the first instance of the WorldBoxConsole script in the scene
-        var worldBoxConsole = FindObjectOfType<WorldBoxConsole.Console>();
-        if (worldBoxConsole != null)
-        {
-            // Disable the script
-            worldBoxConsole.gameObject.SetActive(false);
-            Debug.Log("WorldBoxConsole script has been disabled.");
-        }
-        else
-        {
-            Debug.LogWarning("No GameObject with WorldBoxConsole script found in the scene.");
-        }
-
-LoadReplacement();
-
- Debug.Log("[M2] Loading SaveSystemWindow...");
+ Debug.Log("[ModernBox] Mod Core has been called, booting mod core.");
+ Debug.Log("[ModernBox] Adding DebugLogger component...");
+ DebugLogger = gameObject.AddComponent<DebugLogger>();
+ Debug.Log("[ModernBox] DebugLogger component added!");
+ Debug.Log("[ModernBox] Loading SaveSystemWindow...");
  SaveSystemWindow.init();
- Debug.Log("[M2] SaveSystemWindow loaded!");
- Debug.Log("[M2] Loading InfoWindow...");
+ Debug.Log("[ModernBox] SaveSystemWindow loaded!");
+ Debug.Log("[ModernBox] Loading InfoWindow...");
  InfoWindow.init();
- Debug.Log("[M2] InfoWindow loaded!");
- Debug.Log("[M2] Loading DiscordWindow...");
+ Debug.Log("[ModernBox] InfoWindow loaded!");
+ Debug.Log("[ModernBox] Loading DiscordWindow...");
  DiscordWindow.init();
- Debug.Log("[M2] DiscordWindow loaded!");
- Debug.Log("[M2] Loading GuideWindow...");
- GuideWindow.init();
- Debug.Log("[M2] GuideWindow loaded!");
- Debug.Log("[M2] Loading NukeWindow...");
+ Debug.Log("[ModernBox] DiscordWindow loaded!");
+ Debug.Log("[ModernBox] Loading NukeWindow...");
  NukeWindow.init();
- Debug.Log("[M2] NukeWindow loaded!");
- Debug.Log("[M2] Loading DeveloperWindow...");
+ Debug.Log("[ModernBox] NukeWindow loaded!");
+ Debug.Log("[ModernBox] Loading DeveloperWindow...");
  DeveloperWindow.init();
- Debug.Log("[M2] DeveloperWindow loaded!");
- Debug.Log("[M2] Patching stuff...");
+ Debug.Log("[ModernBox] DeveloperWindow loaded!");
+ Debug.Log("[ModernBox] Loading NCMSWindow...");
+ NCMSWindow.init();
+ Debug.Log("[ModernBox] NCMSWindow loaded!");
+ Debug.Log("[ModernBox] Patching stuff...");
  PatchStuff();
  Debug.Log("===============================");
- Debug.Log("ModernBox 2.1.0.1");
+ Debug.Log("ModernBox 10.0.0");
  Debug.Log("MADE BY TUXXEGO");
  Debug.Log("===============================");
- Debug.Log("[M2] Initializing Name...");
+ Debug.Log("[ModernBox] Initializing Name...");
  Name.init();
- Debug.Log("[M2] Name loaded!");
- Debug.Log("[M2] Initializing guns...");
+ Debug.Log("[ModernBox] Name loaded!");
+ Debug.Log("[ModernBox] Initializing guns...");
  guns.init();
- Debug.Log("[M2] guns loaded!");
- Debug.Log("[M2] Initializing MIRV...");
+ Debug.Log("[ModernBox] guns loaded!");
+ Debug.Log("[ModernBox] Initializing MIRV...");
  MIRV.init();
- Debug.Log("[M2] MIRV loaded!");
- Debug.Log("[M2] Initializing ModernKingdoms...");
+ Debug.Log("[ModernBox] MIRV loaded!");
+ Debug.Log("[ModernBox] Initializing ModernKingdoms...");
  ModernKingdoms.init();
- MedievalUnits.init();
- Debug.Log("[M2] ModernKingdoms loaded!");
- Debug.Log("[M2] Initializing cyberware...");
+ Debug.Log("[ModernBox] ModernKingdoms loaded!");
+ Debug.Log("[ModernBox] Initializing cyberware...");
  cyberware.init();
- Debug.Log("[M2] cyberware loaded!");
-   Debug.Log("[M2] Loading BombsWindow...");
- BombsWindow.init();
- Debug.Log("[M2] BombsWindow loaded!");
- Debug.Log("[M2] Initializing Buttonz...");
+ Debug.Log("[ModernBox] cyberware loaded!");
+ Debug.Log("[ModernBox] Initializing Buttonz...");
  Buttonz.init();
- Debug.Log("[M2] Buttonz loaded!");
- Debug.Log("[M2] Initializing tab...");
+ Debug.Log("[ModernBox] Buttonz loaded!");
+ Debug.Log("[ModernBox] Initializing tab...");
  tab.init();
- biomewaves.init();
- Debug.Log("[M2] tab loaded!");
- Debug.Log("[M2] Initializing MBTraitGroup...");
+ Debug.Log("[ModernBox] tab loaded!");
+ Debug.Log("[ModernBox] Initializing MBTraitGroup...");
  MBTraitGroup.init();
- Debug.Log("[M2] MBTraitGroup loaded!");
- Debug.Log("[M2] Initializing Traits...");
+ Debug.Log("[ModernBox] MBTraitGroup loaded!");
+ Debug.Log("[ModernBox] Initializing Ideologies...");
+ Ideologies.init();
+ Debug.Log("[ModernBox] Ideologies loaded!");
+ Debug.Log("[ModernBox] Initializing Traits...");
  Traits.init();
- Debug.Log("[M2] Traits loaded!");
- Debug.Log("[M2] Initializing Resourcez...");
+ Debug.Log("[ModernBox] Traits loaded!");
+ Debug.Log("[ModernBox] Initializing Resourcez...");
  Resourcez.init();
- Debug.Log("[M2] Resourcez loaded!");
- Debug.Log("[M2] Initializing Tech...");
+ Debug.Log("[ModernBox] Resourcez loaded!");
+ Debug.Log("[ModernBox] Initializing Tech...");
  Tech.init();
- Debug.Log("[M2] Tech loaded!");
- Debug.Log("[M2] Initializing Commerce...");
+ Debug.Log("[ModernBox] Tech loaded!");
+ Debug.Log("[ModernBox] Initializing Commerce...");
  Commerce.init();
- UpgradesUwU.init();
- Debug.Log("[M2] Commerce loaded!");
- Debug.Log("[M2] Initializing DefaultSettingsWindow...");
+ Debug.Log("[ModernBox] Commerce loaded!");
+ Debug.Log("[ModernBox] Initializing DefaultSettingsWindow...");
  DefaultSettingsWindow.init();
- Debug.Log("[M2] DefaultSettingsWindow loaded!");
- Debug.Log("[M2] Initializing CreditsWindow...");
+ Debug.Log("[ModernBox] DefaultSettingsWindow loaded!");
+ Debug.Log("[ModernBox] Initializing MajorUpdateWindow...");
+ MajorUpdateWindow.init();
  CreditsWindow.init();
- Debug.Log("[M2] CreditsWindow loaded!");
- Debug.Log("[M2] Initializing NewJobs...");
+ Debug.Log("[ModernBox] MajorUpdateWindow loaded!");
+ Debug.Log("[ModernBox] Initializing NewJobs...");
  NewJobs.init();
- Debug.Log("[M2] NewJobs loaded!");
- Debug.Log("[M2] Initializing Aircraft...");
+ Debug.Log("[ModernBox] NewJobs loaded!");
+ Debug.Log("[ModernBox] Initializing Aircraft...");
  Aircraft.init();
- Debug.Log("[M2] Aircraft loaded!");
- Debug.Log("[M2] Initializing LandVehicles...");
+ Debug.Log("[ModernBox] Aircraft loaded!");
+ Debug.Log("[ModernBox] Initializing LandVehicles...");
  LandVehicles.init();
- Debug.Log("[M2] LandVehicles loaded!");
- Debug.Log("[M2] Initializing ModernMilitary...");
+ Debug.Log("[ModernBox] LandVehicles loaded!");
+ Debug.Log("[ModernBox] Initializing ModernMilitary...");
  ModernMilitary.init();
- Debug.Log("[M2] ModernMilitary loaded!");
- Debug.Log("[M2] Initializing Drugs...");
+ Debug.Log("[ModernBox] ModernMilitary loaded!");
+ Debug.Log("[ModernBox] Initializing Drugs...");
  Drugs.init();
- Debug.Log("[M2] Drugs loaded!");
-
- Debug.Log("[M2] Initializing GoliathCannon...");
- GoliathCannon.init();
- Debug.Log("[M2] GoliathCannon loaded!");
-
-
-  Debug.Log("[M2] Initializing GoliathVehicles...");
- GoliathVehicles.init();
- Debug.Log("[M2] GoliathVehicles loaded!");
-
-  Debug.Log("[M2] Initializing Creatures...");
-  Creatures.init();
-  Debug.Log("[M2] Creatures loaded!");
-
-  Debug.Log("[M2] Space Manager starting...");
-  SpaceManager = gameObject.AddComponent<SpaceManager>();
-  Debug.Log("[M2] That big manager has started.");
-
-         Debug.Log("SpaceBoxModernBox: Pls no lag!");
-         //PatchStuff();
-
- // DeveloperConsole = gameObject.AddComponent<DeveloperConsole>();
-
-
-
-			MapGenTemplate ballsTemplate = new MapGenTemplate();
-
-   ballsTemplate.id = "ballsass";
-    ballsTemplate.values.add_center_gradient_land = true;
-    ballsTemplate.values.main_perlin_noise_stage = true;
-    ballsTemplate.values.perlin_noise_stage_2 = true;
-    ballsTemplate.values.perlin_noise_stage_3 = true;
-    ballsTemplate.values.add_mountain_edges = true;
-    ballsTemplate.values.remove_mountains = false;
-    ballsTemplate.allow_edit_low_ground = false;
-    ballsTemplate.allow_edit_high_ground = false;
-	AssetManager.map_gen_templates.newReplaceContainer(15);
-    AssetManager.map_gen_templates.addReplaceOption(170, TileLibrary.soil_high, TileLibrary.soil_low);
-    AssetManager.map_gen_templates.addReplaceOption(0, TileLibrary.shallow_waters, TileLibrary.soil_low);
-    AssetManager.map_gen_templates.addReplaceOption(0, TileLibrary.close_ocean, TileLibrary.soil_low);
-    AssetManager.map_gen_templates.addReplaceOption(0, TileLibrary.deep_ocean, TileLibrary.soil_high);
-	AssetManager.map_gen_templates.add(ballsTemplate);
-
-            ExportResources.loadMaterial();
-
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "monarchhuman");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "monarchelf");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "monarchorc");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "monarchdwarf");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "communisthuman");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "communistelf");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "communistorc");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "communistdwarf");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "fascisthuman");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "fascistelf");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "fascistorc");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "fascistdwarf");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "capitalisthuman");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "capitalistelf");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "capitalistorc");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "capitalistdwarf");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "anarchhuman");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "anarchelf");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "anarchorc");
-Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources", "anarchdwarf");
-
-
+ Debug.Log("[ModernBox] Drugs loaded!");
+ Debug.Log("[ModernBox] Initializing DebugLogger...");
+ DebugLogger.Initialize();
+ Debug.Log("[ModernBox] DebugLogger initialized!");
  audioSource = GetComponent<AudioSource>();
-// PlayMP3("file");
- Debug.Log("ModernBox 2.1.0.1: Loaded.");
+ PlayMP3("file");
+ Debug.Log("ModernBox 10.0.0: Loaded.");
+ NCMSChecker.CheckDLL();
  if (isNewVersion)
  {
- Debug.Log("[M2] Showing SaveSystemWindow...");
+ Debug.Log("[ModernBox] Showing SaveSystemWindow...");
  Windows.ShowWindow("SaveSystemWindow");
  }
 }
-
-
-
-// from ancient warfare mod
-        public static void LoadReplacement()
-        {
-            string path = $"{Mod.Info.Path}/EmbededResources/LoadingScreenM2";
-
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-                ExportResources.init_LoadingScreen(path);
-                string filePath = Path.Combine(path, "ass.txt");
-                File.WriteAllText(filePath, "");
-            }
-
-            string[] files1 = Directory.GetDirectories(path);
-            if (files1.Length == 0)
-            {
-                ExportResources.init_LoadingScreen(path);
-            }
-            LoadingScreen transitionScreen = World.world.transitionScreen;
-            transitionScreen.enabled = false;
-            Image backgroundImage = transitionScreen.background;
-            backgroundImage.type = Image.Type.Simple;
-            RectTransform backgroundRect = backgroundImage.GetComponent<RectTransform>();
-            backgroundRect.anchoredPosition = new Vector2(0, 0);
-            backgroundRect.sizeDelta = new Vector2(Screen.width, Screen.height);
-            var imageExtensions = new[] { ".png", ".jpg", ".jpeg", ".bmp", ".gif" };
-            var files = Directory
-                .GetFiles(path, "*.*")
-                .Where(s => imageExtensions.Any(s.EndsWith))
-                .ToList();
-            var randomGenerator = new System.Random();
-
-            var selectedFile = Path.GetFileName(files[randomGenerator.Next(files.Count)]);
-
-            backgroundImage.sprite = Toolbox.LoadSprite($"{path}/{selectedFile}");
-            transitionScreen.enabled = true;
-        }
-
  public static Building findNewBuildingTarget(City pCity, string pType)
  {
  return (Building)pCity.CallMethod("getBuildingType", pType, true, true);
@@ -306,7 +176,7 @@ Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources"
  public const string mainPath = "Mods/ModernBox";
  public static void resetToDefaults()
  {
- SavedSettings defaultSettings = new SavedSettings();
+ SavedSettings defaultSettings = new SavedSettings(); 
  Windows.ShowWindow("DefaultSettingsWindow");
  foreach (var option in defaultSettings.boolOptions)
  {
@@ -319,10 +189,10 @@ Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources"
  if (previousSettings != null && savedSettings.Equals(previousSettings))
  {
  Debug.Log("ModernBox: No changes to settings, skipping saving!");
- return;
+ return; 
  }
  Debug.Log("===============================");
- Debug.Log("ModernBox 2.1.0.1");
+ Debug.Log("ModernBox 10.0.0");
  Debug.Log("Changes were made, saving!");
  Debug.Log("===============================");
  foreach (var option in savedSettings.boolOptions)
@@ -359,7 +229,7 @@ Reflection.CallStaticMethod(typeof(BannerGenerator), "loadTexturesFromResources"
  {
  if (savedSettings.boolOptions.TryGetValue(key, out bool oldValue) && oldValue == value)
  {
- return;
+ return; 
  }
  Main.savedSettings.boolOptions[key] = value;
  saveSettings();
@@ -393,7 +263,7 @@ public class ProduceItemPatch
  static bool Prefix(ref bool __result, City __instance, Actor pActor, string pCreatorName, EquipmentType pType, int pTries)
  {
  if (!DeveloperMode.isDeveloperEnabled)
- return true;
+ return true; 
  Debug.Log($"[produceItem] Called with pActor: {pActor}, pCreatorName: {pCreatorName}, pType: {pType}, pTries: {pTries}");
  try
  {
@@ -403,7 +273,7 @@ public class ProduceItemPatch
  __result = false;
  return false;
  }
- List<ItemData> equipmentList = __instance.data?.storage?.getEquipmentList(pType);
+ List<ItemData> equipmentList = __instance.data?.storage?.getEquipmentList(pType); 
  if (equipmentList == null || equipmentList.Count >= __instance.status.maximumItems)
  {
  __result = false;
@@ -434,7 +304,7 @@ public class ProduceItemPatch
  }
  string pID = AssetManager.items.getEquipmentID(pType);
  if (pID == "weapon")
- pID = __instance.race?.preferred_weapons?.GetRandom<string>();
+ pID = __instance.race?.preferred_weapons?.GetRandom<string>(); 
  if (pID == null)
  {
  Debug.LogError("[produceItem] Error: pID is null");
@@ -460,7 +330,7 @@ public class ProduceItemPatch
  __result = false;
  return false;
  }
- ItemAsset materialForItem = __instance.data?.storage?.getMaterialForItem(pItemAsset, pLib, __instance);
+ ItemAsset materialForItem = __instance.data?.storage?.getMaterialForItem(pItemAsset, pLib, __instance); 
  if (materialForItem == null)
  {
  Debug.LogError($"[produceItem] Error: materialForItem is null for pItemAsset: {pItemAsset}, pLib: {pLib}");
@@ -508,7 +378,7 @@ public class TryProduceItemPatch
  static bool Prefix(ref bool __result, City __instance, Actor pActor, ItemProductionOrder pOrder)
  {
  if (!DeveloperMode.isDeveloperEnabled)
- return true;
+ return true; 
  Debug.Log($"[tryProduceItem] Called with pActor: {pActor}, pOrder: {pOrder}");
  try
  {
