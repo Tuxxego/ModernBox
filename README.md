@@ -42,3 +42,6 @@ Kaijus: 28 more kaijus have been added to the mod.
 - Kaijus are cached and refresh less often.
 - Removed achievement background logic that was wasting performance.
 - Improved zombies from a personal fixed build and merged the result into this mod.
+
+- ## HOW TO USE TRAINS
+- Rails do automatically build themselves and trains do spawn. But it's logic is awful. It is much more better you place the rails themselves. Use the spawn rail power and set the brush size to the lowest one. use the finger power to spread it it must be in a horizontal or vertical line. it cant be layered. Then spawn the train and it should work as intended.
