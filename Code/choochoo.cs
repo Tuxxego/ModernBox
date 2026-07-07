@@ -879,7 +879,7 @@ namespace Trainbox {
 
         internal static IEnumerable<long> EnumerateStopTileKeys() {
             EnsureWorldState();
-            return StopTileKeys;
+            return new List<long>(StopTileKeys);
         }
 
         internal static bool AreRailTilesConnected(WorldTile start, WorldTile target) {
@@ -1016,7 +1016,7 @@ namespace Trainbox {
                 ? GetReachableRailKeys(connectedToTile)
                 : null;
 
-            foreach (long key in StopTileKeys) {
+            foreach (long key in new List<long>(StopTileKeys)) {
                 WorldTile stopTile = GetTileByKey(key);
                 if (!IsStopTilePassive(stopTile)) {
                     continue;
@@ -1066,7 +1066,7 @@ namespace Trainbox {
 
             EnsureWorldState();
             HashSet<long> reachableKeys = GetReachableRailKeys(sourceStop);
-            foreach (long key in StopTileKeys) {
+            foreach (long key in new List<long>(StopTileKeys)) {
                 WorldTile stopTile = GetTileByKey(key);
                 if (stopTile == null || stopTile == sourceStop || !IsStopTilePassive(stopTile)) {
                     continue;
@@ -1293,12 +1293,27 @@ namespace Trainbox {
 
             EnsureWorldState();
             key = MakeTileKey(tile);
-            if (StopTileKeys.Contains(key)) {
-                isStop = true;
-                return true;
-            }
+            bool registeredStop = StopTileKeys.Contains(key);
+            bool registeredTrack = !registeredStop && TrackTileKeys.Contains(key);
+            if (registeredStop || registeredTrack) {
+                if (!HasPersistedRailTop(tile)) {
+                    RemoveTrackedRailKey(key);
+                    return false;
+                }
 
-            if (TrackTileKeys.Contains(key)) {
+                bool persistedStop = IsPersistedStop(tile);
+                if (registeredStop != persistedStop) {
+                    StopTileKeys.Remove(key);
+                    TrackTileKeys.Remove(key);
+                    if (persistedStop) {
+                        StopTileKeys.Add(key);
+                    } else {
+                        TrackTileKeys.Add(key);
+                    }
+                    _topologyVersion++;
+                }
+
+                isStop = persistedStop;
                 return true;
             }
 
@@ -1318,6 +1333,17 @@ namespace Trainbox {
             }
 
             return true;
+        }
+
+        private static bool RemoveTrackedRailKey(long key) {
+            bool changed = StopTileKeys.Remove(key);
+            changed |= TrackTileKeys.Remove(key);
+            if (changed) {
+                NextAppearanceRefreshByTileKey.Remove(key);
+                _topologyVersion++;
+            }
+
+            return changed;
         }
 
         private static void MaybeRefreshTrackedRailAppearance(WorldTile tile, long key, bool isStop) {
