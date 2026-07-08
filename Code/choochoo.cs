@@ -757,6 +757,14 @@ namespace Trainbox {
         private static FieldInfo _cityKingdomField;
         private static FieldInfo _worldTilesField;
         private static object _worldToken;
+        private static int _topologyVersion;
+
+        internal static int TopologyVersion {
+            get {
+                EnsureWorldState();
+                return _topologyVersion;
+            }
+        }
 
         internal static void Register() {
             if (TopTileLibrary.road == null || AssetManager.top_tiles.get(Main.RailTileId) != null) {
@@ -799,8 +807,11 @@ namespace Trainbox {
             tile.setTopTileType(railTop, true);
 
             long key = MakeTileKey(tile);
-            StopTileKeys.Remove(key);
-            TrackTileKeys.Add(key);
+            bool topologyChanged = StopTileKeys.Remove(key);
+            topologyChanged |= TrackTileKeys.Add(key);
+            if (topologyChanged) {
+                _topologyVersion++;
+            }
 
             MarkTileChanged(tile);
             return true;
@@ -821,8 +832,11 @@ namespace Trainbox {
             tile.setTopTileType(railTop, true);
 
             long key = MakeTileKey(tile);
-            TrackTileKeys.Remove(key);
-            StopTileKeys.Add(key);
+            bool topologyChanged = TrackTileKeys.Remove(key);
+            topologyChanged |= StopTileKeys.Add(key);
+            if (topologyChanged) {
+                _topologyVersion++;
+            }
 
             MarkTileChanged(tile);
             return true;
@@ -861,6 +875,11 @@ namespace Trainbox {
             TryAddNeighbour(list, tile?.tile_left);
             TryAddNeighbour(list, tile?.tile_right);
             return list;
+        }
+
+        internal static IEnumerable<long> EnumerateStopTileKeys() {
+            EnsureWorldState();
+            return new List<long>(StopTileKeys);
         }
 
         internal static bool AreRailTilesConnected(WorldTile start, WorldTile target) {
@@ -993,14 +1012,17 @@ namespace Trainbox {
             EnsureWorldState();
             WorldTile best = null;
             float bestScore = float.MaxValue;
+            HashSet<long> reachableKeys = connectedToTile != null
+                ? GetReachableRailKeys(connectedToTile)
+                : null;
 
-            foreach (long key in StopTileKeys) {
+            foreach (long key in new List<long>(StopTileKeys)) {
                 WorldTile stopTile = GetTileByKey(key);
                 if (!IsStopTilePassive(stopTile)) {
                     continue;
                 }
 
-                if (connectedToTile != null && !AreRailTilesConnected(connectedToTile, stopTile)) {
+                if (reachableKeys != null && !reachableKeys.Contains(key)) {
                     continue;
                 }
 
@@ -1014,19 +1036,43 @@ namespace Trainbox {
             return best;
         }
 
+        private static HashSet<long> GetReachableRailKeys(WorldTile start) {
+            HashSet<long> visited = new HashSet<long>();
+            if (!IsRailTilePassive(start)) {
+                return visited;
+            }
+
+            Queue<WorldTile> queue = new Queue<WorldTile>();
+            queue.Enqueue(start);
+            visited.Add(MakeTileKey(start));
+
+            while (queue.Count > 0) {
+                WorldTile current = queue.Dequeue();
+                foreach (WorldTile neighbour in GetTrackNeighbours(current)) {
+                    long key = MakeTileKey(neighbour);
+                    if (visited.Add(key)) {
+                        queue.Enqueue(neighbour);
+                    }
+                }
+            }
+
+            return visited;
+        }
+
         internal static bool HasAnotherConnectedStop(WorldTile sourceStop) {
             if (!IsStopTilePassive(sourceStop)) {
                 return false;
             }
 
             EnsureWorldState();
-            foreach (long key in StopTileKeys) {
+            HashSet<long> reachableKeys = GetReachableRailKeys(sourceStop);
+            foreach (long key in new List<long>(StopTileKeys)) {
                 WorldTile stopTile = GetTileByKey(key);
                 if (stopTile == null || stopTile == sourceStop || !IsStopTilePassive(stopTile)) {
                     continue;
                 }
 
-                if (AreRailTilesConnected(sourceStop, stopTile)) {
+                if (reachableKeys.Contains(key)) {
                     return true;
                 }
             }
@@ -1178,6 +1224,7 @@ namespace Trainbox {
             TrackTileKeys.Clear();
             StopTileKeys.Clear();
             NextAppearanceRefreshByTileKey.Clear();
+            _topologyVersion++;
 
             WorldTile[] tiles = GetWorldTiles();
             if (tiles == null) {
@@ -1246,12 +1293,27 @@ namespace Trainbox {
 
             EnsureWorldState();
             key = MakeTileKey(tile);
-            if (StopTileKeys.Contains(key)) {
-                isStop = true;
-                return true;
-            }
+            bool registeredStop = StopTileKeys.Contains(key);
+            bool registeredTrack = !registeredStop && TrackTileKeys.Contains(key);
+            if (registeredStop || registeredTrack) {
+                if (!HasPersistedRailTop(tile)) {
+                    RemoveTrackedRailKey(key);
+                    return false;
+                }
 
-            if (TrackTileKeys.Contains(key)) {
+                bool persistedStop = IsPersistedStop(tile);
+                if (registeredStop != persistedStop) {
+                    StopTileKeys.Remove(key);
+                    TrackTileKeys.Remove(key);
+                    if (persistedStop) {
+                        StopTileKeys.Add(key);
+                    } else {
+                        TrackTileKeys.Add(key);
+                    }
+                    _topologyVersion++;
+                }
+
+                isStop = persistedStop;
                 return true;
             }
 
@@ -1261,12 +1323,27 @@ namespace Trainbox {
 
             isStop = IsPersistedStop(tile);
             if (isStop) {
-                StopTileKeys.Add(key);
+                if (StopTileKeys.Add(key)) {
+                    _topologyVersion++;
+                }
             } else {
-                TrackTileKeys.Add(key);
+                if (TrackTileKeys.Add(key)) {
+                    _topologyVersion++;
+                }
             }
 
             return true;
+        }
+
+        private static bool RemoveTrackedRailKey(long key) {
+            bool changed = StopTileKeys.Remove(key);
+            changed |= TrackTileKeys.Remove(key);
+            if (changed) {
+                NextAppearanceRefreshByTileKey.Remove(key);
+                _topologyVersion++;
+            }
+
+            return changed;
         }
 
         private static void MaybeRefreshTrackedRailAppearance(WorldTile tile, long key, bool isStop) {
@@ -3442,21 +3519,38 @@ namespace Trainbox {
                 return false;
             }
 
-            if (source == candidate) {
-                return true;
-            }
+            try {
+                if (source.asset == null
+                    || candidate.asset == null
+                    || !source.isCiv()
+                    || !candidate.isCiv()) {
+                    return false;
+                }
 
-            if (source.isEnemy(candidate) || candidate.isEnemy(source)) {
+                if (source == candidate) {
+                    return true;
+                }
+
+                if (source.isEnemy(candidate) || candidate.isEnemy(source)) {
+                    return false;
+                }
+
+                Alliance sourceAlliance = source.getAlliance();
+                Alliance candidateAlliance = candidate.getAlliance();
+                if (sourceAlliance != null && sourceAlliance == candidateAlliance) {
+                    return true;
+                }
+
+                if (World.world?.diplomacy == null) {
+                    return false;
+                }
+
+                return source.isOpinionTowardsKingdomGood(candidate)
+                    && candidate.isOpinionTowardsKingdomGood(source);
+            }
+            catch {
                 return false;
             }
-
-            Alliance sourceAlliance = source.getAlliance();
-            Alliance candidateAlliance = candidate.getAlliance();
-            if (sourceAlliance != null && sourceAlliance == candidateAlliance) {
-                return true;
-            }
-
-            return source.isOpinionTowardsKingdomGood(candidate) && candidate.isOpinionTowardsKingdomGood(source);
         }
 
         private static bool IsKingdomAtPeace(Kingdom kingdom) {
@@ -4830,11 +4924,25 @@ namespace Trainbox {
         private const float AmbientStopIntervalSeconds = 5f;
         private const float AmbientStopDurationSeconds = 1.1f;
         private const float AmbientBoardRadius = 6f;
+        private const float DestinationSearchRetryInterval = 1f;
+
+        private sealed class CachedTrainRoute {
+            internal long DestinationKey;
+            internal int TopologyVersion;
+            internal List<long> TileKeys;
+            internal int NextIndex;
+        }
+
+        private sealed class RailReachabilitySnapshot {
+            internal readonly Dictionary<long, long> FirstStepByTile = new Dictionary<long, long>();
+        }
 
         private static readonly Dictionary<long, float> NextUpdateByTrain = new Dictionary<long, float>();
         private static readonly Dictionary<long, long> PreviousTileByTrain = new Dictionary<long, long>();
         private static readonly Dictionary<long, Vector2> LastForwardByTrain = new Dictionary<long, Vector2>();
         private static readonly Dictionary<long, long> TargetStopByTrain = new Dictionary<long, long>();
+        private static readonly Dictionary<long, CachedTrainRoute> CachedRouteByTrain = new Dictionary<long, CachedTrainRoute>();
+        private static readonly Dictionary<long, float> NextDestinationSearchAtByTrain = new Dictionary<long, float>();
         private static readonly Dictionary<long, int> LoadingTicksByTrain = new Dictionary<long, int>();
         private static readonly Dictionary<long, Boat> BoatByTrainId = new Dictionary<long, Boat>();
         private static readonly Dictionary<long, HashSet<Actor>> PassengerActorsByTrainId = new Dictionary<long, HashSet<Actor>>();
@@ -4893,6 +5001,8 @@ namespace Trainbox {
             PreviousTileByTrain.Remove(actor.id);
             LastForwardByTrain.Remove(actor.id);
             TargetStopByTrain.Remove(actor.id);
+            ClearCachedRoute(actor.id);
+            NextDestinationSearchAtByTrain.Remove(actor.id);
             LoadingTicksByTrain.Remove(actor.id);
             NextAmbientStopAtByTrain[actor.id] = Time.time + AmbientStopIntervalSeconds;
             AmbientStopResumeAtByTrain.Remove(actor.id);
@@ -4910,6 +5020,8 @@ namespace Trainbox {
 
         internal static void ResetLoadRecovery() {
             _loadRecoveryHandledForCurrentLoad = false;
+            CachedRouteByTrain.Clear();
+            NextDestinationSearchAtByTrain.Clear();
         }
 
         internal static void RecoverLoadedTrainBoats() {
@@ -4956,6 +5068,8 @@ namespace Trainbox {
             PreviousTileByTrain.Remove(actor.id);
             LastForwardByTrain.Remove(actor.id);
             TargetStopByTrain.Remove(actor.id);
+            ClearCachedRoute(actor.id);
+            NextDestinationSearchAtByTrain.Remove(actor.id);
             LoadingTicksByTrain.Remove(actor.id);
             NextAmbientStopAtByTrain.Remove(actor.id);
             AmbientStopResumeAtByTrain.Remove(actor.id);
@@ -5164,12 +5278,14 @@ namespace Trainbox {
 
             SetTaxiRequest(boat, request);
             SafeAssignTaxiRequest(request, boat);
+            SuppressPassengerBoardingAI(request);
             TargetStopByTrain[train.id] = RailTileRegistry.MakeTileKey(pickupStop);
             LoadingTicksByTrain.Remove(train.id);
             TrainboxDebug.Log($"Assigned request to train {train.id} for pickup at {pickupStop.x},{pickupStop.y}.");
         }
 
         private static void HandlePickupPhase(Actor train, Boat boat, life.taxi.TaxiRequest request) {
+            SuppressPassengerBoardingAI(request);
             WorldTile pickupStop = ResolveStopTarget(train, request.getTileStart());
             if (pickupStop == null) {
                 CancelCurrentRequest(train, boat, false);
@@ -5182,7 +5298,7 @@ namespace Trainbox {
             }
 
             request.setState(life.taxi.TaxiRequestState.Loading);
-            ForcePassengersToBoard(request);
+            ForcePassengersToBoard(train, boat, request);
             SyncPassengers(train);
 
             int loadingTicks = LoadingTicksByTrain.TryGetValue(train.id, out int currentTicks)
@@ -5249,6 +5365,7 @@ namespace Trainbox {
             SetTaxiRequest(boat, null);
             ClearTaxiTarget(boat);
             TargetStopByTrain.Remove(train.id);
+            ClearCachedRoute(train.id);
             LoadingTicksByTrain.Remove(train.id);
 
             SafeClearTasks(train);
@@ -5270,6 +5387,7 @@ namespace Trainbox {
             }
 
             TargetStopByTrain.Remove(train.id);
+            ClearCachedRoute(train.id);
             LoadingTicksByTrain.Remove(train.id);
         }
 
@@ -5343,6 +5461,7 @@ namespace Trainbox {
             NextAmbientStopAtByTrain[trainId] = now + AmbientStopDurationSeconds + AmbientStopIntervalSeconds;
             AmbientBoardedStopSequenceByTrain.Remove(trainId);
             TargetStopByTrain.Remove(trainId);
+            ClearCachedRoute(trainId);
             LoadingTicksByTrain.Remove(trainId);
 
             int beforeUnload = SafeBoatCountPassengers(boat);
@@ -5399,19 +5518,77 @@ namespace Trainbox {
             TrainboxDebug.Log($"Ambient boarding at train {train.id}: candidates={candidates.Count}, passengers={SafeBoatCountPassengers(boat)}.");
         }
 
-        private static void ForcePassengersToBoard(life.taxi.TaxiRequest request) {
+        private static List<Actor> GetRequestActorsSnapshot(life.taxi.TaxiRequest request) {
+            bool complete;
+            return GetRequestActorsSnapshot(request, out complete);
+        }
+
+        private static List<Actor> GetRequestActorsSnapshot(life.taxi.TaxiRequest request, out bool complete) {
+            complete = false;
+            List<Actor> actors = new List<Actor>();
+            if (request == null) {
+                return actors;
+            }
+
+            try {
+                foreach (Actor actor in request.getActors()) {
+                    actors.Add(actor);
+                }
+                complete = true;
+            }
+            catch {
+                complete = actors.Count > 0;
+            }
+
+            return actors;
+        }
+
+        private static void SuppressPassengerBoardingAI(life.taxi.TaxiRequest request) {
             if (request == null) {
                 return;
             }
 
-            foreach (Actor actor in request.getActors()) {
+            foreach (Actor actor in GetRequestActorsSnapshot(request)) {
                 if (actor == null || !actor.isAlive() || SafeActorIsInsideBoat(actor) || actor.isFighting()) {
                     continue;
                 }
 
                 actor.stopSleeping();
                 SafeCancelAllBeh(actor);
-                actor.setTask("force_into_a_boat", true, false, false);
+                SafeClearTasks(actor);
+                actor.makeWait(0.2f);
+            }
+        }
+
+        private static void ForcePassengersToBoard(
+            Actor train,
+            Boat boat,
+            life.taxi.TaxiRequest request
+        ) {
+            if (train?.current_tile == null || boat == null || request == null) {
+                return;
+            }
+
+            foreach (Actor actor in GetRequestActorsSnapshot(request)) {
+                if (SafeBoatCountPassengers(boat) >= PassengerCapacity) {
+                    break;
+                }
+
+                if (actor == null || !actor.isAlive() || SafeActorIsInsideBoat(actor) || actor.isFighting()) {
+                    continue;
+                }
+
+                actor.stopSleeping();
+                SafeCancelAllBeh(actor);
+                SafeClearTasks(actor);
+                SnapPassengerToTrain(train, actor);
+                SafeEmbarkIntoBoat(actor, boat);
+                if (SafeActorIsInsideBoat(actor) && SafeActorInsideBoat(actor) == boat) {
+                    SnapPassengerToTrain(train, actor);
+                } else {
+                    SafeClearTasks(actor);
+                    actor.makeWait(0.2f);
+                }
             }
         }
 
@@ -5447,6 +5624,10 @@ namespace Trainbox {
                 return false;
             }
 
+            if (!IsCivilizationKingdom(train.kingdom) || !IsCivilizationKingdom(actor.kingdom)) {
+                return false;
+            }
+
             if (!IsSameOrFriendlyKingdom(train.kingdom, actor.kingdom)) {
                 return false;
             }
@@ -5470,10 +5651,10 @@ namespace Trainbox {
             SafeCancelAllBeh(rider);
             SafeClearTasks(rider);
             SnapPassengerToTrain(train, rider);
-            rider.setTask("force_into_a_boat", true, false, false);
             SafeEmbarkIntoBoat(rider, boat);
-            if (!SafeActorIsInsideBoat(rider)) {
-                rider.setTask("force_into_a_boat", true, false, false);
+            if (!SafeActorIsInsideBoat(rider) || SafeActorInsideBoat(rider) != boat) {
+                SafeClearTasks(rider);
+                rider.makeWait(0.2f);
                 TrainboxDebug.Log($"Ambient rider {rider.id} failed to embark train {train.id}.");
                 return false;
             }
@@ -5497,11 +5678,9 @@ namespace Trainbox {
                 if (cachedStop != null
                     && cachedStop != train.current_tile
                     && RailTileRegistry.IsStopTilePassive(cachedStop)
-                    && RailTileRegistry.AreRailTilesConnected(train.current_tile, cachedStop)) {
-                    WorldTile cachedFirstStep = FindNextStepToward(train.current_tile, cachedStop, previousKey);
-                    if (cachedFirstStep != null && !IsImmediateReverseStep(cachedFirstStep, previousKey)) {
-                        return cachedStop;
-                    }
+                    && TryPeekCachedRouteStep(train, cachedStop, previousKey, out WorldTile cachedFirstStep)
+                    && !IsImmediateReverseStep(cachedFirstStep, previousKey)) {
+                    return cachedStop;
                 }
             }
 
@@ -5509,6 +5688,7 @@ namespace Trainbox {
             float bestForwardScore = float.MinValue;
             WorldTile bestReverseStop = null;
             float bestReverseScore = float.MinValue;
+            RailReachabilitySnapshot reachability = BuildRailReachability(train.current_tile);
 
             foreach (long key in GetStopTileKeys()) {
                 WorldTile stopTile = RailTileRegistry.GetTileByKey(key);
@@ -5516,12 +5696,8 @@ namespace Trainbox {
                     continue;
                 }
 
-                if (!RailTileRegistry.AreRailTilesConnected(train.current_tile, stopTile)) {
-                    continue;
-                }
-
-                WorldTile firstStep = FindNextStepToward(train.current_tile, stopTile, previousKey);
-                if (firstStep == null || firstStep == train.current_tile) {
+                WorldTile firstStep = GetReachableFirstStep(reachability, stopTile);
+                if (firstStep == null) {
                     continue;
                 }
 
@@ -5552,10 +5728,18 @@ namespace Trainbox {
                 return null;
             }
 
+            bool hasCachedTarget = TargetStopByTrain.ContainsKey(train.id);
+            if (!hasCachedTarget
+                && NextDestinationSearchAtByTrain.TryGetValue(train.id, out float nextSearchAt)
+                && Time.time < nextSearchAt) {
+                return null;
+            }
+
             if (HasMilitaryPassengers(boat)) {
                 WorldTile warStop = FindBestConnectedStop(train, IsWarDestinationStop, true);
                 if (warStop != null) {
                     TargetStopByTrain[train.id] = RailTileRegistry.MakeTileKey(warStop);
+                    NextDestinationSearchAtByTrain.Remove(train.id);
                     return warStop;
                 }
             }
@@ -5563,10 +5747,20 @@ namespace Trainbox {
             WorldTile friendlyStop = FindBestConnectedStop(train, IsFriendlyCityDestinationStop, true);
             if (friendlyStop != null) {
                 TargetStopByTrain[train.id] = RailTileRegistry.MakeTileKey(friendlyStop);
+                NextDestinationSearchAtByTrain.Remove(train.id);
                 return friendlyStop;
             }
 
-            return ResolveAmbientDestinationStop(train);
+            WorldTile ambientStop = ResolveAmbientDestinationStop(train);
+            if (ambientStop != null) {
+                NextDestinationSearchAtByTrain.Remove(train.id);
+                return ambientStop;
+            }
+
+            TargetStopByTrain.Remove(train.id);
+            ClearCachedRoute(train.id);
+            NextDestinationSearchAtByTrain[train.id] = Time.time + DestinationSearchRetryInterval;
+            return null;
         }
 
         private static WorldTile FindBestConnectedStop(Actor train, Func<Actor, WorldTile, bool> filter, bool preferDifferentCity) {
@@ -5579,10 +5773,22 @@ namespace Trainbox {
                 : long.MinValue;
             City currentCity = train.current_tile.zone?.city;
 
+            if (TargetStopByTrain.TryGetValue(train.id, out long cachedKey)) {
+                WorldTile cachedStop = RailTileRegistry.GetTileByKey(cachedKey);
+                if (cachedStop != null
+                    && cachedStop != train.current_tile
+                    && RailTileRegistry.IsStopTilePassive(cachedStop)
+                    && filter(train, cachedStop)
+                    && TryPeekCachedRouteStep(train, cachedStop, previousKey, out _)) {
+                    return cachedStop;
+                }
+            }
+
             WorldTile bestPreferredStop = null;
             float bestPreferredScore = float.MinValue;
             WorldTile bestFallbackStop = null;
             float bestFallbackScore = float.MinValue;
+            RailReachabilitySnapshot reachability = BuildRailReachability(train.current_tile);
 
             foreach (long key in GetStopTileKeys()) {
                 WorldTile stopTile = RailTileRegistry.GetTileByKey(key);
@@ -5590,12 +5796,12 @@ namespace Trainbox {
                     continue;
                 }
 
-                if (!RailTileRegistry.AreRailTilesConnected(train.current_tile, stopTile) || !filter(train, stopTile)) {
+                if (!filter(train, stopTile)) {
                     continue;
                 }
 
-                WorldTile firstStep = FindNextStepToward(train.current_tile, stopTile, previousKey);
-                if (firstStep == null || firstStep == train.current_tile) {
+                WorldTile firstStep = GetReachableFirstStep(reachability, stopTile);
+                if (firstStep == null) {
                     continue;
                 }
 
@@ -5623,6 +5829,50 @@ namespace Trainbox {
             }
 
             return bestPreferredStop ?? bestFallbackStop;
+        }
+
+        private static RailReachabilitySnapshot BuildRailReachability(WorldTile startTile) {
+            RailReachabilitySnapshot snapshot = new RailReachabilitySnapshot();
+            if (!RailTileRegistry.IsRailTilePassive(startTile)) {
+                return snapshot;
+            }
+
+            Queue<WorldTile> queue = new Queue<WorldTile>();
+            HashSet<long> visited = new HashSet<long>();
+            long startKey = RailTileRegistry.MakeTileKey(startTile);
+
+            queue.Enqueue(startTile);
+            visited.Add(startKey);
+
+            while (queue.Count > 0) {
+                WorldTile current = queue.Dequeue();
+                long currentKey = RailTileRegistry.MakeTileKey(current);
+
+                foreach (WorldTile neighbour in RailTileRegistry.GetTrackNeighbours(current)) {
+                    long neighbourKey = RailTileRegistry.MakeTileKey(neighbour);
+                    if (!visited.Add(neighbourKey)) {
+                        continue;
+                    }
+
+                    snapshot.FirstStepByTile[neighbourKey] = currentKey == startKey
+                        ? neighbourKey
+                        : snapshot.FirstStepByTile[currentKey];
+                    queue.Enqueue(neighbour);
+                }
+            }
+
+            return snapshot;
+        }
+
+        private static WorldTile GetReachableFirstStep(RailReachabilitySnapshot snapshot, WorldTile destination) {
+            if (snapshot == null || destination == null) {
+                return null;
+            }
+
+            long destinationKey = RailTileRegistry.MakeTileKey(destination);
+            return snapshot.FirstStepByTile.TryGetValue(destinationKey, out long firstStepKey)
+                ? RailTileRegistry.GetTileByKey(firstStepKey)
+                : null;
         }
 
         private static bool IsFriendlyCityDestinationStop(Actor train, WorldTile stopTile) {
@@ -5814,6 +6064,7 @@ namespace Trainbox {
             }
 
             TargetStopByTrain.Remove(train.id);
+            ClearCachedRoute(train.id);
             PreviousTileByTrain[train.id] = currentKey;
             SnapTrainToTile(train, nextTile);
             SyncPassengers(train); // keep riders glued on for now
@@ -5836,19 +6087,30 @@ namespace Trainbox {
             }
 
             TargetStopByTrain.Remove(train.id);
+            ClearCachedRoute(train.id);
             SnapTrainToTile(train, nearestRail);
             return true;
         }
 
         private static IEnumerable<long> GetStopTileKeys() {
-            FieldInfo stopKeysField = typeof(RailTileRegistry).GetField(
-                "StopTileKeys",
-                BindingFlags.Static | BindingFlags.NonPublic);
-            return stopKeysField?.GetValue(null) as IEnumerable<long> ?? Array.Empty<long>();
+            return RailTileRegistry.EnumerateStopTileKeys();
+        }
+
+        private static bool IsCivilizationKingdom(Kingdom kingdom) {
+            if (kingdom == null || kingdom.asset == null) {
+                return false;
+            }
+
+            try {
+                return kingdom.isCiv();
+            }
+            catch {
+                return false;
+            }
         }
 
         private static bool IsSameOrFriendlyKingdom(Kingdom a, Kingdom b) {
-            if (a == null || b == null) {
+            if (!IsCivilizationKingdom(a) || !IsCivilizationKingdom(b)) {
                 return false;
             }
 
@@ -5856,17 +6118,27 @@ namespace Trainbox {
                 return true;
             }
 
-            if (a.isEnemy(b) || b.isEnemy(a)) {
+            try {
+                if (a.isEnemy(b) || b.isEnemy(a)) {
+                    return false;
+                }
+
+                Alliance aAlliance = a.getAlliance();
+                Alliance bAlliance = b.getAlliance();
+                if (aAlliance != null && aAlliance == bAlliance) {
+                    return true;
+                }
+
+                if (World.world?.diplomacy == null) {
+                    return false;
+                }
+
+                return a.isOpinionTowardsKingdomGood(b) && b.isOpinionTowardsKingdomGood(a);
+            }
+            catch {
+                // Diplomacy relations are not defined for every transient kingdom.
                 return false;
             }
-
-            Alliance aAlliance = a.getAlliance();
-            Alliance bAlliance = b.getAlliance();
-            if (aAlliance != null && aAlliance == bAlliance) {
-                return true;
-            }
-
-            return a.isOpinionTowardsKingdomGood(b) && b.isOpinionTowardsKingdomGood(a);
         }
 
         private static Kingdom GetCityKingdom(City city) {
@@ -5895,7 +6167,7 @@ namespace Trainbox {
         }
 
         private static void MoveTrainToward(Actor train, WorldTile targetStop) {
-            if (train == null || targetStop == null) {
+            if (train?.current_tile == null || targetStop == null) {
                 return;
             }
 
@@ -5904,8 +6176,17 @@ namespace Trainbox {
                 ? cachedPrevious
                 : long.MinValue;
 
-            WorldTile nextTile = FindNextStepToward(train.current_tile, targetStop, previousKey);
-            if (nextTile == null) {
+            bool usingCachedRoute = TryPeekCachedRouteStep(train, targetStop, previousKey, out WorldTile nextTile);
+            if (usingCachedRoute && IsImmediateReverseStep(nextTile, previousKey)) {
+                WorldTile forwardAlternative = PickPatrolNeighbour(train.current_tile, previousKey);
+                if (forwardAlternative != null && forwardAlternative != nextTile) {
+                    ClearCachedRoute(train.id);
+                    nextTile = forwardAlternative;
+                    usingCachedRoute = false;
+                }
+            }
+
+            if (!usingCachedRoute) {
                 nextTile = PickPatrolNeighbour(train.current_tile, previousKey);
             }
 
@@ -5915,6 +6196,12 @@ namespace Trainbox {
 
             PreviousTileByTrain[train.id] = currentKey;
             SnapTrainToTile(train, nextTile);
+            if (usingCachedRoute
+                && CachedRouteByTrain.TryGetValue(train.id, out CachedTrainRoute route)
+                && route.NextIndex < route.TileKeys.Count
+                && route.TileKeys[route.NextIndex] == RailTileRegistry.MakeTileKey(nextTile)) {
+                route.NextIndex++;
+            }
             SyncPassengers(train);
         }
 
@@ -5926,10 +6213,21 @@ namespace Trainbox {
             if (TargetStopByTrain.TryGetValue(train.id, out long key)) {
                 WorldTile cachedStop = RailTileRegistry.GetTileByKey(key);
                 if (RailTileRegistry.IsStopTilePassive(cachedStop)
-                    && RailTileRegistry.AreRailTilesConnected(train.current_tile, cachedStop)
                     && (targetTile == null || cachedStop.isSameIsland(targetTile))) {
-                    return cachedStop;
+                    if (cachedStop == train.current_tile) {
+                        return cachedStop;
+                    }
+
+                    long previousKey = PreviousTileByTrain.TryGetValue(train.id, out long cachedPrevious)
+                        ? cachedPrevious
+                        : long.MinValue;
+                    if (TryPeekCachedRouteStep(train, cachedStop, previousKey, out _)) {
+                        return cachedStop;
+                    }
                 }
+
+                TargetStopByTrain.Remove(train.id);
+                ClearCachedRoute(train.id);
             }
 
             WorldTile resolved = RailTileRegistry.FindNearestConnectedStop(train.current_tile, targetTile);
@@ -5940,32 +6238,81 @@ namespace Trainbox {
             return resolved;
         }
 
-        private static WorldTile FindNextStepToward(WorldTile currentTile, WorldTile destinationTile, long previousTileKey) {
+        private static bool TryPeekCachedRouteStep(
+            Actor train,
+            WorldTile destinationTile,
+            long previousTileKey,
+            out WorldTile nextTile
+        ) {
+            nextTile = null;
+            if (train?.current_tile == null || destinationTile == null || train.current_tile == destinationTile) {
+                return false;
+            }
+
+            long currentKey = RailTileRegistry.MakeTileKey(train.current_tile);
+            long destinationKey = RailTileRegistry.MakeTileKey(destinationTile);
+            int topologyVersion = RailTileRegistry.TopologyVersion;
+
+            bool routeIsValid = CachedRouteByTrain.TryGetValue(train.id, out CachedTrainRoute route)
+                && route != null
+                && route.DestinationKey == destinationKey
+                && route.TopologyVersion == topologyVersion
+                && route.TileKeys != null
+                && route.NextIndex > 0
+                && route.NextIndex < route.TileKeys.Count
+                && route.TileKeys[route.NextIndex - 1] == currentKey;
+
+            if (!routeIsValid) {
+                List<long> path = BuildRouteToward(train.current_tile, destinationTile, previousTileKey);
+                if (path == null || path.Count < 2) {
+                    ClearCachedRoute(train.id);
+                    return false;
+                }
+
+                route = new CachedTrainRoute {
+                    DestinationKey = destinationKey,
+                    TopologyVersion = RailTileRegistry.TopologyVersion,
+                    TileKeys = path,
+                    NextIndex = 1
+                };
+                CachedRouteByTrain[train.id] = route;
+            }
+
+            nextTile = RailTileRegistry.GetTileByKey(route.TileKeys[route.NextIndex]);
+            if (!RailTileRegistry.IsRailTilePassive(nextTile)) {
+                ClearCachedRoute(train.id);
+                nextTile = null;
+                return false;
+            }
+
+            return true;
+        }
+
+        private static List<long> BuildRouteToward(WorldTile currentTile, WorldTile destinationTile, long previousTileKey) {
             if (currentTile == null || destinationTile == null) {
                 return null;
             }
 
             if (currentTile == destinationTile) {
-                return currentTile;
+                return new List<long> { RailTileRegistry.MakeTileKey(currentTile) };
             }
 
             Queue<WorldTile> queue = new Queue<WorldTile>();
             HashSet<long> visited = new HashSet<long>();
             Dictionary<long, long> previousByTile = new Dictionary<long, long>();
-            Dictionary<long, WorldTile> tilesByKey = new Dictionary<long, WorldTile>();
 
             long currentKey = RailTileRegistry.MakeTileKey(currentTile);
             long destinationKey = RailTileRegistry.MakeTileKey(destinationTile);
 
             queue.Enqueue(currentTile);
             visited.Add(currentKey);
-            tilesByKey[currentKey] = currentTile;
 
             while (queue.Count > 0) {
                 WorldTile tile = queue.Dequeue();
-                long currentPathPreviousKey = RailTileRegistry.MakeTileKey(tile) == currentKey
+                long tileKey = RailTileRegistry.MakeTileKey(tile);
+                long currentPathPreviousKey = tileKey == currentKey
                     ? previousTileKey
-                    : (previousByTile.TryGetValue(RailTileRegistry.MakeTileKey(tile), out long parentKey)
+                    : (previousByTile.TryGetValue(tileKey, out long parentKey)
                         ? parentKey
                         : long.MinValue);
 
@@ -5975,11 +6322,10 @@ namespace Trainbox {
                         continue;
                     }
 
-                    previousByTile[neighbourKey] = RailTileRegistry.MakeTileKey(tile);
-                    tilesByKey[neighbourKey] = neighbour;
+                    previousByTile[neighbourKey] = tileKey;
 
                     if (neighbourKey == destinationKey) {
-                        return ReconstructNextStep(currentKey, destinationKey, previousByTile, tilesByKey, previousTileKey);
+                        return ReconstructRoute(currentKey, destinationKey, previousByTile);
                     }
 
                     queue.Enqueue(neighbour);
@@ -5989,27 +6335,28 @@ namespace Trainbox {
             return null;
         }
 
-        private static WorldTile ReconstructNextStep(
+        private static List<long> ReconstructRoute(
             long currentKey,
             long destinationKey,
-            Dictionary<long, long> previousByTile,
-            Dictionary<long, WorldTile> tilesByKey,
-            long previousTileKey
+            Dictionary<long, long> previousByTile
         ) {
-            long stepKey = destinationKey;
-            long parentKey = previousByTile[stepKey];
-            while (parentKey != currentKey) {
-                stepKey = parentKey;
-                if (!previousByTile.TryGetValue(stepKey, out parentKey)) {
-                    break;
+            List<long> reversedPath = new List<long> { destinationKey };
+            long cursor = destinationKey;
+
+            while (cursor != currentKey) {
+                if (!previousByTile.TryGetValue(cursor, out cursor)) {
+                    return null;
                 }
+
+                reversedPath.Add(cursor);
             }
 
-            if (stepKey == previousTileKey) {
-                return PickPatrolNeighbour(tilesByKey[currentKey], previousTileKey);
-            }
+            reversedPath.Reverse();
+            return reversedPath;
+        }
 
-            return tilesByKey.TryGetValue(stepKey, out WorldTile nextTile) ? nextTile : null;
+        private static void ClearCachedRoute(long trainId) {
+            CachedRouteByTrain.Remove(trainId);
         }
 
         private static WorldTile PickPatrolNeighbour(WorldTile currentTile, long previousTileKey) {
@@ -7031,7 +7378,13 @@ namespace Trainbox {
             }
 
             try {
-                foreach (Actor actor in request.getActors()) {
+                bool snapshotComplete;
+                List<Actor> actors = GetRequestActorsSnapshot(request, out snapshotComplete);
+                if (!snapshotComplete && actors.Count == 0) {
+                    return false;
+                }
+
+                foreach (Actor actor in actors) {
                     if (actor == null || !actor.isAlive()) {
                         continue;
                     }
