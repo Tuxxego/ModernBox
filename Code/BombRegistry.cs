@@ -19,11 +19,13 @@ namespace ModernBoxRewrite
                     id = dropId,
                     type = DropType.DropBomb,
                     path_texture = spec.DropTexture,
-                    default_scale = 0.22f,
-                    random_frame = true,
-                    random_flip = true,
-                    falling_speed = 8f,
-                    falling_speed_random = 1f,
+                    default_scale = 0.2f,
+                    random_frame = false,
+                    random_flip = false,
+                    sound_launch = "event:/SFX/DROPS/DropLaunchGrenadeHuge",
+                    falling_speed = 3.2f,
+                    falling_speed_random = 0.5f,
+                    falling_height = new Vector2(60f, 70f),
                     falling_random_x_move = false,
                     surprises_units = true,
                     action_landed = OnBombLanded
@@ -39,13 +41,13 @@ namespace ModernBoxRewrite
                     rank = PowerRank.Rank0_free,
                     path_icon = spec.IconPath,
                     hold_action = true,
-                    show_tool_sizes = true,
+                    show_tool_sizes = false,
                     ignore_cursor_icon = true,
                     falling_chance = 1f,
                     drop_id = dropId,
                     cached_drop_asset = drop,
                     click_power_action = SpawnBombDrop,
-                    click_power_brush_action = AssetManager.powers.loopWithCurrentBrushPowerForDropsFull
+                    click_power_brush_action = null
                 };
                 AssetManager.powers.add(power);
                 ModernLocalization.Add(powerId, spec.DisplayName);
@@ -62,13 +64,13 @@ namespace ModernBoxRewrite
         private static void OnBombLanded(WorldTile tile, string dropId)
         {
             BombSpec spec;
-            if (tile != null && Drops.TryGetValue(dropId, out spec)) BombService.Enqueue(tile, spec);
+            if (tile != null && Drops.TryGetValue(dropId, out spec)) BombService.EnqueueOriginalM1Blast(tile, spec);
         }
 
         private static string BombDescription(BombSpec spec)
         {
             if (spec.Id == "Random") return "Drops one of the original M1 random bomb sizes.";
-            return spec.DisplayName + " with the original M1 radius of " + spec.Radius + ". Large blasts complete in safe frame-sized chunks.";
+            return spec.DisplayName + " with the original M1 radius of " + spec.Radius + ".";
         }
     }
 }

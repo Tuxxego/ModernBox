@@ -239,7 +239,7 @@ namespace ModernBoxRewrite
         private void DrawDiagnosticsWindow(int id)
         {
             GUILayout.Label("Registered content: " + ContentRegistry.Summary);
-            GUILayout.Label("Pending bomb jobs: " + BombService.PendingJobs);
+            GUILayout.Label("Bomb processing: exact-radius multi-frame jobs (pending: " + BombService.PendingJobs + ")");
             GUILayout.Label("Factory cycles: " + ProductionService.CompletedCycles);
             GUILayout.Label("Missile-silo launches: " + SiloLaunchEvents.LaunchCount);
             _diagnosticsScroll = GUILayout.BeginScrollView(_diagnosticsScroll);
@@ -252,6 +252,7 @@ namespace ModernBoxRewrite
 
         private void OnDestroy()
         {
+            BombService.Clear();
             if (_harmony != null) _harmony.UnpatchSelf();
             if (Instance == this) Instance = null;
         }

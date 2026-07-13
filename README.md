@@ -41,11 +41,11 @@ The ModernBox military cap per city is `clamp(population / 10, 4, 30)`. AirFacto
 
 ## Controls
 
-Open the **ModernBox** toolbar tab. Its page buttons switch between **Industry**, **Units**, **Bombs**, **Equipment**, and **Settings**. Industry controls factory and silo production toggles; Units contains all 13 manual spawn powers; Bombs contains all ten custom drops; Equipment controls guns, pipe guns, cyberware, drugs, ideologies, and name sets; Settings opens the credits, complete settings, and bounded diagnostics windows.
+Open the **ModernBox** toolbar tab. Its page buttons switch between **Industry**, **Units**, **Bombs**, **Equipment**, and **Settings**. Industry controls factory and silo production toggles; Units contains all 13 manual spawn powers; Bombs contains all ten custom drops. A press creates one bomb at the cursor and holding the mouse repeats single drops without filling the selected brush. Equipment controls guns, pipe guns, cyberware, drugs, ideologies, and name sets; Settings opens the credits, complete settings, and bounded diagnostics windows.
 
 ## Exact-scale bombs
 
-MOAB 50, Cobalt 120, Ultron 100, Death 100, Xenium 400, Mini 5, Proton 786, Jupiter 1486, and Eraser 1000. Random uses the original M1 radius set. Huge areas are processed over multiple frames; the radius is never reduced. Test Jupiter, Eraser, Proton, and Xenium only on disposable worlds; exact-scale jobs can take time to finish on large maps.
+MOAB 50, Cobalt 120, Ultron 100, Death 100, Xenium 400, Mini 5, Proton 786, Jupiter 1486, and Eraser 1000. Random uses the original M1 radius set. The nine nuclear drops use M1's vanilla czar-bomb falling sprite and Eraser uses the vanilla antimatter sprite, starting from M1's original 60-70 fall height. Bomb landings retain M1's vanilla visual effects and terrain behavior; because WorldBox 0.51.2 no longer generates missing oversized `MapAction.damageWorld` brushes correctly, the exact circular area is processed directly over multiple frames in concentric center-outward shells. Multiple active explosions share the per-frame budget instead of blocking one another. No M2 custom bomb-effect system is included. Test Jupiter, Eraser, Proton, and Xenium only on disposable worlds because their original radii can cover most or all of a map.
 
 ## Included content
 

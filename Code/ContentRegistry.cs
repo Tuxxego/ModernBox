@@ -159,7 +159,8 @@ namespace ModernBoxRewrite
 
         private static BombSpec Bomb(string id, string name, string icon, int radius, string terraform, string effect, float minScale, float maxScale)
         {
-            return new BombSpec { Id = id, DisplayName = name, IconPath = icon, DropTexture = icon, Radius = radius, TerraformId = terraform, EffectId = effect, EffectScaleMin = minScale, EffectScaleMax = maxScale };
+            string dropTexture = terraform == "destroy_no_flash" ? "drops/drop_antimatterbomb" : "drops/drop_czarbomba";
+            return new BombSpec { Id = id, DisplayName = name, IconPath = icon, DropTexture = dropTexture, Radius = radius, TerraformId = terraform, EffectId = effect, EffectScaleMin = minScale, EffectScaleMax = maxScale };
         }
     }
 }
