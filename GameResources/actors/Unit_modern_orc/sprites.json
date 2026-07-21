@@ -23,7 +23,7 @@
             "Path": "walk_0_head.png",
             "PivotX": 4,
             "RectX": 0,
-            "RectY": -2,
+            "RectY": 0,
             "PivotY": 6
         },
         {
@@ -37,42 +37,42 @@
             "Path": "walk_2_head.png",
             "PivotX": 4,
             "RectX": 0,
-            "RectY": -1,
+            "RectY": 0,
             "PivotY": 7
         },
         {
             "Path": "walk_3_head.png",
             "PivotX": 4,
             "RectX": 0,
-            "RectY": -3,
+            "RectY": 0,
             "PivotY": 5
         },
         {
             "Path": "swim_0_head.png",
             "PivotX": 4,
             "RectX": 0,
-            "RectY": -4,
+            "RectY": 0,
             "PivotY": 6
         },
         {
             "Path": "swim_1_head.png",
             "PivotX": 4,
             "RectX": 0,
-            "RectY": -5,
+            "RectY": 0,
             "PivotY": 8
         },
         {
             "Path": "swim_2_head.png",
             "PivotX": 4,
             "RectX": 0,
-            "RectY": -4,
+            "RectY": 0,
             "PivotY": 8
         },
         {
             "Path": "swim_3_head.png",
             "PivotX": 4,
             "RectX": 0,
-            "RectY": -5,
+            "RectY": 0,
             "PivotY": 6
         }]
 }
