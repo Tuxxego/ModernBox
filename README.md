@@ -10,23 +10,24 @@ If someone launches the mod with a different NeoModLoader build, the mod may fai
 # Install
 
 1. Copy `NeoModLoader.dll` version `1.2.0.1` into:
-`WorldBox\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\worldbox\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_Data\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\StreamingAssets\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\mods`
-2. Copy the full `M5TrainsUpdateBeta` folder into that same `mods` folder.
+`WorldBox_Data\StreamingAssets\mods`
+2. Copy the full `modernbox-m2` folder into that same `mods` folder.
 3. Start WorldBox with experimental mode enabled.
 The final layout should look like this:
 
-
+```text
 WorldBox
-└─ worldbox\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_Data
+└─ worldbox_Data
    └─ StreamingAssets
       └─ mods
          ├─ NeoModLoader.dll
          └─ M2Port
+```
 
 
 ## Culture progression
 
-The rewrite uses the \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*Standard\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\* pace: the world starts Medieval and rolls a saved 50-200 world-year interval for each transition. Every supported civilization advances together, and reloading a save does not reroll the world's era dates.
+The rewrite uses the *Standard** pace: the world starts Medieval and rolls a saved 50-200 world-year interval for each transition. Every supported civilization advances together, and reloading a save does not reroll the world's era dates.
 
 | Transition | Standard interval |
 | --- | ---: |
