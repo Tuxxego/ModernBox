@@ -15,7 +15,7 @@ If someone launches the mod with a different NeoModLoader build, the mod may fai
 3. Start WorldBox with experimental mode enabled.
 The final layout should look like this:
 
-```text
+
 WorldBox
 └─ worldbox\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_Data
    └─ StreamingAssets
