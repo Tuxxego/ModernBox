@@ -1922,6 +1922,12 @@ private void BottomBar()
     InitBarTextures();
 
     string planetCountFilePath = Path.Combine(Application.persistentDataPath, "ModernBox", "PlanetCount.txt");
+    string planetCountDirectory = Path.GetDirectoryName(planetCountFilePath);
+    if (!string.IsNullOrEmpty(planetCountDirectory) && !Directory.Exists(planetCountDirectory))
+    {
+        Directory.CreateDirectory(planetCountDirectory);
+    }
+
     if (File.Exists(planetCountFilePath))
     {
         string raw = File.ReadAllText(planetCountFilePath);

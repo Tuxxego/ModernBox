@@ -250,9 +250,21 @@ namespace ModernBox{
                 ModernBoxLogger.Log("[MX] All components initialized successfully");
 
                 DateTime cutoffEastern = new DateTime(2025, 10, 18, 16, 5, 0, DateTimeKind.Unspecified);
+
+                TimeZoneInfo easternTimeZone;
+
+                try
+                {
+                    easternTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+                }
+                catch (TimeZoneNotFoundException)
+                {
+                    easternTimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+                }
+
                 DateTime cutoffUtc = TimeZoneInfo.ConvertTimeToUtc(
                     cutoffEastern,
-                    TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time")
+                    easternTimeZone
                 );
 
                 var worldBoxConsole = FindObjectOfType<WorldBoxConsole.Console>();
