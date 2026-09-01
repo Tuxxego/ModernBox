@@ -335,6 +335,11 @@ public static void GeneratePlanet(string planetName, string planetType, string p
     }
 
 	          string planetCountFilePath = Path.Combine(Application.persistentDataPath, "ModernBox", "PlanetCount.txt");
+            string planetCountDirectory = Path.GetDirectoryName(planetCountFilePath);
+            if (!string.IsNullOrEmpty(planetCountDirectory) && !Directory.Exists(planetCountDirectory))
+            {
+                Directory.CreateDirectory(planetCountDirectory);
+            }
 
             int planetCount = 1;
             if (File.Exists(planetCountFilePath))
