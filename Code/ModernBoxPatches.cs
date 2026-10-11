@@ -285,6 +285,22 @@ namespace ModernBoxM2Rewrite
         }
     }
 
+    // M2 units show one fixed picture in the unit window, which gives the game no position
+    // for a held item. A unit holding a gun then indexed past the end of that list every
+    // frame, so the window doesn't draw the held item for these units.
+    [HarmonyPatch(typeof(UnitAvatarLoader), "loadItemSprites")]
+    internal static class M2AvatarItemPatch
+    {
+        [HarmonyPostfix]
+        private static void Postfix(UnitAvatarLoader __instance)
+        {
+            ActorAvatarData data = __instance._data;
+            if (data == null || data.asset == null || !data.asset.has_override_avatar_frames) return;
+            if (!ModernBoxCatalog.UnitIds.Contains(data.asset.id)) return;
+            __instance._show_item = false;
+        }
+    }
+
     [HarmonyPatch(typeof(ActorAsset), nameof(ActorAsset.getSpriteIcon))]
     internal static class M2ActorIconFallbackPatch
     {
