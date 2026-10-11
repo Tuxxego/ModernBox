@@ -28,7 +28,8 @@ namespace ModernBoxM2Rewrite
 
         private static bool IsM2Item(string id)
         {
-            return ModernBoxCatalog.EquipmentIds.Contains(id) || OriginalM2Projectiles.AttackProjectiles.ContainsKey(id) ||
+            return ModernBoxCatalog.EquipmentIds.Contains(id) || id.StartsWith(EquipmentAndTraitsRegistry.AttackPrefix, System.StringComparison.Ordinal) ||
+                   OriginalM2Projectiles.AttackProjectiles.ContainsKey(id) ||
                    System.Array.IndexOf(ModernBoxCatalog.MirvIds, id) >= 0;
         }
 

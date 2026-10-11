@@ -97,6 +97,7 @@ namespace ModernBoxM2Rewrite
             BuildEquipmentSpecifications();
             ApplyOriginalMaterialCosts();
             ApplyM2EquipmentOverrides();
+            ApplyOriginalMaterialStats();
             BuildBombSpecifications();
             BuildInvasionSpecifications();
         }
@@ -270,6 +271,61 @@ namespace ModernBoxM2Rewrite
                     spec.Resource1Cost = metals;
                     spec.Resource2 = "none";
                     spec.Resource2Cost = 0;
+                }
+            }
+        }
+
+        // The old engine added the material's stats and value to every crafted item, and
+        // only crafted it once the city held the material's minimum storage
+        // (ItemWeapon/Armor/AccessoryMaterialLibrary). Runs after the overrides, which
+        // set the item's own value.
+        // The material tech each item also needed, on top of its own tech.
+        internal static readonly Dictionary<string, string> MaterialTechs = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        private static void ApplyOriginalMaterialStats()
+        {
+            MaterialTechs.Clear();
+            foreach (EquipmentSpec spec in Equipment)
+            {
+                string material = SteelItems.Contains(spec.Id) ? "steel" : IronItems.Contains(spec.Id) ? "iron" : "copper";
+                MaterialTechs[spec.Id] = "material_" + material;
+                spec.MaterialStats.Clear();
+                if (spec.Type == EquipmentType.Amulet || spec.Type == EquipmentType.Ring)
+                {
+                    spec.MinimumStorage = 15;
+                    spec.Value += material == "steel" ? 40 : material == "iron" ? 30 : 10;
+                    spec.MaterialStats["critical_chance"] = material == "steel" ? 0.07f : material == "iron" ? 0.06f : 0.03f;
+                }
+                else if (spec.Type == EquipmentType.Weapon)
+                {
+                    spec.MinimumStorage = 10;
+                    if (material == "steel")
+                    {
+                        spec.Value += 40;
+                        spec.MaterialStats["damage"] = 7f;
+                        spec.MaterialStats["speed"] = 1f;
+                        spec.MaterialStats["attack_speed"] = 10f;
+                        spec.MaterialStats["critical_chance"] = 0.05f;
+                    }
+                    else if (material == "iron")
+                    {
+                        spec.Value += 30;
+                        spec.MaterialStats["damage"] = 6f;
+                        spec.MaterialStats["attack_speed"] = 10f;
+                        spec.MaterialStats["critical_chance"] = 0.05f;
+                    }
+                    else
+                    {
+                        spec.Value += 10;
+                        spec.MaterialStats["damage"] = 3f;
+                        spec.MaterialStats["attack_speed"] = 2f;
+                    }
+                }
+                else
+                {
+                    spec.MinimumStorage = 15;
+                    spec.Value += material == "steel" ? 40 : material == "iron" ? 30 : 10;
+                    spec.MaterialStats["armor"] = material == "steel" ? 7f : material == "iron" ? 6f : 3f;
                 }
             }
         }

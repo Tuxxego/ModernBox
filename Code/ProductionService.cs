@@ -367,6 +367,8 @@ namespace ModernBoxM2Rewrite
             M2Era required;
             if (!ModernBoxCatalog.EquipmentEras.TryGetValue(id, out required)) return true;
             if (!M2TechGates.CityAllowsItem(city, id, required)) return false;
+            string materialTech;
+            if (ContentRegistry.MaterialTechs.TryGetValue(id, out materialTech) && !M2Tech.Has(city, materialTech)) return false;
             if (!ModernBoxSettings.Get("EquipmentOption")) return false;
             if (id.StartsWith("Pipe", StringComparison.Ordinal)) return ModernBoxSettings.Get("PipeGunOption");
             if (id == "Sandevistan" || id == "TurboBooster") return ModernBoxSettings.Get("CyberwareOption");

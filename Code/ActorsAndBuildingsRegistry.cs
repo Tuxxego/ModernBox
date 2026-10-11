@@ -1518,7 +1518,7 @@ namespace ModernBoxM2Rewrite
             switch (legacyId)
             {
                 case "base": return "base_attack";
-                default: return legacyId;
+                default: return EquipmentAndTraitsRegistry.AttackId(legacyId);
             }
         }
 

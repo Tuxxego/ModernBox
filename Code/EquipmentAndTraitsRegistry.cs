@@ -229,22 +229,17 @@ namespace ModernBoxM2Rewrite
                 PreloadHeldItemSprites(item);
                 foreach (KeyValuePair<string, float> pair in spec.BaseStats)
                 {
-                    // Old max_age (years) is 0.51.2's lifespan.
-                    string key = pair.Key == "max_age" ? "lifespan" : pair.Key;
-                    if (AssetManager.base_stats_library.get(key) == null)
-                    {
-                        ModernBoxDiagnostics.Warn("Skipped obsolete M2 equipment stat '" + pair.Key + "'.");
-                        continue;
-                    }
-                    item.base_stats[key] = pair.Key == "attack_speed" ? M2AttackSpeed.Delta(pair.Value, M2AttackSpeed.OldHumanBase)
-                        : pair.Key == "speed" ? pair.Value * M2OriginalStats.SpeedScale
-                        : pair.Key == "critical_damage_multiplier" ? M2AttackSpeed.CritMultiplier(pair.Value) : pair.Value;
+                    float material;
+                    spec.MaterialStats.TryGetValue(pair.Key, out material);
+                    SetItemStat(item, pair.Key, pair.Value + material);
                 }
+                foreach (KeyValuePair<string, float> pair in spec.MaterialStats)
+                    if (!spec.BaseStats.ContainsKey(pair.Key)) SetItemStat(item, pair.Key, pair.Value);
                 item.equipment_value = spec.Value;
                 item.rigidity_rating = spec.Type == EquipmentType.Weapon ? 4 : 2;
                 item.quality = spec.Id == "malorian" ? Rarity.R3_Legendary : Rarity.R0_Normal;
                 item.setCost(0, spec.Resource1, spec.Resource1Cost, spec.Resource2, spec.Resource2Cost);
-                item.minimum_city_storage_resource_1 = Math.Max(1, spec.Resource1Cost);
+                item.minimum_city_storage_resource_1 = spec.MinimumStorage > 0 ? spec.MinimumStorage : Math.Max(1, spec.Resource1Cost);
                 // Keep the manually loaded M1 material sprites. The vanilla pool preloader
                 // otherwise overwrites them by looking for a single combined texture path.
                 item.is_pool_weapon = false;
@@ -263,6 +258,120 @@ namespace ModernBoxM2Rewrite
                 string normalized = spec.Id.ToLowerInvariant();
                 ModernLocalization.Add("item_" + normalized, spec.DisplayName);
                 ModernLocalization.Add("item_" + normalized + "_description", string.Empty);
+            }
+            RegisterPristineVariants();
+            RegisterUnitAttacks();
+        }
+
+        // The pristine set could be made from steel, mythril or adamantine. The old engine
+        // took the best material the city had the tech and resources for, and the item
+        // got that material's armor and value. 0.51.2 items have one cost and one set of
+        // stats, so the mythril and adamantine pieces are their own items.
+        private static readonly string[] PristinePieces = { "pristinearmor", "pristineboots", "pristinehelmet" };
+
+        private sealed class PristineMaterial
+        {
+            internal string Id;
+            internal string Tech;
+            internal float Armor;
+            internal int Value;
+        }
+
+        // Best first, like the old engine's search from the end of ItemArmorMaterialLibrary.
+        private static readonly PristineMaterial[] PristineMaterials =
+        {
+            new PristineMaterial { Id = "adamantine", Tech = "material_adamantine", Armor = 10f, Value = 70 },
+            new PristineMaterial { Id = "mythril", Tech = "material_mythril", Armor = 8f, Value = 50 }
+        };
+
+        private const int SteelArmorValue = 40;
+
+        private static void RegisterPristineVariants()
+        {
+            foreach (string piece in PristinePieces)
+            {
+                EquipmentSpec spec = ContentRegistry.Equipment.Find(candidate => candidate.Id == piece);
+                if (spec == null || AssetManager.items.get(piece) == null) continue;
+                foreach (PristineMaterial material in PristineMaterials)
+                {
+                    string id = piece + "_" + material.Id;
+                    EquipmentAsset item = AssetManager.items.clone(id, piece);
+                    item.id = id;
+                    item.translation_key = piece;
+                    item.show_in_knowledge_window = false;
+                    item.show_for_unlockables_ui = false;
+                    item.pool_rate = 0;
+                    item.setCost(0, material.Id, 1, "none", 0);
+                    item.minimum_city_storage_resource_1 = 0;
+                    item.equipment_value = spec.Value - SteelArmorValue + material.Value;
+                    item.base_stats = new BaseStats();
+                    foreach (KeyValuePair<string, float> pair in spec.BaseStats)
+                        SetItemStat(item, pair.Key, pair.Key == "armor" ? pair.Value + material.Armor : pair.Value);
+                    if (!spec.BaseStats.ContainsKey("armor")) SetItemStat(item, "armor", material.Armor);
+                }
+            }
+        }
+
+        // The pristine piece the city makes: adamantine or mythril when it has the tech and
+        // the resource, otherwise steel.
+        private static EquipmentAsset PristineChoice(EquipmentAsset steel, City city)
+        {
+            if (steel == null || Array.IndexOf(PristinePieces, steel.id) < 0 || city == null) return steel;
+            foreach (PristineMaterial material in PristineMaterials)
+            {
+                if (!M2Tech.Has(city, material.Tech) || city.getResourcesAmount(material.Id) < 1) continue;
+                EquipmentAsset variant = AssetManager.items.get(steel.id + "_" + material.Id);
+                if (variant != null) return variant;
+            }
+            return steel;
+        }
+
+        private static void SetItemStat(EquipmentAsset item, string key, float value)
+        {
+            // The old engine never read accuracy.
+            if (key == "accuracy") return;
+            // Old max_age (years) is 0.51.2's lifespan.
+            string current = key == "max_age" ? "lifespan" : key;
+            if (AssetManager.base_stats_library.get(current) == null)
+            {
+                ModernBoxDiagnostics.Warn("Skipped obsolete M2 equipment stat '" + key + "'.");
+                return;
+            }
+            item.base_stats[current] = key == "attack_speed" ? M2AttackSpeed.Delta(value, M2AttackSpeed.OldHumanBase)
+                : key == "speed" ? value * M2OriginalStats.SpeedScale
+                : key == "critical_damage_multiplier" ? M2AttackSpeed.CritMultiplier(value) : value;
+        }
+
+        // The old engine merged a unit's built-in attack item without any material, so
+        // units that attack with a craftable gun get a copy of it without the material stats.
+        internal const string AttackPrefix = "modernbox_m2_attack_";
+
+        internal static string AttackId(string itemId)
+        {
+            return itemId != null && ModernBoxCatalog.EquipmentIds.Contains(itemId) ? AttackPrefix + itemId : itemId;
+        }
+
+        private static void RegisterUnitAttacks()
+        {
+            HashSet<string> done = new HashSet<string>(StringComparer.Ordinal);
+            foreach (ModernUnitSpec unit in ContentRegistry.Units)
+            {
+                EquipmentSpec spec = unit.Attack == null ? null : ContentRegistry.Equipment.Find(candidate => candidate.Id == unit.Attack);
+                if (spec == null || !done.Add(spec.Id)) continue;
+                string id = AttackId(spec.Id);
+                EquipmentAsset attack = AssetManager.items.clone(id, spec.Id);
+                attack.id = id;
+                attack.translation_key = spec.Id;
+                attack.show_in_meta_editor = false;
+                attack.show_in_knowledge_window = false;
+                attack.show_for_unlockables_ui = false;
+                attack.can_be_given = false;
+                attack.is_pool_weapon = false;
+                attack.pool_rate = 0;
+                AssetManager.items.pot_weapon_assets_all.Remove(attack);
+                AssetManager.items.pot_weapon_assets_unlocked.Remove(attack);
+                attack.base_stats = new BaseStats();
+                foreach (KeyValuePair<string, float> pair in spec.BaseStats) SetItemStat(attack, pair.Key, pair.Value);
             }
         }
 
@@ -426,7 +535,7 @@ namespace ModernBoxM2Rewrite
             {
                 EquipmentSpec tierPiece = ContentRegistry.Equipment.Find(spec => spec.Type == type && spec.Era == era);
                 if (tierPiece == null || !ProductionService.IsEquipmentEnabled(tierPiece.Id, city)) return;
-                EquipmentAsset asset = AssetManager.items.get(tierPiece.Id);
+                EquipmentAsset asset = PristineChoice(AssetManager.items.get(tierPiece.Id), city);
                 if (asset == null) return;
                 items.Clear();
                 items.Add(asset);

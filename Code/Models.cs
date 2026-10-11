@@ -127,6 +127,9 @@ namespace ModernBoxM2Rewrite
         internal int Resource2Cost;
         internal ProgressionTier Tier;
         internal readonly Dictionary<string, float> BaseStats = new Dictionary<string, float>(StringComparer.Ordinal);
+        // Stats the item's material added in the old engine (crafted items only).
+        internal readonly Dictionary<string, float> MaterialStats = new Dictionary<string, float>(StringComparer.Ordinal);
+        internal int MinimumStorage;
     }
 
     internal enum BombPattern
