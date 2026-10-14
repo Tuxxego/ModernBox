@@ -53,7 +53,8 @@ public static class ExportResources
         );
         if (materialName == "default" || string.IsNullOrEmpty(materialName))
         {
-            WorldTip.showNow("材质包名称为默认");
+            // Manu-Fix 023: fester Hinweistext, kein Textschluessel (pTranslate false) - Begruendung in UnitTracker.SpawnVehicle.
+            WorldTip.showNow("材质包名称为默认", false);
             if (defaultMaterial != null)
             {
                 foreach (var tile in AssetManager.tiles.list)
@@ -89,7 +90,7 @@ public static class ExportResources
                 string jsonText = File.ReadAllText(colorFilePath);
                 if (string.IsNullOrEmpty(jsonText))
                 {
-                    WorldTip.showNow("color.json 文件为空");
+                    WorldTip.showNow("color.json 文件为空", false);
                 }
 
                 JsonTilesData colorData = JsonConvert.DeserializeObject<JsonTilesData>(jsonText);
@@ -135,16 +136,16 @@ public static class ExportResources
                     }
                 }
 
-                WorldTip.showNow("载入成功");
+                WorldTip.showNow("载入成功", false);
             }
             else
             {
-                WorldTip.showNow("color.json 文件不存在!");
+                WorldTip.showNow("color.json 文件不存在!", false);
             }
         }
         else
         {
-            WorldTip.showNow("指定的材质包路径不存在: " + materialPath2);
+            WorldTip.showNow("指定的材质包路径不存在: " + materialPath2, false);
         }
 
         return;

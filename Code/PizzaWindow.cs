@@ -21,7 +21,7 @@ namespace ModernBox
 
     public static void init()
     {
-        window = Windows.CreateNewWindow("PizzaWindow", "ModernBox");
+        window = ModernBox.ModernBoxLocale.Window("PizzaWindow", "ModernBox");
 
         var scrollView = GameObject.Find($"/Canvas Container Main/Canvas - Windows/windows/{window.name}/Background/Scroll View");
         scrollView.gameObject.SetActive(true);

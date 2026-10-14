@@ -211,7 +211,8 @@ public class BombEffects
         TestyWesty.draw_light_size = 2f;
         TestyWesty.draw_light_area_offset_y = 5f;
         TestyWesty.limit = 100;
-        TestyWesty.sound_launch = "event:/SFX/EXPLOSIONS/TsarBomb";
+        // Manu-Fix 019: registrierte Pixelanimation; Sound-ID aus WorldBox MB.TsarBomb.
+        TestyWesty.sound_launch = "event:/SFX/POWERS/TsarBomb";
         AssetManager.effects_library.add(TestyWesty);
 
         EffectAsset Kwell = new EffectAsset();

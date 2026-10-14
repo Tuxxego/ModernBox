@@ -68,7 +68,11 @@ public class UnitTracker : MonoBehaviour
 
   public static bool SpawnVehicle(WorldTile pTile, string pPowerID) {
     if (pTile.zone.city == null) {
-      WorldTip.showNow("You must spawn this vehicle within a kingdom.", true, "top", 3f);
+      // Manu-Fix 023 (07.10.2026, Lauf mb_spawn_b_fix022): WorldTip.showNow(text, true) schlaegt den Satz als Textschluessel nach;
+      // LocalizedTextManager.getText meldet ihn per Debug.LogError als 'missing text' (oeffnet beim ersten Fehler die Spielkonsole
+      // ueber dem Bild) und zeigt danach doch den unveraenderten Satz. Mit pTranslate false erscheint derselbe Text ohne Fehler.
+      // Gleich behandelt: alle 23 festen Hinweise dieser Mod (Fahrzeug-Spawn, Pizza, Ereignisse, Ressourcen-Import).
+      WorldTip.showNow("You must spawn this vehicle within a kingdom.", false, "top", 3f);
       return false;
     }
 

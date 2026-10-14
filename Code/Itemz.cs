@@ -571,6 +571,8 @@ greenblaster.minimum_city_storage_resource_1 = 1;
 greenblaster.rigidity_rating = 4;
 greenblaster.is_pool_weapon = true;
 greenblaster.pool_rate = 15;
+// Manu-Fix 015 (06.10.2026): ui/Icons/items/icon_greenblaster fehlte (nur wip/icon_greenblaster_copper.png vorhanden) ->
+// Gegenstand ohne Symbol. Das WIP-Bild liegt jetzt 1:1 auch unter ui/Icons/items/icon_greenblaster.png (wie Fix 005).
 greenblaster.path_icon = "ui/icons/items/icon_greenblaster";
 greenblaster.path_gameplay_sprite = "weapons/greenblaster";
 greenblaster.projectile = "shotgun_bullet";

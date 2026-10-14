@@ -56,10 +56,10 @@ namespace ModernBox
                 ModernBoxLogger.Error("Error: Could not find 'Button_Other' to clone for tab creation.");
                 return;
             }
-                Localization.AddOrSet(buttonID, name);
-                Localization.AddOrSet($"{buttonID} Description", description);
-                Localization.AddOrSet("Tuxxego_mod_creator",  "Mhm. Yes, this mod was made by Tuxxego.");
-                Localization.AddOrSet(tabID, name);
+                ModernBox.ModernBoxLocale.Register(buttonID, name);
+                ModernBox.ModernBoxLocale.Register($"{buttonID} Description", description);
+                ModernBox.ModernBoxLocale.Register("Tuxxego_mod_creator",  "Mhm. Yes, this mod was made by Tuxxego.");
+                ModernBox.ModernBoxLocale.Register(tabID, name);
             GameObject newTabButton = GameObject.Instantiate(otherTabButton);
             newTabButton.transform.SetParent(otherTabButton.transform.parent);
             var drag = newTabButton.GetComponent<DragOrderElement>();

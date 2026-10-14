@@ -4,6 +4,8 @@ using HarmonyLib;
 using UnityEngine;
 
 // what the fuck is this ai slop morfos did
+// Manu-Fix 006: Diagnose meldet fehlende Grafiken aller Mods (auch harmlose Proben mit Ausweichweg) als Debug.LogError;
+// das oeffnete die Spielkonsole und verdeckte echte Fehler. Jetzt normale Logzeile (Inhalt unveraendert).
 namespace ModernBox
 {
     public static class MissingAssetDiagnostics
@@ -155,7 +157,7 @@ namespace ModernBox
 
                         if (ShouldLog(_seenProjectileMissing, key))
                         {
-                            ModernBoxLogger.Error(
+                            ModernBoxLogger.Log(
                                 "[Diag.ProjectileMissing] projectile_id='" + pAssetID +
                                 "' initiator_type='" + initiatorType +
                                 "' initiator_asset='" + initiatorAsset +
@@ -189,7 +191,7 @@ namespace ModernBox
                         if (ShouldLog(_seenActorNullRender, key))
                         {
                             bool alive = __instance != null && __instance.isAlive();
-                            ModernBoxLogger.Error(
+                            ModernBoxLogger.Log(
                                 "[Diag.ActorRenderSpriteNull] actor_type='" + actorType +
                                 "' actor_asset='" + actorAsset +
                                 "' alive='" + alive + "'"
@@ -222,7 +224,7 @@ namespace ModernBox
                         string key = objectPath;
                         if (ShouldLog(_seenNullSpriteSet, key))
                         {
-                            ModernBoxLogger.Error(
+                            ModernBoxLogger.Log(
                                 "[Diag.GroupSpriteSetNull] object_path='" + objectPath +
                                 "' hint='caller passed null sprite into GroupSpriteObject.setSprite'"
                             );
@@ -245,7 +247,7 @@ namespace ModernBox
                 {
                     if (__result == null && IsInterestingPath(pPath) && ShouldLog(_seenSpritePathMissing, pPath))
                     {
-                        ModernBoxLogger.Error("[Diag.SpriteMissing] path='" + pPath + "'");
+                        ModernBoxLogger.Log("[Diag.SpriteMissing] path='" + pPath + "'");
                     }
                 }
                 catch (Exception ex)
@@ -265,7 +267,7 @@ namespace ModernBox
                     bool missing = __result == null || __result.Length == 0;
                     if (missing && IsInterestingPath(pPath) && ShouldLog(_seenSpriteListPathMissing, pPath))
                     {
-                        ModernBoxLogger.Error(
+                        ModernBoxLogger.Log(
                             "[Diag.SpriteListMissing] path='" + pPath +
                             "' skip_if_empty='" + pSkipIfEmpty + "'"
                         );
@@ -296,7 +298,7 @@ namespace ModernBox
 
                     if (ShouldLog(_seenNullItemAction, key))
                     {
-                        ModernBoxLogger.Error(
+                        ModernBoxLogger.Log(
                             "[Diag.NullItemAction] addDefaultItemAttackActions got null item asset actor='" + actorAsset +
                             "' default_attack='" + defaultAttack + "'"
                         );
@@ -330,7 +332,7 @@ namespace ModernBox
 
                     if (ShouldLog(_seenNullItemAction, key))
                     {
-                        ModernBoxLogger.Error(
+                        ModernBoxLogger.Log(
                             "[Diag.NullItemAction] addItemActions got null item asset actor='" + actorAsset +
                             "' default_attack='" + defaultAttack + "'"
                         );
@@ -358,14 +360,16 @@ namespace ModernBox
                         return false;
                     }
 
-                    BaseSimObject target = Traverse.Create(__instance).Field("beh_actor_target").GetValue<BaseSimObject>();
+                    // Manu-Fix 009: direkter Feldzugriff statt Traverse (vorher 2 Reflexions-Objekte je Aufruf,
+                    // gemessen ~79 000 Aufrufe und 28 MB Speichermuell je 10 s auf grosser Karte).
+                    BaseSimObject target = __instance.beh_actor_target;
                     if (target == null || !target.isActor())
                     {
                         return true;
                     }
 
                     Actor targetActor = target.a;
-                    WorldTile tileTarget = Traverse.Create(__instance).Field("tile_target").GetValue<WorldTile>();
+                    WorldTile tileTarget = __instance.tile_target; // Manu-Fix 009
 
                     if (targetActor == null || targetActor.current_tile == null || tileTarget == null)
                     {
@@ -415,7 +419,7 @@ namespace ModernBox
 
                         if (ShouldLog(_seenBuildingRecolorInputNull, key))
                         {
-                            ModernBoxLogger.Error(
+                            ModernBoxLogger.Log(
                                 "[Diag.BuildingRecolorInputNull] building_id='" + buildingId +
                                 "' reason='" + reason +
                                 "' main_sprite='" + spriteName +
@@ -457,7 +461,7 @@ namespace ModernBox
 
                     if (ShouldLog(_seenBuildingRecolorExceptions, key))
                     {
-                        ModernBoxLogger.Error(
+                        ModernBoxLogger.Log(
                             "[Diag.BuildingRecolorException] building_id='" + buildingId +
                             "' main_sprite='" + spriteName +
                             "' atlas_asset='" + atlasId +
@@ -497,7 +501,7 @@ namespace ModernBox
 
                     if (ShouldLog(_seenDynamicBuildingRecolorInputNull, key))
                     {
-                        ModernBoxLogger.Error(
+                        ModernBoxLogger.Log(
                             "[Diag.DynamicBuildingRecolorInputNull] reason='" + reason +
                             "' main_sprite='" + spriteName +
                             "' atlas_asset='" + atlasId +

@@ -31,7 +31,7 @@ namespace ModernBox
         public static void init()
         {
 			    PowersTab tab = getPowersTab("ModernBox");
-          window = Windows.CreateNewWindow("AchievementsWindow", "ModernBox");
+          window = ModernBox.ModernBoxLocale.Window("AchievementsWindow", "ModernBox");
           var scrollView = GameObject.Find($"/Canvas Container Main/Canvas - Windows/windows/{window.name}/Background/Scroll View");
           scrollView.gameObject.SetActive(true);
           var viewport = GameObject.Find($"/Canvas Container Main/Canvas - Windows/windows/{window.name}/Background/Scroll View/Viewport");
@@ -62,7 +62,7 @@ namespace ModernBox
 					  window.GetComponent<RectTransform>().sizeDelta = new Vector2(0, nameText.preferredHeight + 50);
 					  name.transform.localPosition = new Vector2(name.transform.localPosition.x, ((nameText.preferredHeight / 2) + 30) * -1);
 					  
-					  PowerButton ResetButtonM2 = PowerButtons.CreateButton("ResetButtonM2", Resources.Load<Sprite>("ui/Icons/Reset"), "Reset Progress", "Delete all achievement Data.", new Vector2(132, MoveDown*4), ButtonType.Click, content.transform, AchievementManager.Instance.ResetAchievements);	
+					  PowerButton ResetButtonM2 = ModernBox.ModernBoxLocale.Button("ResetButtonM2", Resources.Load<Sprite>("ui/Icons/Reset"), "Reset Progress", "Delete all achievement Data.", new Vector2(132, MoveDown*4), ButtonType.Click, content.transform, AchievementManager.Instance.ResetAchievements);
 								
 						List<M3Achievement> m3chievements = AchievementManager.Instance.GetAllAchievements();
 						int count = 0;
@@ -77,7 +77,7 @@ namespace ModernBox
 							string achievementDescription = unlocked ? achievement.Description : "???";
 
 							Vector2 position = new Vector2(60 + xOffset, MoveDown + yOffset);
-							PowerButtons.CreateButton(achievement.ID, Resources.Load<Sprite>(spritePath), achievementName, achievementDescription, position, ButtonType.Click, content.transform, null);
+							ModernBox.ModernBoxLocale.Button(achievement.ID, Resources.Load<Sprite>(spritePath), achievementName, achievementDescription, position, ButtonType.Click, content.transform, null);
 
 							count++;
 							xOffset += 36;
@@ -94,8 +94,7 @@ namespace ModernBox
 		{
 			if (PowerButtons.CustomButtons.TryGetValue(buttonID, out PowerButton targetButton))
 			{
-				Localization.AddOrSet(buttonID, newLocalName);
-				Localization.AddOrSet(buttonID + " Description", newLocalDescription);
+				ModernBox.ModernBoxLocale.ButtonText(buttonID, newLocalName, newLocalDescription);
 
 				return true;
 			}

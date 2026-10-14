@@ -136,6 +136,6 @@ public class ActorBuilder
     public void Build()
     {
         AssetManager.actor_library.add(actor);
-        Localization.addLocalization(actor.name_locale, actor.name_locale);
+        ModernBox.ModernBoxLocale.Register(actor.name_locale, actor.name_locale);
     }
 }

@@ -48,6 +48,13 @@ public class PizzaSimulator : MonoBehaviour
     public static PizzaSimulator instance;
 
     private List<Employee> employees = new List<Employee>();
+    // Manu-Fix 025: NCMS reuses windows by ID. Build their contents once, keep
+    // the template header in place, and allow only one answer per event.
+    private readonly Dictionary<string, ScrollWindow> eventWindows = new Dictionary<string, ScrollWindow>();
+    private readonly Dictionary<string, ScrollWindow> employeeWindows = new Dictionary<string, ScrollWindow>();
+    private RandomEvent activeEvent;
+    private bool eventOpening;
+    private int nextEmployeeId = 1000;
     private float pizzaCount = 0f;
 
     private float eventTimer = 0f;
@@ -71,14 +78,9 @@ public class PizzaSimulator : MonoBehaviour
 
     void Start()
     {
-        employees.Add(EmployeeLibrary.CreateEmployee("bluenight"));
-        employees.Add(EmployeeLibrary.CreateEmployee("dank"));
-        employees.Add(EmployeeLibrary.CreateEmployee("morfos"));
-
-        foreach (var emp in employees)
-        {
-            CreateEmployeeWindow(emp);
-        }
+        AddEmployee(EmployeeLibrary.CreateEmployee("bluenight"));
+        AddEmployee(EmployeeLibrary.CreateEmployee("dank"));
+        AddEmployee(EmployeeLibrary.CreateEmployee("morfos"));
 
         ScheduleNextEvent();
     }
@@ -90,18 +92,32 @@ public class PizzaSimulator : MonoBehaviour
             pizzaCount += emp.pizzasPerSecond * Time.deltaTime;
         }
 
-        eventTimer += Time.deltaTime;
-        if (eventTimer >= nextEventTime)
+        if (activeEvent != null)
         {
-            TriggerRandomEvent();
-            ScheduleNextEvent();
+            // Closing an event without an answer dismisses it; it must not
+            // keep the next event blocked or permit a later duplicate answer.
+            if (!eventOpening && !ScrollWindow.isAnimationActive() &&
+                !ScrollWindow.isCurrentWindow("PizzaEvent_" + activeEvent.id))
+            {
+                activeEvent = null;
+                ScheduleNextEvent();
+            }
+        }
+        else
+        {
+            eventTimer += Time.deltaTime;
+            if (eventTimer >= nextEventTime && !ScrollWindow.isWindowActive() && !ScrollWindow.isAnimationActive())
+            {
+                TriggerRandomEvent();
+            }
         }
 
         worldTipTimer += Time.deltaTime;
-        if (worldTipTimer >= worldTipInterval)
+        if (worldTipTimer >= worldTipInterval && !ScrollWindow.isWindowActive() && !eventOpening)
         {
             worldTipTimer = 0f;
-            WorldTip.showNow($"🍕 Total pizzas made: {Mathf.FloorToInt(pizzaCount)}", true, "top", 1.5f);
+            // Manu-Fix 023: fester Hinweistext, kein Textschluessel (pTranslate false) - Begruendung in UnitTracker.SpawnVehicle.
+            WorldTip.showNow($"🍕 Total pizzas made: {Mathf.FloorToInt(pizzaCount)}", false, "top", 1.5f);
         }
         
     }
@@ -114,91 +130,109 @@ public class PizzaSimulator : MonoBehaviour
 
     void TriggerRandomEvent()
     {
+        if (activeEvent != null) return;
+        ScheduleNextEvent();
         RandomEvent randomEvent = EventLibrary.GetRandomEvent();
+        if (!eventWindows.ContainsKey(randomEvent.id))
+        {
+            ScrollWindow window = ModernBoxLocale.Window("PizzaEvent_" + randomEvent.id, "ModernBox");
+            Transform content = PrepareContent(window, randomEvent.description);
+            new ButtonBuilder($"{randomEvent.id}_option1")
+                .SetSprite(Resources.Load<Sprite>("ui/icons/authors/sss"))
+                .SetTitle(randomEvent.option1Title)
+                .SetDescription(randomEvent.option1Description)
+                .SetPositionWindow(2, 3)
+                .SetType(ButtonType.Click)
+                .SetTransform(content)
+                .SetFunction(() => AnswerEvent(randomEvent, randomEvent.option1Function))
+                .Build();
+            new ButtonBuilder($"{randomEvent.id}_option2")
+                .SetSprite(Resources.Load<Sprite>("ui/icons/authors/sss"))
+                .SetTitle(randomEvent.option2Title)
+                .SetDescription(randomEvent.option2Description)
+                .SetPositionWindow(4, 3)
+                .SetType(ButtonType.Click)
+                .SetTransform(content)
+                .SetFunction(() => AnswerEvent(randomEvent, randomEvent.option2Function))
+                .Build();
+            eventWindows.Add(randomEvent.id, window);
+        }
+        activeEvent = randomEvent;
+        eventOpening = true;
+        StartCoroutine(OpenEvent(randomEvent));
+    }
 
-        ScrollWindow window = Windows.CreateNewWindow("PizzaEvent_" + randomEvent.id, "ModernBox");
+    private IEnumerator OpenEvent(RandomEvent randomEvent)
+    {
+        // NCMS initializes a newly created window with a hide tween. Let that
+        // complete before requesting the first show, otherwise WorldBox drops it.
+        yield return null;
+        while (ScrollWindow.isAnimationActive()) yield return null;
+        if (activeEvent == randomEvent) Windows.ShowWindow("PizzaEvent_" + randomEvent.id);
+        eventOpening = false;
+    }
 
-        var scrollView = GameObject.Find($"/Canvas Container Main/Canvas - Windows/windows/{window.name}/Background/Scroll View");
-        scrollView.gameObject.SetActive(true);
+    private void AnswerEvent(RandomEvent randomEvent, Action answer)
+    {
+        if (activeEvent != randomEvent) return;
+        activeEvent = null;
+        eventOpening = false;
+        worldTipTimer = -3f; // Preserve the answer's three-second feedback.
+        ScheduleNextEvent();
+        if (ScrollWindow.isCurrentWindow("PizzaEvent_" + randomEvent.id))
+            ScrollWindow.hideAllEvent();
+        answer?.Invoke();
+    }
 
-        var viewport = GameObject.Find($"/Canvas Container Main/Canvas - Windows/windows/{window.name}/Background/Scroll View/Viewport");
-        var viewportRect = viewport.GetComponent<RectTransform>();
-        viewportRect.sizeDelta = new Vector2(0, 17);
+    public void HireEmployee()
+    {
+        // Manu-Fix 025: the old hire action only created a window. Add the
+        // employee to production and avoid reusing an existing employee ID.
+        string id;
+        do { id = "friend_" + nextEmployeeId++; }
+        while (employees.Any(employee => employee.id == id) || Windows.GetWindow("PizzaEmployee_" + id) != null);
+        AddEmployee(EmployeeLibrary.CreateEmployee(id));
+    }
 
-        GameObject content = GameObject.Find($"/Canvas Container Main/Canvas - Windows/windows/{window.name}/Background/Scroll View/Viewport/Content");
-
-        GameObject name = window.transform.Find("Background").Find("Name").gameObject;
-        Text nameText = name.GetComponent<Text>();
-        nameText.text = $"<color=#FFD700>{randomEvent.description}</color>";
-        nameText.color = new Color(0.9f, 0.6f, 0, 1);
-        nameText.fontSize = 10;
-        nameText.alignment = TextAnchor.UpperCenter;
-        nameText.supportRichText = true;
-        name.transform.SetParent(content.transform);
-        name.SetActive(true);
-
-        RectTransform nameRect = name.GetComponent<RectTransform>();
-        nameRect.anchorMin = new Vector2(0.5f, 1);
-        nameRect.anchorMax = new Vector2(0.5f, 1);
-        nameRect.offsetMin = new Vector2(-90f, nameText.preferredHeight * -1);
-        nameRect.offsetMax = new Vector2(90f, -17);
-        nameRect.sizeDelta = new Vector2(180, nameText.preferredHeight + 50);
-        window.GetComponent<RectTransform>().sizeDelta = new Vector2(0, nameText.preferredHeight + 50);
-        name.transform.localPosition = new Vector2(name.transform.localPosition.x, ((nameText.preferredHeight / 2) + 30) * -1);
-
-        new ButtonBuilder($"{randomEvent.id}_option1")
-            .SetSprite(Resources.Load<Sprite>("ui/icons/authors/sss"))
-            .SetTitle(randomEvent.option1Title)
-            .SetDescription(randomEvent.option1Description)
-            .SetPosition(0, 4)
-            .SetType(ButtonType.Click)
-            .SetTransform(content.transform)
-            .SetFunction(() => randomEvent.option1Function?.Invoke())
-            .Build();
-
-        new ButtonBuilder($"{randomEvent.id}_option2")
-            .SetSprite(Resources.Load<Sprite>("ui/icons/authors/sss"))
-            .SetTitle(randomEvent.option2Title)
-            .SetDescription(randomEvent.option2Description)
-            .SetPosition(0, 4)
-            .SetType(ButtonType.Click)
-            .SetTransform(content.transform)
-            .SetFunction(() => randomEvent.option2Function?.Invoke())
-            .Build();
-
-        Windows.ShowWindow("PizzaEvent_" + randomEvent.id);
+    private void AddEmployee(Employee emp)
+    {
+        if (emp == null || string.IsNullOrEmpty(emp.id) || employees.Any(employee => employee.id == emp.id)) return;
+        CreateEmployeeWindow(emp);
+        employees.Add(emp);
     }
 
     public void CreateEmployeeWindow(Employee emp)
     {
-        ScrollWindow window = Windows.CreateNewWindow("PizzaEmployee_" + emp.id, "ModernBox");
+        if (emp == null || string.IsNullOrEmpty(emp.id) || employeeWindows.ContainsKey(emp.id)) return;
+        ScrollWindow window = ModernBoxLocale.Window("PizzaEmployee_" + emp.id, "ModernBox");
+        PrepareContent(window, $"{emp.name}\nPizzas/sec: {emp.pizzasPerSecond:F2}");
+        employeeWindows.Add(emp.id, window);
+    }
 
-        var scrollView = GameObject.Find($"/Canvas Container Main/Canvas - Windows/windows/{window.name}/Background/Scroll View");
+    private static Transform PrepareContent(ScrollWindow window, string description)
+    {
+        Transform scrollView = window.transform.Find("Background/Scroll View");
         scrollView.gameObject.SetActive(true);
-
-        var viewport = GameObject.Find($"/Canvas Container Main/Canvas - Windows/windows/{window.name}/Background/Scroll View/Viewport");
-        var viewportRect = viewport.GetComponent<RectTransform>();
-        viewportRect.sizeDelta = new Vector2(0, 17);
-
-        GameObject content = GameObject.Find($"/Canvas Container Main/Canvas - Windows/windows/{window.name}/Background/Scroll View/Viewport/Content");
-
-        GameObject name = window.transform.Find("Background").Find("Name").gameObject;
-        Text nameText = name.GetComponent<Text>();
-        nameText.text = $"<color=#FFD700>{emp.name}</color>\n<color=#ffae00>Pizzas/sec: {emp.pizzasPerSecond}</color>";
-        nameText.color = new Color(0.9f, 0.6f, 0, 1);
-        nameText.fontSize = 10;
-        nameText.alignment = TextAnchor.UpperCenter;
-        nameText.supportRichText = true;
-        name.transform.SetParent(content.transform);
-        name.SetActive(true);
-
-        RectTransform nameRect = name.GetComponent<RectTransform>();
-        nameRect.anchorMin = new Vector2(0.5f, 1);
-        nameRect.anchorMax = new Vector2(0.5f, 1);
-        nameRect.offsetMin = new Vector2(-90f, nameText.preferredHeight * -1);
-        nameRect.offsetMax = new Vector2(90f, -17);
-        nameRect.sizeDelta = new Vector2(180, nameText.preferredHeight + 50);
-        window.GetComponent<RectTransform>().sizeDelta = new Vector2(0, nameText.preferredHeight + 50);
-        name.transform.localPosition = new Vector2(name.transform.localPosition.x, ((nameText.preferredHeight / 2) + 30) * -1);
+        Transform content = scrollView.Find("Viewport/Content");
+        var rect = content.GetComponent<RectTransform>();
+        rect.sizeDelta = new Vector2(rect.sizeDelta.x, 170);
+        Text template = window.transform.Find("Background/Name").GetComponent<Text>();
+        var descriptionObject = new GameObject("PizzaDescription", typeof(RectTransform), typeof(Text));
+        descriptionObject.transform.SetParent(content, false);
+        Text text = descriptionObject.GetComponent<Text>();
+        text.font = template.font;
+        text.text = description;
+        text.color = new Color(0.9f, 0.6f, 0, 1);
+        text.fontSize = 10;
+        text.alignment = TextAnchor.UpperCenter;
+        text.raycastTarget = false;
+        RectTransform textRect = text.rectTransform;
+        textRect.anchorMin = new Vector2(0.5f, 1);
+        textRect.anchorMax = new Vector2(0.5f, 1);
+        textRect.pivot = new Vector2(0.5f, 1);
+        textRect.anchoredPosition = new Vector2(0, -15);
+        textRect.sizeDelta = new Vector2(180, 60);
+        template.gameObject.SetActive(false);
+        return content;
     }
 }

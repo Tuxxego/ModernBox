@@ -254,10 +254,6 @@ namespace ModernBox
                 .SetFunction(Vehicles.toggleNukes)
                 .Build();
 
-            if (Main.savedSettings.boolOptions["NukeOption"]) {
-                PowerButtons.ToggleButton("nukes_toggle");
-                Vehicles.toggleNukes();
-            }
 
             new ButtonBuilder("pizza")
                 .SetSprite(Resources.Load<Sprite>("ui/Icons/Pizza"))
@@ -279,10 +275,6 @@ namespace ModernBox
                 .SetFunction(Traits.toggleVehicles)
                 .Build();
 
-            if (Main.savedSettings.boolOptions["FactoriesOption"]) {
-                PowerButtons.ToggleButton("vehicle_toggle");
-                Traits.toggleVehicles();
-            }
 
             new ButtonBuilder("nuketexttoggle")
                 .SetSprite(Resources.Load<Sprite>("ui/icons/Nuke"))
@@ -294,10 +286,6 @@ namespace ModernBox
                 .SetFunction(Vehicles.toggleBalls)
                 .Build();
 
-            if (Main.savedSettings.boolOptions["BallsOption"]) {
-                PowerButtons.ToggleButton("nuketexttoggle");
-                Vehicles.toggleBalls();
-            }
 
             new ButtonBuilder("gun_toggle")
                 .SetSprite(Resources.Load<Sprite>("weapons/AK"))
@@ -309,10 +297,6 @@ namespace ModernBox
                 .SetFunction(CustomItemsList.toggleGuns)
                 .Build();
 
-            if (Main.savedSettings.boolOptions["GunOption"]) {
-                PowerButtons.ToggleButton("gun_toggle");
-                CustomItemsList.toggleGuns();
-            }
 
             new ButtonBuilder("mirv_toggle")
                 .SetSprite(Resources.Load<Sprite>("ui/icons/items/icon_STRONGMIRV"))
@@ -324,10 +308,6 @@ namespace ModernBox
                 .SetFunction(CustomItemsList.toggleMIRVs)
                 .Build();
 
-            if (Main.savedSettings.boolOptions["MIRVOption"]) {
-                PowerButtons.ToggleButton("mirv_toggle");
-                CustomItemsList.toggleMIRVs();
-            }
 
             new ButtonBuilder("drugs_toggle")
                 .SetSprite(Resources.Load<Sprite>("ui/icons/items/icon_morphine"))
@@ -339,10 +319,6 @@ namespace ModernBox
                 .SetFunction(CustomItemsList.toggleDrugs)
                 .Build();
 
-            if (Main.savedSettings.boolOptions["DrugsOption"]) {
-                PowerButtons.ToggleButton("drugs_toggle");
-                CustomItemsList.toggleDrugs();
-            }
 
             new ButtonBuilder("mgltoggle")
                 .SetSprite(Resources.Load<Sprite>("ui/icons/XenoInfectionIcon"))
@@ -354,10 +330,6 @@ namespace ModernBox
                 .SetFunction(CustomItemsList.toggleMGL)
                 .Build();
 
-            if (Main.savedSettings.boolOptions["ChemOption"]) {
-                PowerButtons.ToggleButton("mgltoggle");
-                CustomItemsList.toggleMGL();
-            }
 
             InsertLine.Space(21, tab5.transform);
 
@@ -371,10 +343,6 @@ namespace ModernBox
                 .SetFunction(Traits.toggleATAT)
                 .Build();
 
-            if (Main.savedSettings.boolOptions["FactoriesOption"]) {
-                PowerButtons.ToggleButton("atat");
-                Traits.toggleATAT();
-            }
 
             new ButtonBuilder("dread")
                 .SetSprite(Resources.Load<Sprite>("ui/icons/Vatican"))
@@ -386,10 +354,6 @@ namespace ModernBox
                 .SetFunction(Traits.toggleDread)
                 .Build();
 
-            if (Main.savedSettings.boolOptions["DreadOption"]) {
-                PowerButtons.ToggleButton("dread");
-                Traits.toggleDread();
-            }
 
             new ButtonBuilder("gunship")
                 .SetSprite(Resources.Load<Sprite>("ui/icons/DankIsGay"))
@@ -401,10 +365,6 @@ namespace ModernBox
                 .SetFunction(Traits.toggleGunship)
                 .Build();
 
-            if (Main.savedSettings.boolOptions["GunshipOption"]) {
-                PowerButtons.ToggleButton("gunship");
-                Traits.toggleGunship();
-            }
 
             new ButtonBuilder("tiefighter")
                 .SetSprite(Resources.Load<Sprite>("ui/icons/TIEFighter"))
@@ -416,10 +376,6 @@ namespace ModernBox
                 .SetFunction(Traits.toggleTIEFighter)
                 .Build();
 
-            if (Main.savedSettings.boolOptions["TIEFighterOption"]) {
-                PowerButtons.ToggleButton("tiefighter");
-                Traits.toggleTIEFighter();
-            }
 
             new ButtonBuilder("goliath")
                 .SetSprite(Resources.Load<Sprite>("actors/GoliathCrawler/main/walk_1"))
@@ -431,10 +387,6 @@ namespace ModernBox
                 .SetFunction(Traits.toggleGoliath)
                 .Build();
 
-            if (Main.savedSettings.boolOptions["GoliathOption"]) {
-                PowerButtons.ToggleButton("goliath");
-                Traits.toggleGoliath();
-            }
 
             new ButtonBuilder("mechagodzilla_goliath")
                 .SetSprite(Resources.Load<Sprite>("actors/Mechagodzilla/main/walk_1"))
@@ -446,10 +398,6 @@ namespace ModernBox
                 .SetFunction(Traits.toggleMechagodzilla)
                 .Build();
 
-            if (Main.savedSettings.boolOptions["MechagodzillaOption"]) {
-                PowerButtons.ToggleButton("mechagodzilla_goliath");
-                Traits.toggleMechagodzilla();
-            }
 
             new ButtonBuilder("earthquaker")
                 .SetSprite(Resources.Load<Sprite>("ui/icons/Mecha_egg"))
@@ -461,10 +409,6 @@ namespace ModernBox
                 .SetFunction(Traits.toggleEarthquaker)
                 .Build();
 
-            if (Main.savedSettings.boolOptions["EarthquakerOption"]) {
-                PowerButtons.ToggleButton("earthquaker");
-                Traits.toggleEarthquaker();
-            }
 
             new ButtonBuilder("spacemarines")
                 .SetSprite(Resources.Load<Sprite>("actors/SpaceMarine/main/walk_0"))
@@ -476,10 +420,6 @@ namespace ModernBox
                 .SetFunction(Traits.toggleSpaceMarines)
                 .Build();
 
-            if (Main.savedSettings.boolOptions["SpaceMarineOption"]) {
-                PowerButtons.ToggleButton("spacemarines");
-                Traits.toggleSpaceMarines();
-            }
 
             int index = 0;
             foreach (var unit in UnitTracker.Instance.units)
@@ -508,7 +448,44 @@ namespace ModernBox
             SetupEras();
             SetupLines();
             SetupSpace();
+            ApplySavedSettings();
 		}
+
+        // Manu-Fix 029: initialization and Reset to defaults must apply the same
+        // settings to the visible switches and to their existing runtime callbacks.
+        // The old reset only wrote preferences; ATAT also read FactoriesOption.
+        internal static void ApplySavedSettings()
+        {
+            ApplySavedToggle("nukes_toggle", "NukeOption", Vehicles.toggleNukes);
+            ApplySavedToggle("vehicle_toggle", "FactoriesOption", Traits.toggleVehicles);
+            ApplySavedToggle("nuketexttoggle", "BallsOption", Vehicles.toggleBalls);
+            ApplySavedToggle("gun_toggle", "GunOption", CustomItemsList.toggleGuns);
+            ApplySavedToggle("mirv_toggle", "MIRVOption", CustomItemsList.toggleMIRVs);
+            ApplySavedToggle("drugs_toggle", "DrugsOption", CustomItemsList.toggleDrugs);
+            ApplySavedToggle("mgltoggle", "ChemOption", CustomItemsList.toggleMGL);
+            ApplySavedToggle("atat", "ATATOption", Traits.toggleATAT);
+            ApplySavedToggle("dread", "DreadOption", Traits.toggleDread);
+            ApplySavedToggle("gunship", "GunshipOption", Traits.toggleGunship);
+            ApplySavedToggle("tiefighter", "TIEFighterOption", Traits.toggleTIEFighter);
+            ApplySavedToggle("goliath", "GoliathOption", Traits.toggleGoliath);
+            ApplySavedToggle("mechagodzilla_goliath", "MechagodzillaOption", Traits.toggleMechagodzilla);
+            ApplySavedToggle("earthquaker", "EarthquakerOption", Traits.toggleEarthquaker);
+            ApplySavedToggle("spacemarines", "SpaceMarineOption", Traits.toggleSpaceMarines);
+            ApplySavedToggle("era_mediaval_toggle", "MedievalOption", StatManager.Instance.toggleMedieval);
+            ApplySavedToggle("era_renaissance_toggle", "RenaissanceOption", StatManager.Instance.toggleRenaissance);
+            ApplySavedToggle("era_modern_toggle", "ModernOption", StatManager.Instance.toggleModern);
+            ApplySavedToggle("era_hyperfuture_toggle", "HyperfutureOption", StatManager.Instance.toggleHyperfuture);
+            ApplySavedToggle("beginningtoggle", "PersistenceOption", BitchBalls_Patch.togglePersistence);
+        }
+
+        private static void ApplySavedToggle(string buttonId, string optionKey, UnityAction apply)
+        {
+            bool desired = Main.savedSettings.boolOptions[optionKey];
+            if (PowerButtons.GetToggleValue(buttonId) != desired)
+                PowerButtons.ToggleButton(buttonId);
+            apply();
+        }
+
         private void SetupLines()
         {
           PowersTab tab = getPowersTab("ModernBoxTab");
@@ -748,19 +725,24 @@ namespace ModernBox
 
             new ButtonBuilder("era_no_set")
             .SetSprite(Resources.Load<Sprite>("ui/icons/Primalism"))
-            .SetTitle("Normal Era Passing Time")
-            .SetDescription("Eras are dynamic, do NOT DM ME WHAT TYHIS MEANS IT IS SELF EXPLAINATORY.")
+            .SetTitle(Development.T("Automatische Forschung","Automatic research"))
+            .SetDescription(Development.T("Jedes Reich entwickelt sich durch Forschung, Aufbau und Heeresstaerke. Hebt einen manuellen Goettereingriff auf.","Each kingdom advances through research, construction and military development. Clears a manual god override."))
             .SetPosition(1, 0)
             .SetType(ButtonType.Click)
             .SetTransform(tab4.transform)
             .SetFunction(() => {
                 StatManager.Instance.SetEra(null);
+                // Automatic progression restores every era, including preferences corrupted by the old double-toggle bug.
+                foreach(string id in new[]{"era_mediaval_toggle","era_renaissance_toggle","era_modern_toggle","era_hyperfuture_toggle"})
+                    if(!PowerButtons.GetToggleValue(id))PowerButtons.ToggleButton(id);
+                StatManager.Instance.toggleMedieval();StatManager.Instance.toggleRenaissance();
+                StatManager.Instance.toggleModern();StatManager.Instance.toggleHyperfuture();
             })
             .Build();
 
             new ButtonBuilder("era_mediaval_set")
             .SetSprite(Resources.Load<Sprite>("ui/icons/landTradeDecision"))
-            .SetTitle("Override era to Medieval")
+            .SetTitle(Development.T("Goettereingriff: Medieval","God override: Medieval"))
             .SetDescription("The era will always stay to medieval, no matter what.")
             .SetPosition(2, 0)
             .SetType(ButtonType.Click)
@@ -772,7 +754,7 @@ namespace ModernBox
 
             new ButtonBuilder("era_renaissance_set")
             .SetSprite(Resources.Load<Sprite>("ui/icons/Renaissance"))
-            .SetTitle("Override era to Renaissance")
+            .SetTitle(Development.T("Goettereingriff: Renaissance","God override: Renaissance"))
             .SetDescription("The era will always stay to renaissance, no matter what.")
             .SetPosition(3, 0)
             .SetType(ButtonType.Click)
@@ -784,7 +766,7 @@ namespace ModernBox
 
             new ButtonBuilder("era_modern_set")
             .SetSprite(Resources.Load<Sprite>("ui/icons/Tank"))
-            .SetTitle("Override era to Modern")
+            .SetTitle(Development.T("Goettereingriff: Modern","God override: Modern"))
             .SetDescription("The era will always stay to modern, no matter what.")
             .SetPosition(4, 0)
             .SetType(ButtonType.Click)
@@ -796,7 +778,7 @@ namespace ModernBox
 
             new ButtonBuilder("era_hyperfuture_set")
             .SetSprite(Resources.Load<Sprite>("ui/icons/DankIsGay"))
-            .SetTitle("Override era to Hyperfuture")
+            .SetTitle(Development.T("Goettereingriff: Hyperfuture","God override: Hyperfuture"))
             .SetDescription("The era will always stay to hyperfuture, no matter what.")
             .SetPosition(5, 0)
             .SetType(ButtonType.Click)
@@ -816,10 +798,6 @@ namespace ModernBox
             .SetFunction(StatManager.Instance.toggleMedieval)
             .Build();
 
-            if (Main.savedSettings.boolOptions["MedievalOption"]) {
-                PowerButtons.ToggleButton("era_mediaval_toggle");
-                StatManager.Instance.toggleMedieval();
-            }
 
             new ButtonBuilder("era_renaissance_toggle")
             .SetSprite(Resources.Load<Sprite>("ui/icons/Renaissance"))
@@ -831,10 +809,6 @@ namespace ModernBox
             .SetFunction(StatManager.Instance.toggleRenaissance)
             .Build();
 
-            if (Main.savedSettings.boolOptions["RenaissanceOption"]) {
-                PowerButtons.ToggleButton("era_renaissance_toggle");
-                StatManager.Instance.toggleRenaissance();
-            }
 
             new ButtonBuilder("era_modern_toggle")
             .SetSprite(Resources.Load<Sprite>("ui/icons/Tank"))
@@ -846,10 +820,7 @@ namespace ModernBox
             .SetFunction(StatManager.Instance.toggleModern)
             .Build();
 
-            if (Main.savedSettings.boolOptions["MedievalOption"]) {
-                PowerButtons.ToggleButton("era_mediaval_toggle");
-                StatManager.Instance.toggleMedieval();
-            }
+            // Manu-Fix 020: the copied Medieval initializer disabled Medieval a second time and never enabled Modern.
 
             new ButtonBuilder("era_hyperfuture_toggle")
             .SetSprite(Resources.Load<Sprite>("ui/icons/DankIsGay"))
@@ -861,10 +832,6 @@ namespace ModernBox
             .SetFunction(StatManager.Instance.toggleHyperfuture)
             .Build();
 
-            if (Main.savedSettings.boolOptions["HyperfutureOption"]) {
-                PowerButtons.ToggleButton("era_hyperfuture_toggle");
-                StatManager.Instance.toggleHyperfuture();
-            }
         }
 
         private void SetupSpace()
@@ -891,10 +858,6 @@ namespace ModernBox
             .SetFunction(BitchBalls_Patch.togglePersistence)
             .Build();
 
-            if (Main.savedSettings.boolOptions["PersistenceOption"]) {
-                PowerButtons.ToggleButton("beginningtoggle");
-                BitchBalls_Patch.togglePersistence();
-            }
 
             new ButtonBuilder("customgalaxies")
             .SetSprite(Resources.Load<Sprite>("Stars/Neutronstar"))
@@ -932,7 +895,8 @@ namespace ModernBox
 		  }
 
         private static void comingSoon() {
-            WorldTip.showNow("Coming soon. Maybe", true, "top", 3f);
+            // Manu-Fix 023: fester Hinweistext, kein Textschluessel (pTranslate false) - Begruendung in UnitTracker.SpawnVehicle.
+            WorldTip.showNow("Coming soon. Maybe", false, "top", 3f);
         }
         private static void openAboutWindow() {
 

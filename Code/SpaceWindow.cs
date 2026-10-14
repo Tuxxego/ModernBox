@@ -31,7 +31,7 @@ namespace ModernBox
         public static void init()
         {
 			    PowersTab tab = getPowersTab("ModernBox");
-          window = Windows.CreateNewWindow("SpaceWindow", "ModernBox");
+          window = ModernBox.ModernBoxLocale.Window("SpaceWindow", "ModernBox");
           var scrollView = GameObject.Find($"/Canvas Container Main/Canvas - Windows/windows/{window.name}/Background/Scroll View");
           scrollView.gameObject.SetActive(true);
           var viewport = GameObject.Find($"/Canvas Container Main/Canvas - Windows/windows/{window.name}/Background/Scroll View/Viewport");
@@ -62,9 +62,9 @@ namespace ModernBox
 					  window.GetComponent<RectTransform>().sizeDelta = new Vector2(0, nameText.preferredHeight + 50);
 					  name.transform.localPosition = new Vector2(name.transform.localPosition.x, ((nameText.preferredHeight / 2) + 30) * -1);
 
-					  PowerButton Starmap = PowerButtons.CreateButton("OpenStarmap", Resources.Load<Sprite>("ui/Icons/Galaxy"), "Open Starmap", "Visit other planets, stars, and galaxies.", new Vector2(96, MoveDown), ButtonType.Click, content.transform, openStarMap);
-					  PowerButton CustomGalaxies = PowerButtons.CreateButton("CustomGalaxies", Resources.Load<Sprite>("ui/Icons/DiesIraeIcon"), "Custom Galaxies", "Toggle the custom galaxies you have installed.", new Vector2(168, MoveDown), ButtonType.Click, content.transform, openCustomGalaxies);
-					  PowerButton GalaxyHub = PowerButtons.CreateButton("GalaxyHub", Resources.Load<Sprite>("ui/Icons/DiesIraeIcon"), "GalaxyHub", "Download and install community created galaxies!", new Vector2(96, MoveDown*2), ButtonType.Click, content.transform, null);	
+					  PowerButton Starmap = ModernBox.ModernBoxLocale.Button("OpenStarmap", Resources.Load<Sprite>("ui/Icons/Galaxy"), "Open Starmap", "Visit other planets, stars, and galaxies.", new Vector2(96, MoveDown), ButtonType.Click, content.transform, openStarMap);
+					  PowerButton CustomGalaxies = ModernBox.ModernBoxLocale.Button("CustomGalaxies", Resources.Load<Sprite>("ui/Icons/DiesIraeIcon"), "Custom Galaxies", "Toggle the custom galaxies you have installed.", new Vector2(168, MoveDown), ButtonType.Click, content.transform, openCustomGalaxies);
+					  PowerButton GalaxyHub = ModernBox.ModernBoxLocale.Button("GalaxyHub", Resources.Load<Sprite>("ui/Icons/DiesIraeIcon"), "GalaxyHub", "Download and install community created galaxies!", new Vector2(96, MoveDown*2), ButtonType.Click, content.transform, null);
         }
 
 		    private static void openStarMap() {

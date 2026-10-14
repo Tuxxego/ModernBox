@@ -181,7 +181,7 @@ public class ButtonBuilder
             if (useSprite == null)
                 useSprite = Resources.Load<Sprite>("ui/icons/" + id);
 
-            PowerButtons.CreateButton(
+            ModernBox.ModernBoxLocale.Button(
                 id,
                 useSprite,
                 power.name,
@@ -194,23 +194,23 @@ public class ButtonBuilder
         }
         else
         {
-			LM.AddToCurrentLocale(id, title);
-            LM.AddToCurrentLocale(id + "_description", description);
+			ModernBox.ModernBoxLocale.Register(id, title);
+            ModernBox.ModernBoxLocale.Register(id + "_description", description);
             LM.ApplyLocale(true);
             switch (type)
             {
                 case ButtonType.Click:
-                    PowerButtons.CreateButton(id, sprite, title, description, position, type, parent, function);
+                    ModernBox.ModernBoxLocale.Button(id, sprite, title, description, position, type, parent, function);
                     ModernBoxLogger.Log($"[ButtonBuilder] Created button with: ID={id}, Type=Click, Title={title}, Position={position}, Parent={parent?.name}");
                     break;
 
                 case ButtonType.Toggle:
-                    PowerButtons.CreateButton(id, sprite, title, description, position, type, parent, function);
+                    ModernBox.ModernBoxLocale.Button(id, sprite, title, description, position, type, parent, function);
                     ModernBoxLogger.Log($"[ButtonBuilder] Created button with: ID={id}, Type=Toggle, Title={title}, Position={position}, Parent={parent?.name}");
                     break;
 
                 case ButtonType.GodPower:
-                    PowerButtons.CreateButton(id, sprite, title, description, position, type, parent, function);
+                    ModernBox.ModernBoxLocale.Button(id, sprite, title, description, position, type, parent, function);
                     ModernBoxLogger.Log($"[ButtonBuilder] Created button with: ID={id}, Type=GodPower, Title={title}, Position={position}, Parent={parent?.name}");
                     break;
 

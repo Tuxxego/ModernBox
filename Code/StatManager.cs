@@ -27,6 +27,7 @@ public class StatManager : MonoBehaviour
     private Text statLabel3;
     private Image glowingImage;
     private float pulseTime = 0f;
+    private float _manuStatTimer = 0f; // Manu-Fix 008
     private Image flashingAdImage;
     private float flashTime = 0f;
 
@@ -195,18 +196,25 @@ public class StatManager : MonoBehaviour
     {
         timePlayed += Time.deltaTime;
 
-        int potentialUnits = 0;
-        foreach (Actor actor in MapBox.instance.units)
+        // Manu-Fix 008: Einheiten-Zaehlung und Textfelder nur noch 2x pro Sekunde statt in jedem Bild
+        // (2 volle Einheiten-Schleifen + 3 neu gebaute Texte je Bild = Rechenzeit und Speichermuell).
+        _manuStatTimer += Time.unscaledDeltaTime;
+        bool statsJetzt = _manuStatTimer >= 0.5f;
+        if (statsJetzt) _manuStatTimer = 0f;
+
+        int potentialUnits = currentVehicles;
+        if (statsJetzt) { potentialUnits = 0; foreach (Actor actor in MapBox.instance.units)
         {
             if (actor != null && actor.hasTrait("Unitpotential"))
             {
                 potentialUnits++;
             }
         }
+        }
         currentVehicles = potentialUnits;
 
         int zomboos = 0;
-        foreach (Actor actor in MapBox.instance.units)
+        if (statsJetzt) foreach (Actor actor in MapBox.instance.units)
         {
             if (actor != null && actor.hasTrait("zombie"))
             {
@@ -214,7 +222,7 @@ public class StatManager : MonoBehaviour
             }
         }
 
-        if (statLabel != null)
+        if (statsJetzt && statLabel != null)
         {
 
             if (!isTyping)
@@ -248,15 +256,16 @@ public class StatManager : MonoBehaviour
             }
         }
 
-        if (statLabel2 != null)
+        if (statsJetzt && statLabel2 != null)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"<b>Current Era:</b> {currentEra}");
-            sb.AppendLine($"<b>Current Era Description:</b> {currentEraDescription}");
+            sb.AppendLine(Development.T("<b>Forschung je Reich</b>","<b>Research per kingdom</b>"));
+            sb.AppendLine(Development.T("Aufbau, Bibliotheken und Heere bestimmen den Fortschritt.","Construction, libraries and armies determine progress."));
+            sb.AppendLine(Development.T("Details: Forschung und Aufbau oeffnen","Details: open Research and development"));
             statLabel2.text = sb.ToString();
         }
 
-        if (statLabel3 != null)
+        if (statsJetzt && statLabel3 != null)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"<color=#70D4FC><b>Planet</b></color>  <color=#F0F0E0>{currentPlanet}</color>");

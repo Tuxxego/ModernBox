@@ -289,14 +289,9 @@ public static void DisableSpace()
 
         ReflectionHelper.InvokeMethod(busMaster, "setVolume", 1.0f);
 
-		GameObject[] allGameObjects = GameObject.FindObjectsOfType<GameObject>();
-		foreach (GameObject obj in allGameObjects)
-		{
-			if (obj.name == "Star" || obj.name == "Nebula")
-			{
-				Destroy(obj);
-			}
-		}
+		// Manu-Fix 032: StarManager owns its visual children and resources.
+		// Destroying the SpaceGameObject above cleans them without name-based
+		// deletion of unrelated scene objects after the game is restored.
 
         isSpaceEnabled = false;
     }
@@ -446,9 +441,11 @@ if (nextPlanetLoadDirectory == null)
             try
             {
 
-                Star star = JsonConvert.DeserializeObject<Star>(starData, new StarConverter());
-
-                return star.planetInfo.Any(p => p.name.Equals(planetName, StringComparison.OrdinalIgnoreCase));
+                // Manu-Fix 032: this is a membership query, not a scene load.
+                // Read the shared planetInfo schema without allocating Star objects.
+                var planets = JObject.Parse(starData)["planetInfo"] as JArray;
+                return planets != null && planets.OfType<JObject>().Any(p =>
+                    string.Equals((string)p["name"], planetName, StringComparison.OrdinalIgnoreCase));
             }
             catch (JsonException ex)
             {

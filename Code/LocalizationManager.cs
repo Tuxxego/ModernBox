@@ -48,9 +48,12 @@ namespace ModernBox
 			{ "de", Language.German },
 			{ "ja", Language.Japanese },
 			{ "ru", Language.Russian },     
-			{ "zh", Language.Chinese },     
+			{ "zh", Language.Chinese },
+            { "cz", Language.Chinese }, // WorldBox simplified Chinese.
+            { "ch", Language.Chinese }, // WorldBox traditional Chinese.
 			{ "ko", Language.Korean },      
-			{ "pt", Language.Portuguese },  
+			{ "pt", Language.Portuguese },
+            { "br", Language.Portuguese },
 			{ "tr", Language.Turkish },  
 			{ "boat", Language.Boat }      
 			
@@ -59,49 +62,35 @@ namespace ModernBox
 
 
         
-        public Language currentLanguage = Language.Spanish;
+        public Language currentLanguage = Language.English;
+        private string lastGameLanguage;
 
         
         private Dictionary<Language, Dictionary<string, string>> localizationDatabase;
 
         
-        void Start()
+        void Awake()
         {
-            ModernBoxLogger.Log("Localization Manager started.");
-            LoadLanguageFromFile();
+            // Manu-Fix 032: the game language is already loaded before this mod.
+            // A missing side file must not select Spanish or delay initialization.
             InitializeLocalizationDatabase();
-			
+            SyncGameLanguage();
         }
 
-    
-    private void LoadLanguageFromFile()
-    {
-        string filePath = Path.Combine(Application.persistentDataPath, "language.txt");
-        if (File.Exists(filePath))
+        private void SyncGameLanguage()
         {
-            try
+            string code = LocalizedTextManager.instance?.language;
+            if (string.IsNullOrEmpty(code) || code == "not_set")
             {
-                string savedLanguageCode = File.ReadAllText(filePath).Trim();
-                if (languageCodeMap.TryGetValue(savedLanguageCode, out Language parsedLanguage))
-                {
-                    currentLanguage = parsedLanguage;
-                    ModernBoxLogger.Log($"Language loaded from file: {currentLanguage}");
-                }
-                else
-                {
-                    ModernBoxLogger.Warning($"Invalid language code in file: {savedLanguageCode}");
-                }
+                string filePath = Path.Combine(Application.persistentDataPath, "language.txt");
+                try { if (File.Exists(filePath)) code = File.ReadAllText(filePath).Trim(); }
+                catch (Exception ex) { ModernBoxLogger.Warning($"Cannot read legacy language preference: {ex.Message}"); }
             }
-            catch (Exception ex)
-            {
-                ModernBoxLogger.Error($"Failed to load language from file: {ex.Message}");
-            }
+            if (lastGameLanguage == code) return;
+            lastGameLanguage = code;
+            currentLanguage = code != null && languageCodeMap.TryGetValue(code, out Language parsed)
+                ? parsed : Language.English;
         }
-        else
-        {
-            ModernBoxLogger.Warning("Language file not found. Defaulting to English.");
-        }
-    }
 		
         private bool isLanguageMenuVisible = false; 
 
@@ -132,12 +121,12 @@ namespace ModernBox
         
         public string Localize(string key)
         {
-            if (localizationDatabase[currentLanguage].TryGetValue(key, out string value))
-            {
-             
+            SyncGameLanguage();
+            if (localizationDatabase == null) InitializeLocalizationDatabase();
+            if (localizationDatabase.TryGetValue(currentLanguage, out var selected) && selected.TryGetValue(key, out string value))
                 return value;
-            }
-
+            if (localizationDatabase.TryGetValue(Language.English, out var english) && english.TryGetValue(key, out value))
+                return value;
             ModernBoxLogger.Warning($"Localization key not found: {key} for language: {currentLanguage}");
             return key; 
         }

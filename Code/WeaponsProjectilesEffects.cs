@@ -233,7 +233,8 @@ public static void toggleMGL()
             if (!CustomItemsList.MGLAllowed && CustomItemsList.MGLs.Contains(__result))
                 return false;
 
-            __result = "firearm";
+            if (Development.CultureEra(__instance) == "Medieval") return true;
+            __result = "stick";
             return false;
         }
     }
@@ -246,7 +247,7 @@ public static void toggleMGL()
             if (!CustomItemsList.GunsAllowed || CustomItemsList.CustomWeapons.Count == 0)
                 return true;
 
-            string era = CustomItemsList.GetEra();
+            string era = Development.CultureEra(__instance);
             if (era == null)
             {
                 __result = new List<EquipmentAsset>();
@@ -279,7 +280,7 @@ public static void toggleMGL()
             if (!CustomItemsList.GunsAllowed || CustomItemsList.CustomWeapons.Count == 0)
                 return true;
 
-            string era = CustomItemsList.GetEra();
+            string era = Development.CultureEra(__instance);
             if (era == null)
             {
                 __result = false;
@@ -300,6 +301,46 @@ public static void toggleMGL()
 
             __result = validWeapons.Any();
             return false;
+        }
+    }
+
+    // Manu-Fix 013: Die Schalter fuer MIRVs, Drogen und MGL filterten nur die eigenen Kultur-Listen oben. Alle Feuerwaffen
+    // dieser Mod haben aber den Vanilla-Untertyp "stick"; das Spiel waehlt beim Schmieden etwa jedes zweite Mal ungefiltert
+    // aus equipment_by_subtypes[Untertyp] (ItemCrafting.craftItem) - dort standen MIRV/STRONGMIRV trotz ausgeschaltetem
+    // Schalter zur Wahl (gemessen im Worst-Case-Lauf D 06.10.2026: 6 Einheiten mit STRONGMIRV bei Jahr ~35, Reichweite bis
+    // 100 012; MIRVOption/STRONGMIRVOption = 0). Hat das Spiel eine gesperrte Waffe gewaehlt, wird dieselbe Auswahl ohne
+    // gesperrte Waffen wiederholt (gleiche Regeln: von hinten, hoeherer Wert, genug Geld/Rohstoffe).
+    [HarmonyPatch(typeof(ItemCrafting), nameof(ItemCrafting.getItemAssetToCraft))]
+    public class Patch_ItemCrafting_GesperrteWaffen
+    {
+        private static readonly System.Reflection.MethodInfo GenugRessourcen =
+            AccessTools.Method(typeof(ItemCrafting), "hasEnoughResourcesToCraft");
+
+        internal static bool Gesperrt(EquipmentAsset pAsset)
+        {
+            if (pAsset == null) return false;
+            // Manu-Fix 028: disabling the custom weapon pool must also cover vanilla's subtype fallback.
+            // Only the registered ModernBox crafting pool is blocked; existing equipment and god powers are untouched.
+            return (!CustomItemsList.GunsAllowed && CustomItemsList.WeaponEras.ContainsKey(pAsset.id))
+                || (!CustomItemsList.MirvsAllowed && CustomItemsList.Kys.Contains(pAsset.id))
+                || (!CustomItemsList.DrugsAllowed && CustomItemsList.Druggies.Contains(pAsset.id))
+                || (!CustomItemsList.MGLAllowed && CustomItemsList.MGLs.Contains(pAsset.id));
+        }
+
+        static void Postfix(Actor pActor, List<EquipmentAsset> pItemList, City pCity, int pCurrentItemValue, ref EquipmentAsset __result)
+        {
+            if (!Gesperrt(__result) || pItemList == null || GenugRessourcen == null) return;
+            __result = null;
+            for (int i = pItemList.Count - 1; i >= 0; i--)
+            {
+                EquipmentAsset tAsset = pItemList[i];
+                if (tAsset == null || Gesperrt(tAsset) || tAsset.equipment_value <= pCurrentItemValue) continue;
+                if ((bool)GenugRessourcen.Invoke(null, new object[] { pActor, tAsset, pCity }))
+                {
+                    __result = tAsset;
+                    return;
+                }
+            }
         }
     }
 

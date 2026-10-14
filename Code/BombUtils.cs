@@ -367,6 +367,14 @@ namespace ModernBox
             return true;
         }
 
+        // Manu-Fix 033: MapBox survives loading/generation, but clearWorld advances this seed.
+        // A blast belongs only to the world that started it; never stop unrelated coroutines.
+        private static bool IsBombWorldCurrent(MapBox bombWorld, int bombSeed)
+        {
+            return bombWorld != null && object.ReferenceEquals(World.world, bombWorld)
+                && MapBox.current_world_seed_id == bombSeed;
+        }
+
         public void Explode(WorldTile centerTile, float radius, float tilesPerFrame, string toptiletype, string tiletype, string terraform, bool coolThing, string traitAdd = null, bool zombie = false, bool StopTerraform = false)
         {
             if (centerTile == null)
@@ -377,6 +385,9 @@ namespace ModernBox
 
 private IEnumerator NoLongerStupid(WorldTile centerTile, float radius, float tilesPerFrame, string toptiletype, string tiletype, string terraform = "czar_bomba", bool coolThing = false, string traitAdd = null, bool zombie = false, bool StopTerraform = false)
         {
+            MapBox bombWorld = World.world;
+            int bombSeed = MapBox.current_world_seed_id;
+            if (centerTile == null || !IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
             Vector2Int center = centerTile.pos;
             int intRadius = Mathf.CeilToInt(radius);
             int inttilesPerFrame = Mathf.Max(1, Mathf.CeilToInt(tilesPerFrame)); 
@@ -410,11 +421,12 @@ private IEnumerator NoLongerStupid(WorldTile centerTile, float radius, float til
                         int checkX = center.x + x;
                         int checkY = center.y + y;
 
-                        WorldTile tile = World.world.GetTile(checkX, checkY);
+                        if (!IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
+                        WorldTile tile = bombWorld.GetTile(checkX, checkY);
                         if (tile != null)
                         {
 
-                            List<Actor> actorsOnTile = World.world.units.Cast<Actor>()
+                            List<Actor> actorsOnTile = bombWorld.units.Cast<Actor>()
                                 .Where(a => a != null && a.isAlive() && a.current_tile == tile)
                                 .ToList();
 
@@ -432,22 +444,22 @@ private IEnumerator NoLongerStupid(WorldTile centerTile, float radius, float til
 
                                 }
                             }
-                            if (StopTerraform)
+                            // Manu-Fix 033: infection-only blasts need the same per-frame tile budget.
+                            // Skipping terraforming must not skip the counter/yield below.
+                            if (!StopTerraform)
                             {
-                                continue; 
-
-                            }
-                            if (!ct)
-                            {
-                                MapAction.applyTileDamage(tile, radius, terry);
-                            }
-                            else
-                            {
-                                tile.setTopTileType(null);
-                                tile.setTileType(balls);
-                                if (toptiletype != null)
+                                if (!ct)
                                 {
-                                    tile.setTopTileType(tiley);
+                                    MapAction.applyTileDamage(tile, radius, terry);
+                                }
+                                else
+                                {
+                                    tile.setTopTileType(null);
+                                    tile.setTileType(balls);
+                                    if (toptiletype != null)
+                                    {
+                                        tile.setTopTileType(tiley);
+                                    }
                                 }
                             }
 
@@ -457,6 +469,7 @@ private IEnumerator NoLongerStupid(WorldTile centerTile, float radius, float til
                             {
                                 tilesProcessed = 0;
                                 yield return null;
+                                if (!IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
                             }
                         }
                     }
@@ -465,19 +478,27 @@ private IEnumerator NoLongerStupid(WorldTile centerTile, float radius, float til
             }
 
             if (tilesProcessed > 0)
+            {
                 yield return null;
+                if (!IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
+            }
         }
 
         private static IEnumerator RepBombsCoroutine(WorldTile centerTile, float radius, float tilesPerFrame, string toptiletype, string tiletype, int ammountOfBombs, float smallestSize, float largestSize,  string terraform = "czar_bomba", bool coolThing = false, int timeBetweenBombs = 3, string effect = "fx_explopsion_huge")
         {
+            MapBox bombWorld = World.world;
+            int bombSeed = MapBox.current_world_seed_id;
+            if (centerTile == null || !IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
             float TBB = timeBetweenBombs;
             int AOB = ammountOfBombs;
 
             for (int i = 0; i < AOB; i++)
             {
+                if (!IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
                 StartEffect(centerTile, effect, smallestSize, largestSize);
                 BombUtilities.Instance.Explode(centerTile, radius, tilesPerFrame, toptiletype, tiletype, terraform, coolThing);
                 yield return new WaitForSeconds(TBB);
+                if (!IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
             }
 
         }
@@ -489,34 +510,42 @@ private IEnumerator NoLongerStupid(WorldTile centerTile, float radius, float til
 
         private IEnumerator ClusterNukeCoroutine(WorldTile pTile)
         {
+            MapBox bombWorld = World.world;
+            int bombSeed = MapBox.current_world_seed_id;
+            if (pTile == null || !IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
             float duration = 5f;
             float interval = 0.2f;
             float elapsed = 0f;
 
             while (elapsed < duration)
             {
+                if (!IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
                 elapsed += interval;
 
-                WorldTile randomTile = GetRandomTileWithinRadius(pTile, 35);
+                WorldTile randomTile = GetRandomTileWithinRadius(pTile, 35, bombWorld);
                 if (randomTile != null)
                 {
                     EffectsLibrary.spawnAtTileRandomScale("fx_explosion_huge", randomTile, 0.4f, 0.6f);
-                    World.world.startShake(0.3f, 0.01f, 2f, true, true);
-                    if (World.world.explosion_checker.checkNearby(randomTile, 20))
+                    bombWorld.startShake(0.3f, 0.01f, 2f, true, true);
+                    if (bombWorld.explosion_checker.checkNearby(randomTile, 20))
+                    {
                         yield return new WaitForSeconds(interval);
+                        if (!IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
+                    }
                     StatManager.Instance.DropBomb();
                     Explode(pTile, 50f, 1000f, null, null, "czar_bomba", false);
                 }
 
                 yield return new WaitForSeconds(interval);
+                if (!IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
             }
         }
 
-        private WorldTile GetRandomTileWithinRadius(WorldTile centerTile, int radius)
+        private WorldTile GetRandomTileWithinRadius(WorldTile centerTile, int radius, MapBox bombWorld)
         {
             int x = centerTile.x + UnityEngine.Random.Range(-radius, radius + 1);
             int y = centerTile.y + UnityEngine.Random.Range(-radius, radius + 1);
-            return World.world.GetTile(x, y);
+            return bombWorld.GetTile(x, y);
         }
 
         public void ExplodeInIce(WorldTile centerTile, float radius)
@@ -529,6 +558,9 @@ private IEnumerator NoLongerStupid(WorldTile centerTile, float radius, float til
 
         private IEnumerator ThisIceIsSoStupid(WorldTile centerTile, float radius)
         {
+            MapBox bombWorld = World.world;
+            int bombSeed = MapBox.current_world_seed_id;
+            if (centerTile == null || !IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
             Vector2Int center = centerTile.pos;
             int intRadius = Mathf.CeilToInt(radius);
             int inttilesPerFrame = 400;
@@ -546,7 +578,8 @@ private IEnumerator NoLongerStupid(WorldTile centerTile, float radius, float til
                         int checkX = center.x + x;
                         int checkY = center.y + y;
 
-                        WorldTile tile = World.world.GetTile(checkX, checkY);
+                        if (!IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
+                        WorldTile tile = bombWorld.GetTile(checkX, checkY);
                         if (tile != null)
                         {
                             tile.freeze();
@@ -557,10 +590,12 @@ private IEnumerator NoLongerStupid(WorldTile centerTile, float radius, float til
                         {
                             tilesProcessed = 0;
                             yield return null;
+                            if (!IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
                         }
                     }
                 }
                 yield return null;
+                if (!IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
             }
         }
 
@@ -574,6 +609,9 @@ private IEnumerator NoLongerStupid(WorldTile centerTile, float radius, float til
 
         private IEnumerator ThisShitIsSoFire(WorldTile centerTile, float radius)
         {
+            MapBox bombWorld = World.world;
+            int bombSeed = MapBox.current_world_seed_id;
+            if (centerTile == null || !IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
             Vector2Int center = centerTile.pos;
             int intRadius = Mathf.CeilToInt(radius);
             int inttilesPerFrame = 400;
@@ -591,7 +629,8 @@ private IEnumerator NoLongerStupid(WorldTile centerTile, float radius, float til
                         int checkX = center.x + x;
                         int checkY = center.y + y;
 
-                        WorldTile tile = World.world.GetTile(checkX, checkY);
+                        if (!IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
+                        WorldTile tile = bombWorld.GetTile(checkX, checkY);
                         if (tile != null)
                         {
                             tile.setFireData(true);
@@ -602,10 +641,12 @@ private IEnumerator NoLongerStupid(WorldTile centerTile, float radius, float til
                         {
                             tilesProcessed = 0;
                             yield return null;
+                            if (!IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
                         }
                     }
                 }
                 yield return null;
+                if (!IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
             }
         }
 

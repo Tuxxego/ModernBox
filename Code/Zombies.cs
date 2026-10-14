@@ -46,9 +46,9 @@ namespace ModernBox
 
             zombie_spawner.action_special_effect = new WorldAction(zombie_spawnerEffect);
             AssetManager.traits.add(zombie_spawner);
-            LM.AddToCurrentLocale("trait_zombie_spawner", "Zombie Beacon");
-            LM.AddToCurrentLocale("trait_zombie_spawner_info", "They rally around him...");
-            LM.AddToCurrentLocale("trait_zombie_spawner_info_2", "helicopter helicopter");
+            ModernBox.ModernBoxLocale.Register("trait_zombie_spawner", "Zombie Beacon");
+            ModernBox.ModernBoxLocale.Register("trait_zombie_spawner_info", "They rally around him...");
+            ModernBox.ModernBoxLocale.Register("trait_zombie_spawner_info_2", "helicopter helicopter");
 
           AssetManager.job_actor.add(new ActorJob{id = "ZombieWorse"});
           AssetManager.job_actor.t.addTask("follow_same_race");

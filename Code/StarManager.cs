@@ -22,6 +22,30 @@ public class StarManager : MonoBehaviour
     private Star hoveredStar;
     private Star selectedStar;
     private Camera mainCamera;
+    private bool ownsCamera;
+    private Transform visualRoot;
+    private GUISkin spaceSkin;
+    // Manu-Fix 032: only constant GUI colors enter the cache. Animated colors
+    // tint the shared white texture; every allocated resource has one owner.
+    private readonly Dictionary<(int, int, Color), Texture2D> solidTextures = new Dictionary<(int, int, Color), Texture2D>();
+    private readonly Dictionary<(int, int, Color, Color), Texture2D> gradientTextures = new Dictionary<(int, int, Color, Color), Texture2D>();
+    private readonly Dictionary<string, Sprite> starSprites = new Dictionary<string, Sprite>();
+    private readonly Dictionary<string, Sprite> nebulaSprites = new Dictionary<string, Sprite>();
+    private readonly HashSet<Texture2D> ownedTextures = new HashSet<Texture2D>();
+    private readonly HashSet<Sprite> ownedSprites = new HashSet<Sprite>();
+    private Texture2D secretPulseTexture;
+    private string transientNotice;
+    private float transientNoticeUntil;
+
+    private Transform VisualRoot()
+    {
+        if (visualRoot == null)
+        {
+            visualRoot = new GameObject("ModernBoxStarmapVisuals").transform;
+            visualRoot.SetParent(transform, false);
+        }
+        return visualRoot;
+    }
     public float moveSpeed = 15f; 
     public float zoomSpeed = 20f; 
     public float minZoom = 1f; 
@@ -58,7 +82,8 @@ public class StarManager : MonoBehaviour
     private int _cachedWorldYear = 0;
     private string regionName = "Unknown Region";
     private string galaxyName = "Crabby Way";
-    private string[] predefinedGalaxies = { "Crabby Way", "Tuxxus", "Krummple", "BlueNight", "Glass", "Centuga", "Dank" };
+    internal static readonly string[] BuiltinGalaxyNames = { "Crabby Way", "Tuxxus", "Krummple", "BlueNight", "Glass", "Centuga", "Dank" };
+    private string[] predefinedGalaxies = BuiltinGalaxyNames.ToArray();
 	private Dictionary<string, int> galaxyRequirements = new Dictionary<string, int>
 	{
 		{ "Crabby Way", 0 }, 
@@ -117,22 +142,22 @@ public class StarManager : MonoBehaviour
     private bool isGeneratingStars = false;
     private bool starsGenerationComplete = false;
 	private bool showSearchWindow = false;
-    private static Texture2D _panelBg;
-    private static Texture2D _accentLine;
-    private static Texture2D _btnNormal;
-    private static Texture2D _btnVisit;
-    private static Texture2D _btnClose;
-    private static Texture2D _statCard;
-    private static Texture2D _visitedBadge;
-    private static Texture2D _barBg;
-    private static Texture2D _btnTex;
-    private static Texture2D _btnHoverTex;
-    private static Texture2D _btnStarTex;
-    private static Texture2D _btnStarHoverTex;
-    private static Texture2D _btnSecretTex;
-    private static Texture2D _btnSecretHoverTex;
-    private static Texture2D _badgeTex;
-    private static Texture2D _dividerTex;
+    private Texture2D _panelBg;
+    private Texture2D _accentLine;
+    private Texture2D _btnNormal;
+    private Texture2D _btnVisit;
+    private Texture2D _btnClose;
+    private Texture2D _statCard;
+    private Texture2D _visitedBadge;
+    private Texture2D _barBg;
+    private Texture2D _btnTex;
+    private Texture2D _btnHoverTex;
+    private Texture2D _btnStarTex;
+    private Texture2D _btnStarHoverTex;
+    private Texture2D _btnSecretTex;
+    private Texture2D _btnSecretHoverTex;
+    private Texture2D _badgeTex;
+    private Texture2D _dividerTex;
     private float _windowOpenTime;
 	private string searchQuery = "";
 	private Vector2 scrollPosition;
@@ -192,130 +217,52 @@ public class StarManager : MonoBehaviour
 		LoadJourneyTracker();
     }
 
-	public void LoadGalaxies()
-	{
-		string galaxiesFolder = Path.Combine(Application.dataPath, "../galaxies/");
-		
-		if (!Directory.Exists(galaxiesFolder))
-		{
-			Directory.CreateDirectory(galaxiesFolder);
-			Debug.Log($"Created galaxies folder at: {galaxiesFolder}");
-
-			string readmePath = Path.Combine(galaxiesFolder, "CustomGalaxiesReadme.txt");
-			string readmeContent = "Join the discord for help and custom galaxy downloads.";
-			File.WriteAllText(readmePath, readmeContent);
-			Debug.Log($"Created readme file at: {readmePath}");
-
-			return;
-		}
-
-		string[] galaxyFiles = Directory.GetFiles(galaxiesFolder, "*.gal");
-
-		if (galaxyFiles.Length == 0)
-		{
-			Debug.Log("No .gal files found. Skipping galaxy loading.");
-			return;
-		}
-
-		Dictionary<string, bool> galaxyStates = LoadGalaxiesState();
-
-		foreach (string filePath in galaxyFiles)
-		{
-			try
-			{
-				string json = File.ReadAllText(filePath);
-				GalaxyData galaxy = JsonUtility.FromJson<GalaxyData>(json);
-
-				if (galaxyStates.ContainsKey(galaxy.name) && galaxyStates[galaxy.name])
-				{
-					predefinedGalaxies = AddToArray(predefinedGalaxies, galaxy.name);
-					CustomGalaxyDescriptions[galaxy.name] = galaxy.description;
-					galaxyRequirements[galaxy.name] = galaxy.requirement;
-					galaxyStarCounts[galaxy.name] = galaxy.starCount;
-					galaxyDangerRatings[galaxy.name] = galaxy.dangerRating;
-					galaxyStarWeights[galaxy.name] = galaxy.starWeights;
-
-					if (galaxy.nebulaColor1 != null && galaxy.nebulaColor2 != null)
-					{
-						Color nebula1 = new Color(galaxy.nebulaColor1[0], galaxy.nebulaColor1[1], galaxy.nebulaColor1[2], galaxy.nebulaColor1[3]);
-						Color nebula2 = new Color(galaxy.nebulaColor2[0], galaxy.nebulaColor2[1], galaxy.nebulaColor2[2], galaxy.nebulaColor2[3]);
-						CustomGalaxyNebulas[galaxy.name] = (nebula1, nebula2);
-					}
-
-					if (galaxy.GlassStructure)
-					{
-						GlassGalaxies[galaxy.name] = true;
-					}
-
-					loadedGalaxyCount++;
-					Debug.Log($"Galaxy '{galaxy.name}' loaded successfully.");
-				}
-				else
-				{
-					Debug.Log($"Galaxy '{galaxy.name}' is disabled and will not be loaded.");
-				}
-			}
-			catch (System.Exception ex)
-			{
-				Debug.LogError($"Error loading galaxy file '{filePath}': {ex.Message}");
-			}
-		}
-	}
-
-        private static void SaveGalaxiesState(Dictionary<string, bool> galaxyStates)
+    public void LoadGalaxies()
+    {
+        string galaxiesFolder = Path.Combine(Application.dataPath, "../galaxies/");
+        if (!Directory.Exists(galaxiesFolder))
         {
-            string path = Path.Combine(Application.dataPath, "Galaxies.json");
-            string json = JsonConvert.SerializeObject(galaxyStates, Formatting.Indented);
-            File.WriteAllText(path, json);
-        }
-
-		private static Dictionary<string, bool> LoadGalaxiesState()
-		{
-			string path = Path.Combine(Application.dataPath, "Galaxies.json");
-			if (File.Exists(path))
-			{
-				string json = File.ReadAllText(path);
-				return JsonConvert.DeserializeObject<Dictionary<string, bool>>(json);
-			}
-			else
-			{
-				List<GalaxyData> galaxies = LoadGalaxiesFromThatFuckingFile();
-				Dictionary<string, bool> galaxyStates = new Dictionary<string, bool>();
-				foreach (var galaxy in galaxies)
-				{
-					galaxyStates[galaxy.name] = true;
-				}
-				SaveGalaxiesState(galaxyStates);
-				return galaxyStates;
-			}
-		}
-
-        private static List<GalaxyData> LoadGalaxiesFromThatFuckingFile()
-        {
-            string galaxiesDirectory = Path.Combine(Application.dataPath, "../galaxies/");
-            List<GalaxyData> galaxies = new List<GalaxyData>();
-
-            if (Directory.Exists(galaxiesDirectory))
+            try
             {
-                string[] galaxyFiles = Directory.GetFiles(galaxiesDirectory, "*.gal");
-                foreach (var file in galaxyFiles)
-                {
-                    try
-                    {
-                        string json = File.ReadAllText(file);
-                        GalaxyData galaxy = JsonConvert.DeserializeObject<GalaxyData>(json);
-                        galaxies.Add(galaxy);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.LogError($"Error loading galaxy file {file}: {ex.Message}");
-                    }
-                }
+                Directory.CreateDirectory(galaxiesFolder);
+                File.WriteAllText(Path.Combine(galaxiesFolder, "CustomGalaxiesReadme.txt"), "Join the discord for help and custom galaxy downloads.");
             }
-
-            return galaxies;
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[ModernBox Fix030] Cannot prepare the optional galaxy directory: {ex.Message}");
+            }
+            return;
         }
-
+        // Manu-Fix 030: share the validated optional-file reader with the window.
+        // Do not register a partial galaxy before validating colors and weights.
+        var galaxies = CustomGalaxiesWindow.LoadGalaxies();
+        var galaxyStates = CustomGalaxiesWindow.LoadGalaxiesState();
+        foreach (var galaxy in galaxies)
+        {
+            if (!galaxyStates.TryGetValue(galaxy.name, out bool enabled) || !enabled)
+                continue;
+            if (predefinedGalaxies.Contains(galaxy.name))
+            {
+                Debug.LogWarning($"[ModernBox Fix030] Galaxy '{galaxy.name}' is already registered; skipping duplicate.");
+                continue;
+            }
+            predefinedGalaxies = AddToArray(predefinedGalaxies, galaxy.name);
+            CustomGalaxyDescriptions[galaxy.name] = galaxy.description ?? galaxy.name;
+            galaxyRequirements[galaxy.name] = galaxy.requirement;
+            galaxyStarCounts[galaxy.name] = galaxy.starCount;
+            galaxyDangerRatings[galaxy.name] = galaxy.dangerRating;
+            galaxyStarWeights[galaxy.name] = galaxy.starWeights.ToArray();
+            if (galaxy.nebulaColor1 != null && galaxy.nebulaColor2 != null)
+            {
+                Color nebula1 = new Color(galaxy.nebulaColor1[0], galaxy.nebulaColor1[1], galaxy.nebulaColor1[2], galaxy.nebulaColor1[3]);
+                Color nebula2 = new Color(galaxy.nebulaColor2[0], galaxy.nebulaColor2[1], galaxy.nebulaColor2[2], galaxy.nebulaColor2[3]);
+                CustomGalaxyNebulas[galaxy.name] = (nebula1, nebula2);
+            }
+            if (galaxy.GlassStructure) GlassGalaxies[galaxy.name] = true;
+            loadedGalaxyCount++;
+            Debug.Log($"Galaxy '{galaxy.name}' loaded successfully.");
+        }
+    }
 
     private string[] AddToArray(string[] array, string newItem)
     {
@@ -366,11 +313,19 @@ public class StarManager : MonoBehaviour
             Debug.LogWarning($"activeGalaxy.txt not found. Defaulting to {galaxyName}");
         }
 
+        // A removed, disabled or invalid custom galaxy must not strand the map.
+        // Keep the persisted selection untouched so its files can be repaired.
+        if (!galaxyStarCounts.ContainsKey(galaxyName))
+        {
+            Debug.LogWarning("[ModernBox Fix030] Selected galaxy is unavailable; using Crabby Way for this session.");
+            galaxyName = "Crabby Way";
+        }
+
         yield return null;
 
         string galaxyPath = Path.Combine(appDataLocation, activeGalaxy, "Galaxies", galaxyName);
 
-        if (Directory.Exists(galaxyPath))
+        if (HasSavedStars(galaxyPath))
         {
             isGeneratingStars = true;
         yield return null;
@@ -405,6 +360,8 @@ public class StarManager : MonoBehaviour
         }
 
         GameObject cameraObject = new GameObject("Main Camera");
+        cameraObject.transform.SetParent(transform, false);
+        ownsCamera = true;
         mainCamera = cameraObject.AddComponent<Camera>();
         mainCamera.tag = "MainCamera"; 
         mainCamera.orthographic = true;
@@ -413,6 +370,14 @@ public class StarManager : MonoBehaviour
         mainCamera.backgroundColor = Color.black;
         mainCamera.transform.position = new Vector3(0, 0, -10); 
         Debug.Log("Created a new main camera.");
+    }
+
+    private static bool HasSavedStars(string path)
+    {
+        // Manu-Fix 032: world/planet setup can create this folder before the
+        // first starmap visit. An empty folder is not a saved galaxy.
+        return Directory.Exists(path) && Directory.GetDirectories(path)
+            .Any(folder => File.Exists(Path.Combine(folder, "star.json")));
     }
 
 private void GenerateStars()
@@ -444,6 +409,8 @@ private void GenerateStars()
     {
         GameObject starObject = new GameObject("Star");
         Star star = starObject.AddComponent<Star>();
+        starObject.transform.SetParent(VisualRoot(), false);
+        star.starType = GenerateStarType();
 
         SpriteRenderer spriteRenderer = starObject.AddComponent<SpriteRenderer>();
         spriteRenderer.sprite = CreateStarSprite(star);
@@ -451,6 +418,7 @@ private void GenerateStars()
         if (spriteRenderer.sprite == null)
         {
             Debug.LogError("Failed to create star sprite.");
+            Destroy(starObject);
             continue;
         }
 
@@ -475,7 +443,6 @@ private void GenerateStars()
         star.transform.position = starPosition;
 
         star.name = GenerateStarName();
-        star.starType = GenerateStarType();
         star.planetCount = UnityEngine.Random.Range(1, 10);
 
       //  spriteRenderer.color = GetStarColor(star.starType);
@@ -543,6 +510,7 @@ private void GenerateNebulas()
     for (int i = 0; i < nebulaCount; i++)
     {
         GameObject nebulaObject = new GameObject("Nebula");
+        nebulaObject.transform.SetParent(VisualRoot(), false);
         SpriteRenderer spriteRenderer = nebulaObject.AddComponent<SpriteRenderer>();
 
         spriteRenderer.sprite = sharedNebulaSprite;
@@ -571,6 +539,7 @@ private void GenerateNebulas()
 
 private Sprite CreateNebulaSprite(string galaxyName)
 {
+    if (nebulaSprites.TryGetValue(galaxyName, out Sprite cached)) return cached;
     int width = 256;
     int height = 256;
     Texture2D texture = new Texture2D(width, height, TextureFormat.ARGB32, false);
@@ -631,7 +600,11 @@ private Sprite CreateNebulaSprite(string galaxyName)
     texture.SetPixels(pixels);
     texture.Apply();
 
-    return Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f));
+    Sprite result = Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f));
+    ownedTextures.Add(texture);
+    ownedSprites.Add(result);
+    nebulaSprites[galaxyName] = result;
+    return result;
 }
 
 private Color RandomColor(Color[] colors)
@@ -795,7 +768,8 @@ private string GetRandomPlanetType(string[] possibleTypes = null)
 
 private Sprite CreateStarSprite(Star star)
 {
-    string spritePath = GetStarSpritePath(star.starType); 
+    string spritePath = GetStarSpritePath(star.starType);
+    if (starSprites.TryGetValue(spritePath, out Sprite cached)) return cached;
 
     Sprite sprite = Resources.Load<Sprite>(spritePath);
 
@@ -808,26 +782,37 @@ private Sprite CreateStarSprite(Star star)
     Texture2D resizedTexture = ResizeTexture(sprite.texture, 64, 64);
     Sprite resizedSprite = Sprite.Create(resizedTexture, new Rect(0, 0, 64, 64), new Vector2(0.5f, 0.5f));
 
+    ownedSprites.Add(resizedSprite);
+    starSprites[spritePath] = resizedSprite;
     return resizedSprite;
 }
 
 private Texture2D ResizeTexture(Texture2D originalTexture, int width, int height)
 {
-    RenderTexture rt = new RenderTexture(width, height, 24);
-    Graphics.Blit(originalTexture, rt);
-
-    Texture2D resizedTexture = new Texture2D(width, height);
-    RenderTexture.active = rt;
-    resizedTexture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-    resizedTexture.Apply();
-
-    RenderTexture.active = null;
-    rt.Release();
-
-    return resizedTexture;
+    RenderTexture previous = RenderTexture.active;
+    RenderTexture temporary = RenderTexture.GetTemporary(width, height, 24);
+    Texture2D resizedTexture = null;
+    try
+    {
+        Graphics.Blit(originalTexture, temporary);
+        resizedTexture = new Texture2D(width, height);
+        RenderTexture.active = temporary;
+        resizedTexture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+        resizedTexture.Apply();
+        ownedTextures.Add(resizedTexture);
+        return resizedTexture;
+    }
+    catch
+    {
+        if (resizedTexture != null) Destroy(resizedTexture);
+        throw;
+    }
+    finally
+    {
+        RenderTexture.active = previous;
+        RenderTexture.ReleaseTemporary(temporary);
+    }
 }
-
-
 
 private string GetStarSpritePath(string starType)
 {
@@ -914,8 +899,7 @@ private void SaveStarsAndPlanets()
     Directory.CreateDirectory(savePath);
 
     JsonSerializerSettings settings = new JsonSerializerSettings();
-    settings.Converters.Add(new Vector3Converter());
-    settings.Converters.Add(new GameObjectConverter());
+    settings.Converters.Add(new StarConverter());
 
     foreach (Star star in stars)
     {
@@ -942,11 +926,26 @@ private void LoadStarsAndPlanets(string path)
         string starFilePath = Path.Combine(starFolder, "star.json");
         if (File.Exists(starFilePath))
         {
-            string starData = File.ReadAllText(starFilePath);
-
-            Star star = JsonConvert.DeserializeObject<Star>(starData, new StarConverter());
-            stars.Add(star);
-
+            try
+            {
+                string starData = File.ReadAllText(starFilePath);
+                Star star = JsonConvert.DeserializeObject<Star>(starData, new StarConverter());
+                if (star == null) throw new JsonSerializationException("Expected a star object, got null.");
+                star.transform.SetParent(VisualRoot(), false);
+                stars.Add(star);
+            }
+            catch (JsonException ex)
+            {
+                Debug.LogWarning($"[ModernBox Fix032] Skipping invalid star file '{starFilePath}': {ex.Message}");
+            }
+            catch (IOException ex)
+            {
+                Debug.LogWarning($"[ModernBox Fix032] Cannot read star file '{starFilePath}': {ex.Message}");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Debug.LogWarning($"[ModernBox Fix032] Cannot access star file '{starFilePath}': {ex.Message}");
+            }
         }
     }
 }
@@ -967,30 +966,13 @@ private void GenerateLoadedStars(string path)
         try
         {
 
-            GameObject starObject = new GameObject("Star");
-            Star starComponent = starObject.AddComponent<Star>();
-
-            starComponent.name = starData.name;
-            starComponent.starType = starData.starType;
-            starComponent.planetCount = starData.planetCount;
-            starComponent.selectedPlanet = starData.selectedPlanet;
-            starComponent.planetInfo = starData.planetInfo ?? new PlanetInfo[0]; 
-
-            SpriteRenderer spriteRenderer = starObject.AddComponent<SpriteRenderer>();
-
-            spriteRenderer.sprite = CreateStarSprite(starData); 
-
-            if (spriteRenderer.sprite != null)
-            {
-
-            }
-            else
-            {
-                Debug.LogWarning("Failed to create or assign sprite.");
-            }
-           // spriteRenderer.color = GetStarColor(starData.starType);
-
-            starObject.transform.position = starData.transform.position;
+            // The converter already created this Star. Use it directly so the
+            // tracked collection and the visible objects have identical lifetimes.
+            SpriteRenderer spriteRenderer = starData.gameObject.AddComponent<SpriteRenderer>();
+            spriteRenderer.sprite = CreateStarSprite(starData);
+            starData.transform.localScale = new Vector3(0.3f, 0.3f, 1);
+            if (spriteRenderer.sprite == null)
+                Debug.LogWarning("Failed to create or assign star sprite.");
 
         }
         catch (InvalidCastException castEx)
@@ -1031,7 +1013,18 @@ private void GenerateLoadedStars(string path)
 
 private void OnGUI()
 {
+    if (spaceSkin == null) spaceSkin = Instantiate(GUI.skin);
+    GUISkin previousSkin = GUI.skin;
+    GUI.skin = spaceSkin;
+    try { DrawSpaceGUI(); }
+    finally { GUI.skin = previousSkin; }
+}
+
+private void DrawSpaceGUI()
+{
     BottomBar();
+    if (Time.unscaledTime < transientNoticeUntil)
+        GUI.Label(new Rect(Screen.width / 2f - 200, Screen.height - 100, 400, 30), transientNotice);
 
     if (hoveredStar != null)
     {
@@ -1087,7 +1080,7 @@ private void OnGUI()
     if (showParametersWindow)
     {
         Rect parametersWindowRect = new Rect(450, 100, 300, 200);
-        GUILayout.Window(1, parametersWindowRect, PlanetParametersWindow, localizationManager.Localize("parameters"));
+        GUILayout.Window(13, parametersWindowRect, PlanetParametersWindow, localizationManager.Localize("parameters"));
     }
     
     if (showTutorialPrompt)
@@ -1140,14 +1133,14 @@ if (showGalaxySelectionWindow)
     if (showFavoritesWindow)
     {
         Rect favoritesWindowRect = new Rect((Screen.width - 400) / 2, (Screen.height - 400) / 2, 400, 400);
-        GUI.Window(8, favoritesWindowRect, FavoritesWindow, localizationManager.Localize("favorite_stars"));
+        GUI.Window(14, favoritesWindowRect, FavoritesWindow, localizationManager.Localize("favorite_stars"));
     }
 
 	
 	if (isGeneratingStars)
 	{
 		GUI.Window(
-			2, 
+			15,
 			new Rect(Screen.width / 2 - 350, Screen.height / 2 - 250, 700, 500), 
 			StarLoadingWindow, 
 			localizationManager.Localize("loading")
@@ -1473,30 +1466,29 @@ private void StarLoadingWindow(int windowID)
 private void DrawHorizontalRule(Color color)
 {
     Rect r = GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.Height(1), GUILayout.ExpandWidth(true));
-    Texture2D line = new Texture2D(1, 1);
-    line.SetPixel(0, 0, color);
-    line.Apply();
-    GUI.DrawTexture(r, line);
+    DrawTintedTexture(r, color);
 }
 
 private void DrawProgressBar(float t, Color colorA, Color colorB)
 {
     Rect track = GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.Height(4), GUILayout.ExpandWidth(true));
-
-    Texture2D trackTex = new Texture2D(1, 1);
-    trackTex.SetPixel(0, 0, new Color(1f, 1f, 1f, 0.06f));
-    trackTex.Apply();
-    GUI.DrawTexture(track, trackTex);
-
+    DrawTintedTexture(track, new Color(1f, 1f, 1f, 0.06f));
     Rect fill = new Rect(track.x, track.y, track.width * t, track.height);
-    Texture2D fillTex = new Texture2D(1, 1);
-    fillTex.SetPixel(0, 0, Color.Lerp(colorA, colorB, t));
-    fillTex.Apply();
-    GUI.DrawTexture(fill, fillTex);
+    DrawTintedTexture(fill, Color.Lerp(colorA, colorB, t));
+}
+
+private static void DrawTintedTexture(Rect area, Color tint)
+{
+    Color previous = GUI.color;
+    GUI.color = previous * tint;
+    GUI.DrawTexture(area, Texture2D.whiteTexture);
+    GUI.color = previous;
 }
 
 private Texture2D CreateGradientTexture(int width, int height, Color startColor, Color endColor)
 {
+    var key = (width, height, startColor, endColor);
+    if (gradientTextures.TryGetValue(key, out Texture2D cached)) return cached;
     Texture2D texture = new Texture2D(width, height);
     for (int y = 0; y < height; y++)
     {
@@ -1507,6 +1499,8 @@ private Texture2D CreateGradientTexture(int width, int height, Color startColor,
         }
     }
     texture.Apply();
+    ownedTextures.Add(texture);
+    gradientTextures[key] = texture;
     return texture;
 }
 
@@ -1652,6 +1646,14 @@ private Texture2D CreateGradientTexture(int width, int height, Color startColor,
 
     private void MoveCameraToStar(Star star)
     {
+        // The current planet may belong to another galaxy or a removed entry.
+        if (star == null || mainCamera == null)
+        {
+            // Space hides the ordinary WorldTip canvas; render the notice here.
+            transientNotice = localizationManager?.Localize("no_information") ?? "No information available.";
+            transientNoticeUntil = Time.unscaledTime + 3f;
+            return;
+        }
         Vector3 starPosition = star.transform.position;
         mainCamera.transform.position = new Vector3(starPosition.x, starPosition.y, mainCamera.transform.position.z);
         mainCamera.orthographicSize = Mathf.Clamp(mainCamera.orthographicSize * 0.5f, minZoom, maxZoom); 
@@ -1951,8 +1953,7 @@ private void BottomBar()
     GUI.DrawTexture(new Rect(0, barY, Screen.width, barH), _barBg);
 
     float lineAlpha = 0.3f + Mathf.Sin(t * 1.6f) * 0.2f;
-    var lineTex = MakeTex(1, 1, new Color(0.25f, 0.78f, 1f, lineAlpha));
-    GUI.DrawTexture(new Rect(0, barY, Screen.width, 1f), lineTex);
+    DrawTintedTexture(new Rect(0, barY, Screen.width, 1f), new Color(0.25f, 0.78f, 1f, lineAlpha));
 
     GUIStyle MakeBtn(Texture2D normal, Texture2D hover, Color textColor, Color hoverColor) =>
         new GUIStyle(GUI.skin.button)
@@ -2026,7 +2027,14 @@ private void BottomBar()
         showJourneyTrackerWindow = !showJourneyTrackerWindow;
 
         float pulse = 0.35f + Mathf.Abs(Mathf.Sin(t * 2.5f)) * 0.35f;
-        secretStyle.normal.background = MakeTex(1, 1, new Color(0.63f, 0.24f, 1f, pulse * 0.12f));
+        if (secretPulseTexture == null)
+        {
+            secretPulseTexture = new Texture2D(1, 1);
+            ownedTextures.Add(secretPulseTexture);
+        }
+        secretPulseTexture.SetPixel(0, 0, new Color(0.63f, 0.24f, 1f, pulse * 0.12f));
+        secretPulseTexture.Apply();
+        secretStyle.normal.background = secretPulseTexture;
 
     /*    if (GUI.Button(new Rect(secretX, btnY, btnW, btnH), localizationManager.Localize("arg_redacted").ToUpper(), secretStyle))
         {
@@ -2066,6 +2074,8 @@ private void DrawBarCorner(float x, float y, bool top, bool left)
 
 private Texture2D MakeTex(int width, int height, Color col)
 {
+    var key = (width, height, col);
+    if (solidTextures.TryGetValue(key, out Texture2D cached)) return cached;
     Color[] pix = new Color[width * height];
     for (int i = 0; i < pix.Length; i++)
     {
@@ -2074,24 +2084,15 @@ private Texture2D MakeTex(int width, int height, Color col)
     Texture2D result = new Texture2D(width, height);
     result.SetPixels(pix);
     result.Apply();
+    ownedTextures.Add(result);
+    solidTextures[key] = result;
     return result;
 }
 
 
 private Texture2D MakeGradientTexture(int width, int height, Color topColor, Color bottomColor)
 {
-    Texture2D texture = new Texture2D(width, height);
-    for (int y = 0; y < height; y++)
-    {
-        Color color = Color.Lerp(topColor, bottomColor, (float)y / height);
-        for (int x = 0; x < width; x++)
-        {
-            texture.SetPixel(x, y, color);
-        }
-    }
-
-    texture.Apply();
-    return texture;
+    return CreateGradientTexture(width, height, topColor, bottomColor);
 }
 
 private string hoveredGalaxy = null; 
@@ -2178,7 +2179,7 @@ private void GalaxySelectionWindow(int windowID)
 
                 string galaxyPath = Path.Combine(appDataLocation, galaxy, "Galaxies", galaxy);
 
-                if (Directory.Exists(galaxyPath))
+                if (HasSavedStars(galaxyPath))
                 {
                     showGalaxySelectionWindow = false;
                     ClearStars();
@@ -2638,8 +2639,7 @@ private void PlanetParametersWindow(int windowID)
 private void DrawHLine(Color color)
 {
     Rect r = GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.Height(1), GUILayout.ExpandWidth(true));
-    var tex = MakeTex(1, 1, color);
-    GUI.DrawTexture(r, tex);
+    DrawTintedTexture(r, color);
 }
 
 private void DrawDataRow(string label, string value, GUIStyle labelStyle, GUIStyle valueStyle)
@@ -2668,8 +2668,7 @@ private void DrawVisitedBadge(GUIStyle textStyle, float t)
     GUI.DrawTexture(badgeRect, _visitedBadge);
 
     float alpha = 0.5f + Mathf.Sin(t * 4f) * 0.5f;
-    var dotTex = MakeTex(1, 1, new Color(0.1f, 1f, 0.4f, alpha));
-    GUI.DrawTexture(new Rect(badgeRect.x + 10, badgeRect.y + 7, 8, 8), dotTex);
+    DrawTintedTexture(new Rect(badgeRect.x + 10, badgeRect.y + 7, 8, 8), new Color(0.1f, 1f, 0.4f, alpha));
     GUI.Label(new Rect(badgeRect.x + 24, badgeRect.y, badgeRect.width - 24, 22), "VISITED", textStyle);
     GUILayout.FlexibleSpace();
     GUILayout.EndHorizontal();
@@ -2680,9 +2679,8 @@ private void DrawPlanetOrb(float t)
     GUILayout.BeginHorizontal();
     GUILayout.FlexibleSpace();
     float hue = (t * 0.04f) % 1f;
-    var orb = MakeTex(1, 1, Color.HSVToRGB(hue, 0.7f, 0.9f));
     var orbRect = GUILayoutUtility.GetRect(44, 44);
-    GUI.DrawTexture(orbRect, orb);
+    DrawTintedTexture(orbRect, Color.HSVToRGB(hue, 0.7f, 0.9f));
     GUILayout.FlexibleSpace();
     GUILayout.EndHorizontal();
 }
@@ -2838,7 +2836,9 @@ private Dictionary<string, float[]> galaxyStarWeights = new Dictionary<string, f
     { "Dank", new float[] { 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.2f, 0.1f, 0.05f, 0.05f, 0.1f, 0.05f, 0.05f, 0.05f, 0.03f, 0.03f, 0.03f, 0.02f, 0.02f, 0.02f, 0.02f, 0.02f, 1f } },
 };
 
-private string[] starTypes = { 
+internal static int StarTypeCount => starTypes.Length;
+
+private static readonly string[] starTypes = {
     "Red Dwarf", 
     "Yellow Dwarf", 
     "Blue Giant", 
@@ -2998,14 +2998,9 @@ private void ClearStars()
 
 private void ClearAllActiveSprites()
 {
-
-    SpriteRenderer[] allSprites = GameObject.FindObjectsOfType<SpriteRenderer>();
-
-    foreach (SpriteRenderer sprite in allSprites)
-    {
-
-        Destroy(sprite.gameObject);
-    }
+    // This scene belongs to ModernBox. Never destroy foreign active renderers.
+    if (visualRoot == null) return;
+    foreach (Transform child in visualRoot) Destroy(child.gameObject);
 }
 
 private string GenerateNormalDescription(string starType, string planetType)
@@ -3437,15 +3432,19 @@ private string GenerateDangerDescription(string starType, string planetType)
     return description;
 }
 
-    private void OnDisable()
+    private void OnDestroy()
     {
-
-        if (mainCamera != null)
-        {
-            Destroy(mainCamera.gameObject);
-            mainCamera = null;
-        }
+        // Resources.Load sprites and Unity's whiteTexture are never owned here.
+        foreach (Sprite sprite in ownedSprites) if (sprite != null) Destroy(sprite);
+        foreach (Texture2D texture in ownedTextures) if (texture != null) Destroy(texture);
+        ownedSprites.Clear();
+        ownedTextures.Clear();
+        if (spaceSkin != null) Destroy(spaceSkin);
+        if (visualRoot != null) Destroy(visualRoot.gameObject);
+        if (ownsCamera && mainCamera != null) Destroy(mainCamera.gameObject);
+        mainCamera = null;
     }
+
 }
 
 [System.Serializable]
@@ -3457,8 +3456,8 @@ public class Star : MonoBehaviour
     public PlanetInfo[] planetInfo;
     public int selectedPlanet;
 
-    [JsonIgnore] 
-    public GameObject gameObject; 
+    // Manu-Fix 032: use Component.gameObject. The old null field hid it and
+    // prevented ClearStars from destroying the actual objects.
 }
 
 [System.Serializable]

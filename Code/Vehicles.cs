@@ -172,7 +172,7 @@ namespace ModernBox
         public static void init()
         {
             baseVehicle();
-
+            VehicleDecisionTasks.Install(); // Manu-Fix 031: actual task assets and side-effect-free decision checks.
         }
 
         private static void baseVehicle()
@@ -1488,7 +1488,7 @@ baseWarUnit.addDecision("swim_to_island");
 		//baseWarUnit.addTrait("strong_minded");
 		baseWarUnit.addTrait("light_lamp");
             AssetManager.actor_library.add(baseWarUnit);
-			Localization.addLocalization(baseWarUnit.name_locale, baseWarUnit.name_locale);
+			ModernBoxLocale.Register(baseWarUnit.name_locale, baseWarUnit.name_locale);
 
 
 
@@ -1529,7 +1529,7 @@ baseWarUnit.addDecision("swim_to_island");
 			humancavalry.addTrait("dodge");
 			humancavalry.addTrait("dash");
             AssetManager.actor_library.add(humancavalry);
-			Localization.addLocalization(humancavalry.name_locale, humancavalry.name_locale);
+			ModernBoxLocale.Register(humancavalry.name_locale, humancavalry.name_locale);
 
 
 
@@ -1567,7 +1567,7 @@ baseWarUnit.addDecision("swim_to_island");
 			armoredwolf.addTrait("savage");
 			armoredwolf.addTrait("flesh_eater");
             AssetManager.actor_library.add(armoredwolf);
-			Localization.addLocalization(armoredwolf.name_locale, armoredwolf.name_locale);
+			ModernBoxLocale.Register(armoredwolf.name_locale, armoredwolf.name_locale);
 
 
 	var ogreunit = AssetManager.actor_library.clone("ogreunit","baseWarUnit");
@@ -1601,7 +1601,7 @@ baseWarUnit.addDecision("swim_to_island");
             ogreunit.addTrait("savage");
 			ogreunit.addTrait("strong");
             AssetManager.actor_library.add(ogreunit);
-			Localization.addLocalization(ogreunit.name_locale, ogreunit.name_locale);
+			ModernBoxLocale.Register(ogreunit.name_locale, ogreunit.name_locale);
 
 
 	var golemgem = AssetManager.actor_library.clone("golemgem","baseWarUnit");
@@ -1635,7 +1635,7 @@ baseWarUnit.addDecision("swim_to_island");
 			golemgem.addTrait("dodge");
 			golemgem.addTrait("dash");
             AssetManager.actor_library.add(golemgem);
-			Localization.addLocalization(golemgem.name_locale, golemgem.name_locale);
+			ModernBoxLocale.Register(golemgem.name_locale, golemgem.name_locale);
 
 
 	var treant = AssetManager.actor_library.clone("treant","baseWarUnit");
@@ -1669,7 +1669,7 @@ baseWarUnit.addDecision("swim_to_island");
 			treant.addTrait("dodge");
 			treant.addTrait("dash");
             AssetManager.actor_library.add(treant);
-			Localization.addLocalization(treant.name_locale, treant.name_locale);
+			ModernBoxLocale.Register(treant.name_locale, treant.name_locale);
 
 var catapulta = AssetManager.actor_library.clone("catapulta","baseWarUnit");
 	catapulta.die_in_lava = false;
@@ -1701,7 +1701,7 @@ var catapulta = AssetManager.actor_library.clone("catapulta","baseWarUnit");
 		catapulta.animation_swim = ActorAnimationSequences.swim_0_2;
             catapulta.name_locale = "Artillery";
             AssetManager.actor_library.add(catapulta);
-			Localization.addLocalization(catapulta.name_locale, catapulta.name_locale);
+			ModernBoxLocale.Register(catapulta.name_locale, catapulta.name_locale);
 
 var orcatapulta = AssetManager.actor_library.clone("orcatapulta","baseWarUnit");
 	orcatapulta.die_in_lava = false;
@@ -1733,7 +1733,7 @@ var orcatapulta = AssetManager.actor_library.clone("orcatapulta","baseWarUnit");
 		orcatapulta.animation_swim = ActorAnimationSequences.swim_0_3;
             orcatapulta.name_locale = "Artillery";
             AssetManager.actor_library.add(orcatapulta);
-			Localization.addLocalization(orcatapulta.name_locale, orcatapulta.name_locale);
+			ModernBoxLocale.Register(orcatapulta.name_locale, orcatapulta.name_locale);
 
 
 
@@ -1767,7 +1767,7 @@ var santaguin = AssetManager.actor_library.clone("santaguin","baseWarUnit");
 		santaguin.animation_swim = ActorAnimationSequences.swim_0_2;
             santaguin.name_locale = "Artillery";
             AssetManager.actor_library.add(santaguin);
-			Localization.addLocalization(santaguin.name_locale, santaguin.name_locale);
+			ModernBoxLocale.Register(santaguin.name_locale, santaguin.name_locale);
 
 
 var batteringram = AssetManager.actor_library.clone("batteringram","baseWarUnit");
@@ -1800,7 +1800,7 @@ var batteringram = AssetManager.actor_library.clone("batteringram","baseWarUnit"
 		batteringram.animation_swim = ActorAnimationSequences.swim_0_2;
             batteringram.name_locale = "Artillery";
             AssetManager.actor_library.add(batteringram);
-			Localization.addLocalization(batteringram.name_locale, batteringram.name_locale);
+			ModernBoxLocale.Register(batteringram.name_locale, batteringram.name_locale);
 
 var woolyrhino = AssetManager.actor_library.clone("woolyrhino","baseWarUnit");
 	woolyrhino.die_in_lava = false;
@@ -1832,7 +1832,7 @@ var woolyrhino = AssetManager.actor_library.clone("woolyrhino","baseWarUnit");
 		woolyrhino.animation_swim = ActorAnimationSequences.swim_0_2;
             woolyrhino.name_locale = "Artillery";
             AssetManager.actor_library.add(woolyrhino);
-			Localization.addLocalization(woolyrhino.name_locale, woolyrhino.name_locale);
+			ModernBoxLocale.Register(woolyrhino.name_locale, woolyrhino.name_locale);
 	var humanpaladin = AssetManager.actor_library.clone("humanpaladin","baseWarUnit");
 	humanpaladin.die_in_lava = false;
         humanpaladin.base_stats["mass_2"] = 600f;
@@ -1878,7 +1878,7 @@ humanpaladin.addDecision("warrior_random_move");
 humanpaladin.addDecision("check_warrior_transport");
 humanpaladin.addDecision("swim_to_island");
             AssetManager.actor_library.add(humanpaladin);
-			Localization.addLocalization(humanpaladin.name_locale, humanpaladin.name_locale);
+			ModernBoxLocale.Register(humanpaladin.name_locale, humanpaladin.name_locale);
 
 
 
@@ -1929,7 +1929,7 @@ dwarfdoctor.addDecision("warrior_random_move");
 dwarfdoctor.addDecision("check_warrior_transport");
 dwarfdoctor.addDecision("swim_to_island");
             AssetManager.actor_library.add(dwarfdoctor);
-			Localization.addLocalization(dwarfdoctor.name_locale, dwarfdoctor.name_locale);
+			ModernBoxLocale.Register(dwarfdoctor.name_locale, dwarfdoctor.name_locale);
 
 
 				var orcwarlock = AssetManager.actor_library.clone("orcwarlock","baseWarUnit");
@@ -1977,7 +1977,7 @@ orcwarlock.addDecision("warrior_random_move");
 orcwarlock.addDecision("check_warrior_transport");
 orcwarlock.addDecision("swim_to_island");
             AssetManager.actor_library.add(orcwarlock);
-			Localization.addLocalization(orcwarlock.name_locale, orcwarlock.name_locale);
+			ModernBoxLocale.Register(orcwarlock.name_locale, orcwarlock.name_locale);
 
 	var fairydragon = AssetManager.actor_library.clone("fairydragon","baseWarUnit");
 	fairydragon.die_in_lava = false;
@@ -2024,7 +2024,7 @@ fairydragon.addDecision("warrior_random_move");
 fairydragon.addDecision("check_warrior_transport");
 fairydragon.addDecision("swim_to_island");
             AssetManager.actor_library.add(fairydragon);
-			Localization.addLocalization(fairydragon.name_locale, fairydragon.name_locale);
+			ModernBoxLocale.Register(fairydragon.name_locale, fairydragon.name_locale);
 
 
 
@@ -2065,7 +2065,7 @@ fairydragon.addDecision("swim_to_island");
 		humancannon.animation_swim = ActorAnimationSequences.swim_0_3;
             humancannon.name_locale = "Artillery";
             AssetManager.actor_library.add(humancannon);
-			Localization.addLocalization(humancannon.name_locale, humancannon.name_locale);
+			ModernBoxLocale.Register(humancannon.name_locale, humancannon.name_locale);
 
 var dwarfcannon = AssetManager.actor_library.clone("dwarfcannon","baseWarUnit");
 	dwarfcannon.die_in_lava = false;
@@ -2097,7 +2097,7 @@ var dwarfcannon = AssetManager.actor_library.clone("dwarfcannon","baseWarUnit");
 		dwarfcannon.animation_swim = ActorAnimationSequences.swim_0_3;
             dwarfcannon.name_locale = "Artillery";
             AssetManager.actor_library.add(dwarfcannon);
-			Localization.addLocalization(dwarfcannon.name_locale, dwarfcannon.name_locale);
+			ModernBoxLocale.Register(dwarfcannon.name_locale, dwarfcannon.name_locale);
 
 
 	var elfcannon = AssetManager.actor_library.clone("elfcannon","baseWarUnit");
@@ -2130,7 +2130,7 @@ var dwarfcannon = AssetManager.actor_library.clone("dwarfcannon","baseWarUnit");
 		elfcannon.animation_swim = ActorAnimationSequences.swim_0_3;
             elfcannon.name_locale = "Artillery";
             AssetManager.actor_library.add(elfcannon);
-			Localization.addLocalization(elfcannon.name_locale, elfcannon.name_locale);
+			ModernBoxLocale.Register(elfcannon.name_locale, elfcannon.name_locale);
 
 
 	var orccannon = AssetManager.actor_library.clone("orccannon","baseWarUnit");
@@ -2163,7 +2163,7 @@ var dwarfcannon = AssetManager.actor_library.clone("dwarfcannon","baseWarUnit");
 		orccannon.animation_swim = ActorAnimationSequences.swim_0_3;
             orccannon.name_locale = "Artillery";
             AssetManager.actor_library.add(orccannon);
-			Localization.addLocalization(orccannon.name_locale, orccannon.name_locale);
+			ModernBoxLocale.Register(orccannon.name_locale, orccannon.name_locale);
 
 
 var davincitank = AssetManager.actor_library.clone("davincitank","baseWarUnit");
@@ -2198,7 +2198,7 @@ var davincitank = AssetManager.actor_library.clone("davincitank","baseWarUnit");
 			davincitank.addTrait("block");
 			davincitank.addTrait("deflect_projectile");
             AssetManager.actor_library.add(davincitank);
-			Localization.addLocalization(davincitank.name_locale, davincitank.name_locale);
+			ModernBoxLocale.Register(davincitank.name_locale, davincitank.name_locale);
 
 	var balloonunit = AssetManager.actor_library.clone("balloonunit","baseWarUnit");
 	balloonunit.die_in_lava = false;
@@ -2238,7 +2238,7 @@ var davincitank = AssetManager.actor_library.clone("davincitank","baseWarUnit");
 			balloonunit.inspect_avatar_scale = 0.5f;
 			balloonunit.ignore_blocks = true;
             AssetManager.actor_library.add(balloonunit);
-			Localization.addLocalization(balloonunit.name_locale, balloonunit.name_locale);
+			ModernBoxLocale.Register(balloonunit.name_locale, balloonunit.name_locale);
 
 
 	var bigfaerydragon = AssetManager.actor_library.clone("bigfaerydragon","baseWarUnit");
@@ -2279,7 +2279,7 @@ var davincitank = AssetManager.actor_library.clone("davincitank","baseWarUnit");
 			bigfaerydragon.inspect_avatar_scale = 0.5f;
 			bigfaerydragon.ignore_blocks = true;
             AssetManager.actor_library.add(bigfaerydragon);
-			Localization.addLocalization(bigfaerydragon.name_locale, bigfaerydragon.name_locale);
+			ModernBoxLocale.Register(bigfaerydragon.name_locale, bigfaerydragon.name_locale);
 
 
 	var Gunship = AssetManager.actor_library.clone("Gunship","baseWarUnit");
@@ -2320,7 +2320,7 @@ var davincitank = AssetManager.actor_library.clone("davincitank","baseWarUnit");
 			Gunship.inspect_avatar_scale = 0.5f;
 			Gunship.ignore_blocks = true;
             AssetManager.actor_library.add(Gunship);
-			Localization.addLocalization(Gunship.name_locale, Gunship.name_locale);
+			ModernBoxLocale.Register(Gunship.name_locale, Gunship.name_locale);
 
 
 
@@ -2363,7 +2363,7 @@ var davincitank = AssetManager.actor_library.clone("davincitank","baseWarUnit");
 			modernhumvee_Human.addTrait("dash");
 			modernhumvee_Human.addTrait("fire_proof");
             AssetManager.actor_library.add(modernhumvee_Human);
-			Localization.addLocalization(modernhumvee_Human.name_locale, modernhumvee_Human.name_locale);
+			ModernBoxLocale.Register(modernhumvee_Human.name_locale, modernhumvee_Human.name_locale);
 
 
 
@@ -2398,7 +2398,7 @@ var davincitank = AssetManager.actor_library.clone("davincitank","baseWarUnit");
             howitzer_Human.name_locale = "Artillery";
 			howitzer_Human.addTrait("fire_proof");
             AssetManager.actor_library.add(howitzer_Human);
-			Localization.addLocalization(howitzer_Human.name_locale, howitzer_Human.name_locale);
+			ModernBoxLocale.Register(howitzer_Human.name_locale, howitzer_Human.name_locale);
 
 
 
@@ -2435,7 +2435,7 @@ var davincitank = AssetManager.actor_library.clone("davincitank","baseWarUnit");
 			Tank_Human.addTrait("block");
 			Tank_Human.addTrait("deflect_projectile");
             AssetManager.actor_library.add(Tank_Human);
-			Localization.addLocalization(Tank_Human.name_locale, Tank_Human.name_locale);
+			ModernBoxLocale.Register(Tank_Human.name_locale, Tank_Human.name_locale);
 
 
 	var wheeledtank_Human = AssetManager.actor_library.clone("wheeledtank_Human","baseWarUnit");
@@ -2471,7 +2471,7 @@ var davincitank = AssetManager.actor_library.clone("davincitank","baseWarUnit");
 			wheeledtank_Human.addTrait("dash");
 			wheeledtank_Human.addTrait("fire_proof");
             AssetManager.actor_library.add(wheeledtank_Human);
-			Localization.addLocalization(wheeledtank_Human.name_locale, wheeledtank_Human.name_locale);
+			ModernBoxLocale.Register(wheeledtank_Human.name_locale, wheeledtank_Human.name_locale);
 
 
 
@@ -2591,7 +2591,7 @@ MissileSystem_Human.addDecision("swim_to_island");
             MissileSystem_Human.name_locale = "Missile System";
 			MissileSystem_Human.addTrait("fire_proof");
             AssetManager.actor_library.add(MissileSystem_Human);
-			Localization.addLocalization(MissileSystem_Human.name_locale, MissileSystem_Human.name_locale);
+			ModernBoxLocale.Register(MissileSystem_Human.name_locale, MissileSystem_Human.name_locale);
 
 	var supporttruck_Human = AssetManager.actor_library.clone("supporttruck_Human","baseWarUnit");
 	supporttruck_Human.die_in_lava = false;
@@ -2636,7 +2636,7 @@ supporttruck_Human.addDecision("warrior_random_move");
 supporttruck_Human.addDecision("check_warrior_transport");
 supporttruck_Human.addDecision("swim_to_island");
             AssetManager.actor_library.add(supporttruck_Human);
-			Localization.addLocalization(supporttruck_Human.name_locale, supporttruck_Human.name_locale);
+			ModernBoxLocale.Register(supporttruck_Human.name_locale, supporttruck_Human.name_locale);
 
 /////give it cast heal trait
 
@@ -2681,7 +2681,7 @@ supporttruck_Human.addDecision("swim_to_island");
 			Heli_Human.inspect_avatar_scale = 0.5f;
 			Heli_Human.ignore_blocks = true;
             AssetManager.actor_library.add(Heli_Human);
-			Localization.addLocalization(Heli_Human.name_locale, Heli_Human.name_locale);
+			ModernBoxLocale.Register(Heli_Human.name_locale, Heli_Human.name_locale);
 
 
 		var Bomber_Human = AssetManager.actor_library.clone("Bomber_Human","baseWarUnit");
@@ -2730,7 +2730,7 @@ supporttruck_Human.addDecision("swim_to_island");
 			Bomber_Human.ignore_blocks = true;
 			Bomber_Human.inspect_avatar_scale = 0.5f;
             AssetManager.actor_library.add(Bomber_Human);
-			Localization.addLocalization(Bomber_Human.name_locale, Bomber_Human.name_locale);
+			ModernBoxLocale.Register(Bomber_Human.name_locale, Bomber_Human.name_locale);
 
 	var FighterJet_Human = AssetManager.actor_library.clone("FighterJet_Human","baseWarUnit");
 	FighterJet_Human.die_in_lava = false;
@@ -2770,7 +2770,7 @@ supporttruck_Human.addDecision("swim_to_island");
 			FighterJet_Human.die_on_blocks = false;
 			FighterJet_Human.ignore_blocks = true;
             AssetManager.actor_library.add(FighterJet_Human);
-			Localization.addLocalization(FighterJet_Human.name_locale, FighterJet_Human.name_locale);
+			ModernBoxLocale.Register(FighterJet_Human.name_locale, FighterJet_Human.name_locale);
 
 
 	var F55FighterJet = AssetManager.actor_library.clone("F55FighterJet","baseWarUnit");
@@ -2811,7 +2811,7 @@ supporttruck_Human.addDecision("swim_to_island");
 			F55FighterJet.die_on_blocks = false;
 			F55FighterJet.ignore_blocks = true;
             AssetManager.actor_library.add(F55FighterJet);
-			Localization.addLocalization(F55FighterJet.name_locale, F55FighterJet.name_locale);
+			ModernBoxLocale.Register(F55FighterJet.name_locale, F55FighterJet.name_locale);
 
 
 
@@ -2847,7 +2847,7 @@ supporttruck_Human.addDecision("swim_to_island");
 			modernhumvee_Ork.addTrait("dash");
 			modernhumvee_Ork.addTrait("fire_proof");
             AssetManager.actor_library.add(modernhumvee_Ork);
-			Localization.addLocalization(modernhumvee_Ork.name_locale, modernhumvee_Ork.name_locale);
+			ModernBoxLocale.Register(modernhumvee_Ork.name_locale, modernhumvee_Ork.name_locale);
 
 	var howitzer_Ork = AssetManager.actor_library.clone("howitzer_Ork","baseWarUnit");
 	howitzer_Ork.die_in_lava = false;
@@ -2880,7 +2880,7 @@ supporttruck_Human.addDecision("swim_to_island");
             howitzer_Ork.name_locale = "Artillery";
 			howitzer_Ork.addTrait("fire_proof");
             AssetManager.actor_library.add(howitzer_Ork);
-			Localization.addLocalization(howitzer_Ork.name_locale, howitzer_Ork.name_locale);
+			ModernBoxLocale.Register(howitzer_Ork.name_locale, howitzer_Ork.name_locale);
 
 	var Tank_Ork = AssetManager.actor_library.clone("Tank_Ork","baseWarUnit");
 	Tank_Ork.die_in_lava = false;
@@ -2915,7 +2915,7 @@ supporttruck_Human.addDecision("swim_to_island");
 			Tank_Ork.addTrait("block");
 			Tank_Ork.addTrait("deflect_projectile");
             AssetManager.actor_library.add(Tank_Ork);
-			Localization.addLocalization(Tank_Ork.name_locale, Tank_Ork.name_locale);
+			ModernBoxLocale.Register(Tank_Ork.name_locale, Tank_Ork.name_locale);
 
 	var wheeledtank_Ork = AssetManager.actor_library.clone("wheeledtank_Ork","baseWarUnit");
 	wheeledtank_Ork.die_in_lava = false;
@@ -2950,7 +2950,7 @@ supporttruck_Human.addDecision("swim_to_island");
 			wheeledtank_Ork.addTrait("dash");
 			wheeledtank_Ork.addTrait("fire_proof");
             AssetManager.actor_library.add(wheeledtank_Ork);
-			Localization.addLocalization(wheeledtank_Ork.name_locale, wheeledtank_Ork.name_locale);
+			ModernBoxLocale.Register(wheeledtank_Ork.name_locale, wheeledtank_Ork.name_locale);
 
 
 
@@ -3005,7 +3005,7 @@ MissileSystem_Ork.addDecision("swim_to_island");
             MissileSystem_Ork.name_locale = "Missile System";
 			MissileSystem_Ork.addTrait("fire_proof");
             AssetManager.actor_library.add(MissileSystem_Ork);
-			Localization.addLocalization(MissileSystem_Ork.name_locale, MissileSystem_Ork.name_locale);
+			ModernBoxLocale.Register(MissileSystem_Ork.name_locale, MissileSystem_Ork.name_locale);
 
 	var supporttruck_Ork = AssetManager.actor_library.clone("supporttruck_Ork","baseWarUnit");
 	supporttruck_Ork.die_in_lava = false;
@@ -3050,7 +3050,7 @@ supporttruck_Ork.addDecision("warrior_random_move");
 supporttruck_Ork.addDecision("check_warrior_transport");
 supporttruck_Ork.addDecision("swim_to_island");
             AssetManager.actor_library.add(supporttruck_Ork);
-			Localization.addLocalization(supporttruck_Ork.name_locale, supporttruck_Ork.name_locale);
+			ModernBoxLocale.Register(supporttruck_Ork.name_locale, supporttruck_Ork.name_locale);
 
 		var Heli_Ork = AssetManager.actor_library.clone("Heli_Ork","baseWarUnit");
 	Heli_Ork.die_in_lava = false;
@@ -3090,7 +3090,7 @@ supporttruck_Ork.addDecision("swim_to_island");
 			Heli_Ork.inspect_avatar_scale = 0.5f;
 			Heli_Ork.ignore_blocks = true;
             AssetManager.actor_library.add(Heli_Ork);
-			Localization.addLocalization(Heli_Ork.name_locale, Heli_Ork.name_locale);
+			ModernBoxLocale.Register(Heli_Ork.name_locale, Heli_Ork.name_locale);
 
 		var Bomber_Ork = AssetManager.actor_library.clone("Bomber_Ork","baseWarUnit");
 	Bomber_Ork.die_in_lava = false;
@@ -3130,7 +3130,7 @@ supporttruck_Ork.addDecision("swim_to_island");
 			Bomber_Ork.ignore_blocks = true;
 			Bomber_Ork.inspect_avatar_scale = 0.5f;
             AssetManager.actor_library.add(Bomber_Ork);
-			Localization.addLocalization(Bomber_Ork.name_locale, Bomber_Ork.name_locale);
+			ModernBoxLocale.Register(Bomber_Ork.name_locale, Bomber_Ork.name_locale);
 
 	var FighterJet_Ork = AssetManager.actor_library.clone("FighterJet_Ork","baseWarUnit");
 	FighterJet_Ork.die_in_lava = false;
@@ -3170,7 +3170,7 @@ supporttruck_Ork.addDecision("swim_to_island");
 			FighterJet_Ork.die_on_blocks = false;
 			FighterJet_Ork.ignore_blocks = true;
             AssetManager.actor_library.add(FighterJet_Ork);
-			Localization.addLocalization(FighterJet_Ork.name_locale, FighterJet_Ork.name_locale);
+			ModernBoxLocale.Register(FighterJet_Ork.name_locale, FighterJet_Ork.name_locale);
 
 
 
@@ -3206,7 +3206,7 @@ supporttruck_Ork.addDecision("swim_to_island");
 			modernhumvee_Dwarf.addTrait("dash");
 			modernhumvee_Dwarf.addTrait("fire_proof");
             AssetManager.actor_library.add(modernhumvee_Dwarf);
-			Localization.addLocalization(modernhumvee_Dwarf.name_locale, modernhumvee_Dwarf.name_locale);
+			ModernBoxLocale.Register(modernhumvee_Dwarf.name_locale, modernhumvee_Dwarf.name_locale);
 
 	var Tank_Dwarf = AssetManager.actor_library.clone("Tank_Dwarf","baseWarUnit");
 	Tank_Dwarf.die_in_lava = false;
@@ -3241,7 +3241,7 @@ supporttruck_Ork.addDecision("swim_to_island");
 			Tank_Dwarf.addTrait("block");
 			Tank_Dwarf.addTrait("deflect_projectile");
             AssetManager.actor_library.add(Tank_Dwarf);
-			Localization.addLocalization(Tank_Dwarf.name_locale, Tank_Dwarf.name_locale);
+			ModernBoxLocale.Register(Tank_Dwarf.name_locale, Tank_Dwarf.name_locale);
 
 
 
@@ -3296,7 +3296,7 @@ MissileSystem_Dwarf.addDecision("swim_to_island");
             MissileSystem_Dwarf.name_locale = "Missile System";
 			MissileSystem_Dwarf.addTrait("fire_proof");
             AssetManager.actor_library.add(MissileSystem_Dwarf);
-			Localization.addLocalization(MissileSystem_Dwarf.name_locale, MissileSystem_Dwarf.name_locale);
+			ModernBoxLocale.Register(MissileSystem_Dwarf.name_locale, MissileSystem_Dwarf.name_locale);
 
 	var supporttruck_Dwarf = AssetManager.actor_library.clone("supporttruck_Dwarf","baseWarUnit");
 	supporttruck_Dwarf.die_in_lava = false;
@@ -3341,7 +3341,7 @@ supporttruck_Dwarf.addDecision("warrior_random_move");
 supporttruck_Dwarf.addDecision("check_warrior_transport");
 supporttruck_Dwarf.addDecision("swim_to_island");
             AssetManager.actor_library.add(supporttruck_Dwarf);
-			Localization.addLocalization(supporttruck_Dwarf.name_locale, supporttruck_Dwarf.name_locale);
+			ModernBoxLocale.Register(supporttruck_Dwarf.name_locale, supporttruck_Dwarf.name_locale);
 
 		var Heli_Dwarf = AssetManager.actor_library.clone("Heli_Dwarf","baseWarUnit");
 	Heli_Dwarf.die_in_lava = false;
@@ -3381,7 +3381,7 @@ supporttruck_Dwarf.addDecision("swim_to_island");
 			Heli_Dwarf.inspect_avatar_scale = 0.5f;
 			Heli_Dwarf.ignore_blocks = true;
             AssetManager.actor_library.add(Heli_Dwarf);
-			Localization.addLocalization(Heli_Dwarf.name_locale, Heli_Dwarf.name_locale);
+			ModernBoxLocale.Register(Heli_Dwarf.name_locale, Heli_Dwarf.name_locale);
 
 		var Bomber_Dwarf = AssetManager.actor_library.clone("Bomber_Dwarf","baseWarUnit");
 	Bomber_Dwarf.die_in_lava = false;
@@ -3421,7 +3421,7 @@ supporttruck_Dwarf.addDecision("swim_to_island");
 			Bomber_Dwarf.ignore_blocks = true;
 			Bomber_Dwarf.inspect_avatar_scale = 0.5f;
             AssetManager.actor_library.add(Bomber_Dwarf);
-			Localization.addLocalization(Bomber_Dwarf.name_locale, Bomber_Dwarf.name_locale);
+			ModernBoxLocale.Register(Bomber_Dwarf.name_locale, Bomber_Dwarf.name_locale);
 
 	var FighterJet_Dwarf = AssetManager.actor_library.clone("FighterJet_Dwarf","baseWarUnit");
 	FighterJet_Dwarf.die_in_lava = false;
@@ -3461,7 +3461,7 @@ supporttruck_Dwarf.addDecision("swim_to_island");
 			FighterJet_Dwarf.die_on_blocks = false;
 			FighterJet_Dwarf.ignore_blocks = true;
             AssetManager.actor_library.add(FighterJet_Dwarf);
-			Localization.addLocalization(FighterJet_Dwarf.name_locale, FighterJet_Dwarf.name_locale);
+			ModernBoxLocale.Register(FighterJet_Dwarf.name_locale, FighterJet_Dwarf.name_locale);
 
 var howitzer_Dwarf = AssetManager.actor_library.clone("howitzer_Dwarf","baseWarUnit");
 	howitzer_Dwarf.die_in_lava = false;
@@ -3494,7 +3494,7 @@ var howitzer_Dwarf = AssetManager.actor_library.clone("howitzer_Dwarf","baseWarU
             howitzer_Dwarf.name_locale = "Artillery";
 			howitzer_Dwarf.addTrait("fire_proof");
             AssetManager.actor_library.add(howitzer_Dwarf);
-			Localization.addLocalization(howitzer_Dwarf.name_locale, howitzer_Dwarf.name_locale);
+			ModernBoxLocale.Register(howitzer_Dwarf.name_locale, howitzer_Dwarf.name_locale);
 
 			var wheeledtank_Dwarf = AssetManager.actor_library.clone("wheeledtank_Dwarf","baseWarUnit");
 	wheeledtank_Dwarf.die_in_lava = false;
@@ -3529,7 +3529,7 @@ var howitzer_Dwarf = AssetManager.actor_library.clone("howitzer_Dwarf","baseWarU
 			wheeledtank_Dwarf.addTrait("dash");
 			wheeledtank_Dwarf.addTrait("fire_proof");
             AssetManager.actor_library.add(wheeledtank_Dwarf);
-			Localization.addLocalization(wheeledtank_Dwarf.name_locale, wheeledtank_Dwarf.name_locale);
+			ModernBoxLocale.Register(wheeledtank_Dwarf.name_locale, wheeledtank_Dwarf.name_locale);
 
 
 
@@ -3565,7 +3565,7 @@ var howitzer_Dwarf = AssetManager.actor_library.clone("howitzer_Dwarf","baseWarU
 			modernhumvee_Gaia.addTrait("dash");
 			modernhumvee_Gaia.addTrait("fire_proof");
             AssetManager.actor_library.add(modernhumvee_Gaia);
-			Localization.addLocalization(modernhumvee_Gaia.name_locale, modernhumvee_Gaia.name_locale);
+			ModernBoxLocale.Register(modernhumvee_Gaia.name_locale, modernhumvee_Gaia.name_locale);
 
 	var howitzer_Gaia = AssetManager.actor_library.clone("howitzer_Gaia","baseWarUnit");
 	howitzer_Gaia.die_in_lava = false;
@@ -3598,7 +3598,7 @@ var howitzer_Dwarf = AssetManager.actor_library.clone("howitzer_Dwarf","baseWarU
             howitzer_Gaia.name_locale = "Artillery";
 			howitzer_Gaia.addTrait("fire_proof");
             AssetManager.actor_library.add(howitzer_Gaia);
-			Localization.addLocalization(howitzer_Gaia.name_locale, howitzer_Gaia.name_locale);
+			ModernBoxLocale.Register(howitzer_Gaia.name_locale, howitzer_Gaia.name_locale);
 
 	var Tank_Gaia = AssetManager.actor_library.clone("Tank_Gaia","baseWarUnit");
 	Tank_Gaia.die_in_lava = false;
@@ -3633,7 +3633,7 @@ var howitzer_Dwarf = AssetManager.actor_library.clone("howitzer_Dwarf","baseWarU
 			Tank_Gaia.addTrait("block");
 			Tank_Gaia.addTrait("deflect_projectile");
             AssetManager.actor_library.add(Tank_Gaia);
-			Localization.addLocalization(Tank_Gaia.name_locale, Tank_Gaia.name_locale);
+			ModernBoxLocale.Register(Tank_Gaia.name_locale, Tank_Gaia.name_locale);
 
 	var wheeledtank_Gaia = AssetManager.actor_library.clone("wheeledtank_Gaia","baseWarUnit");
 	wheeledtank_Gaia.die_in_lava = false;
@@ -3668,7 +3668,7 @@ var howitzer_Dwarf = AssetManager.actor_library.clone("howitzer_Dwarf","baseWarU
 			wheeledtank_Gaia.addTrait("dash");
 			wheeledtank_Gaia.addTrait("fire_proof");
             AssetManager.actor_library.add(wheeledtank_Gaia);
-			Localization.addLocalization(wheeledtank_Gaia.name_locale, wheeledtank_Gaia.name_locale);
+			ModernBoxLocale.Register(wheeledtank_Gaia.name_locale, wheeledtank_Gaia.name_locale);
 
 
 
@@ -3723,7 +3723,7 @@ MissileSystem_Gaia.addDecision("swim_to_island");
             MissileSystem_Gaia.name_locale = "Missile System";
 			MissileSystem_Gaia.addTrait("fire_proof");
             AssetManager.actor_library.add(MissileSystem_Gaia);
-			Localization.addLocalization(MissileSystem_Gaia.name_locale, MissileSystem_Gaia.name_locale);
+			ModernBoxLocale.Register(MissileSystem_Gaia.name_locale, MissileSystem_Gaia.name_locale);
 
 	var supporttruck_Gaia = AssetManager.actor_library.clone("supporttruck_Gaia","baseWarUnit");
 	supporttruck_Gaia.die_in_lava = false;
@@ -3768,7 +3768,7 @@ supporttruck_Gaia.addDecision("warrior_random_move");
 supporttruck_Gaia.addDecision("check_warrior_transport");
 supporttruck_Gaia.addDecision("swim_to_island");
             AssetManager.actor_library.add(supporttruck_Gaia);
-			Localization.addLocalization(supporttruck_Gaia.name_locale, supporttruck_Gaia.name_locale);
+			ModernBoxLocale.Register(supporttruck_Gaia.name_locale, supporttruck_Gaia.name_locale);
 
 		var Heli_Gaia = AssetManager.actor_library.clone("Heli_Gaia","baseWarUnit");
 	Heli_Gaia.die_in_lava = false;
@@ -3808,7 +3808,7 @@ supporttruck_Gaia.addDecision("swim_to_island");
 			Heli_Gaia.inspect_avatar_scale = 0.5f;
 			Heli_Gaia.ignore_blocks = true;
             AssetManager.actor_library.add(Heli_Gaia);
-			Localization.addLocalization(Heli_Gaia.name_locale, Heli_Gaia.name_locale);
+			ModernBoxLocale.Register(Heli_Gaia.name_locale, Heli_Gaia.name_locale);
 
 		var Bomber_Gaia = AssetManager.actor_library.clone("Bomber_Gaia","baseWarUnit");
 	Bomber_Gaia.die_in_lava = false;
@@ -3848,7 +3848,7 @@ supporttruck_Gaia.addDecision("swim_to_island");
 			Bomber_Gaia.ignore_blocks = true;
 			Bomber_Gaia.inspect_avatar_scale = 0.5f;
             AssetManager.actor_library.add(Bomber_Gaia);
-			Localization.addLocalization(Bomber_Gaia.name_locale, Bomber_Gaia.name_locale);
+			ModernBoxLocale.Register(Bomber_Gaia.name_locale, Bomber_Gaia.name_locale);
 
 	var FighterJet_Gaia = AssetManager.actor_library.clone("FighterJet_Gaia","baseWarUnit");
 	FighterJet_Gaia.die_in_lava = false;
@@ -3888,7 +3888,7 @@ supporttruck_Gaia.addDecision("swim_to_island");
 			FighterJet_Gaia.die_on_blocks = false;
 			FighterJet_Gaia.ignore_blocks = true;
             AssetManager.actor_library.add(FighterJet_Gaia);
-			Localization.addLocalization(FighterJet_Gaia.name_locale, FighterJet_Gaia.name_locale);
+			ModernBoxLocale.Register(FighterJet_Gaia.name_locale, FighterJet_Gaia.name_locale);
 
 
             ////////////////////////////Special Races/////////////////////////////////
@@ -3926,7 +3926,7 @@ supporttruck_Gaia.addDecision("swim_to_island");
             demonscorpion.addTrait("burning_feet");
             demonscorpion.addTrait("evil");
             AssetManager.actor_library.add(demonscorpion);
-			Localization.addLocalization(demonscorpion.name_locale, demonscorpion.name_locale);
+			ModernBoxLocale.Register(demonscorpion.name_locale, demonscorpion.name_locale);
 
 	var demoncroc = AssetManager.actor_library.clone("demoncroc","baseWarUnit");
 	demoncroc.die_in_lava = false;
@@ -3964,7 +3964,7 @@ supporttruck_Gaia.addDecision("swim_to_island");
             demoncroc.addTrait("burning_feet");
             demoncroc.addTrait("evil");
             AssetManager.actor_library.add(demoncroc);
-			Localization.addLocalization(demoncroc.name_locale, demoncroc.name_locale);
+			ModernBoxLocale.Register(demoncroc.name_locale, demoncroc.name_locale);
 
 	var demongolem = AssetManager.actor_library.clone("demongolem","baseWarUnit");
 	demongolem.die_in_lava = false;
@@ -4002,7 +4002,7 @@ supporttruck_Gaia.addDecision("swim_to_island");
             demongolem.addTrait("burning_feet");
             demongolem.addTrait("evil");
             AssetManager.actor_library.add(demongolem);
-			Localization.addLocalization(demongolem.name_locale, demongolem.name_locale);
+			ModernBoxLocale.Register(demongolem.name_locale, demongolem.name_locale);
 
 		var demonwyvern = AssetManager.actor_library.clone("demonwyvern","baseWarUnit");
 	demonwyvern.die_in_lava = false;
@@ -4046,7 +4046,7 @@ supporttruck_Gaia.addDecision("swim_to_island");
 			demonwyvern.inspect_avatar_scale = 0.5f;
 			demonwyvern.ignore_blocks = true;
             AssetManager.actor_library.add(demonwyvern);
-			Localization.addLocalization(demonwyvern.name_locale, demonwyvern.name_locale);
+			ModernBoxLocale.Register(demonwyvern.name_locale, demonwyvern.name_locale);
 
 		var Bomber_Demon = AssetManager.actor_library.clone("Bomber_Demon","baseWarUnit");
 	Bomber_Demon.die_in_lava = false;
@@ -4091,7 +4091,7 @@ supporttruck_Gaia.addDecision("swim_to_island");
 			Bomber_Demon.ignore_blocks = true;
 			Bomber_Demon.inspect_avatar_scale = 0.5f;
             AssetManager.actor_library.add(Bomber_Demon);
-			Localization.addLocalization(Bomber_Demon.name_locale, Bomber_Demon.name_locale);
+			ModernBoxLocale.Register(Bomber_Demon.name_locale, Bomber_Demon.name_locale);
 
 var demonreaver = AssetManager.actor_library.clone("demonreaver","baseWarUnit");
 	demonreaver.die_in_lava = false;
@@ -4129,7 +4129,7 @@ var demonreaver = AssetManager.actor_library.clone("demonreaver","baseWarUnit");
             demonreaver.addTrait("burning_feet");
             demonreaver.addTrait("evil");
             AssetManager.actor_library.add(demonreaver);
-			Localization.addLocalization(demonreaver.name_locale, demonreaver.name_locale);
+			ModernBoxLocale.Register(demonreaver.name_locale, demonreaver.name_locale);
 
 
 	var xenorailgun = AssetManager.actor_library.clone("xenorailgun","baseWarUnit");
@@ -4169,7 +4169,7 @@ var demonreaver = AssetManager.actor_library.clone("demonreaver","baseWarUnit");
             xenorailgun.addTrait("acid_blood");
             xenorailgun.addTrait("acid_proof");
             AssetManager.actor_library.add(xenorailgun);
-			Localization.addLocalization(xenorailgun.name_locale, xenorailgun.name_locale);
+			ModernBoxLocale.Register(xenorailgun.name_locale, xenorailgun.name_locale);
 
 	var xenolevitank = AssetManager.actor_library.clone("xenolevitank","baseWarUnit");
 	xenolevitank.die_in_lava = false;
@@ -4208,7 +4208,7 @@ var demonreaver = AssetManager.actor_library.clone("demonreaver","baseWarUnit");
             xenolevitank.addTrait("acid_blood");
             xenolevitank.addTrait("acid_proof");
             AssetManager.actor_library.add(xenolevitank);
-			Localization.addLocalization(xenolevitank.name_locale, xenolevitank.name_locale);
+			ModernBoxLocale.Register(xenolevitank.name_locale, xenolevitank.name_locale);
 
 				var xenotripod = AssetManager.actor_library.clone("xenotripod","baseWarUnit");
 	xenotripod.die_in_lava = false;
@@ -4246,7 +4246,7 @@ var demonreaver = AssetManager.actor_library.clone("demonreaver","baseWarUnit");
             xenotripod.addTrait("acid_proof");
             xenotripod.addTrait("bubble_defense");
             AssetManager.actor_library.add(xenotripod);
-			Localization.addLocalization(xenotripod.name_locale, xenotripod.name_locale);
+			ModernBoxLocale.Register(xenotripod.name_locale, xenotripod.name_locale);
 
 			var xenoUFO = AssetManager.actor_library.clone("xenoUFO","baseWarUnit");
 	xenoUFO.die_in_lava = false;
@@ -4289,7 +4289,7 @@ var demonreaver = AssetManager.actor_library.clone("demonreaver","baseWarUnit");
 			xenoUFO.inspect_avatar_scale = 0.5f;
 			xenoUFO.ignore_blocks = true;
             AssetManager.actor_library.add(xenoUFO);
-			Localization.addLocalization(xenoUFO.name_locale, xenoUFO.name_locale);
+			ModernBoxLocale.Register(xenoUFO.name_locale, xenoUFO.name_locale);
 
 		var xenoUFObomber = AssetManager.actor_library.clone("xenoUFObomber","baseWarUnit");
 	xenoUFObomber.die_in_lava = false;
@@ -4333,7 +4333,7 @@ var demonreaver = AssetManager.actor_library.clone("demonreaver","baseWarUnit");
 			xenoUFObomber.ignore_blocks = true;
 			xenoUFObomber.inspect_avatar_scale = 0.5f;
             AssetManager.actor_library.add(xenoUFObomber);
-			Localization.addLocalization(xenoUFObomber.name_locale, xenoUFObomber.name_locale);
+			ModernBoxLocale.Register(xenoUFObomber.name_locale, xenoUFObomber.name_locale);
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4417,7 +4417,7 @@ AssetManager.tasks_actor.add(warBoatAttackTask);
 		CargoShip_alliance.addTrait("boat");
 		CargoShip_alliance.addTrait("light_lamp");
 		AssetManager.actor_library.add(CargoShip_alliance);
-		Localization.addLocalization(CargoShip_alliance.name_locale, CargoShip_alliance.name_locale);
+		ModernBoxLocale.Register(CargoShip_alliance.name_locale, CargoShip_alliance.name_locale);
 
 var Transporter_alliance = AssetManager.actor_library.clone("Transporter_alliance","$boat$");
 	    Transporter_alliance.id = "Transporter_alliance";
@@ -4467,7 +4467,7 @@ var Transporter_alliance = AssetManager.actor_library.clone("Transporter_allianc
 		Transporter_alliance.addTrait("boat");
 		Transporter_alliance.addTrait("light_lamp");
 		AssetManager.actor_library.add(Transporter_alliance);
-		Localization.addLocalization(Transporter_alliance.name_locale, Transporter_alliance.name_locale);
+		ModernBoxLocale.Register(Transporter_alliance.name_locale, Transporter_alliance.name_locale);
 
 	var aDestroyer_alliance = AssetManager.actor_library.clone("aDestroyer_alliance","$boat$");
 	    aDestroyer_alliance.id = "aDestroyer_alliance";
@@ -4520,7 +4520,7 @@ aDestroyer_alliance.inspect_avatar_offset_y = 6f;
 		aDestroyer_alliance.addTrait("light_lamp");
 		aDestroyer_alliance.addTrait("NavalUnit");
 		AssetManager.actor_library.add(aDestroyer_alliance);
-		Localization.addLocalization(aDestroyer_alliance.name_locale, aDestroyer_alliance.name_locale);
+		ModernBoxLocale.Register(aDestroyer_alliance.name_locale, aDestroyer_alliance.name_locale);
 
 	var bDestroyer_alliance = AssetManager.actor_library.clone("bDestroyer_alliance","$boat$");
 	    bDestroyer_alliance.id = "bDestroyer_alliance";
@@ -4573,7 +4573,7 @@ bDestroyer_alliance.inspect_avatar_offset_y = 6f;
 		bDestroyer_alliance.addTrait("light_lamp");
 		bDestroyer_alliance.addTrait("NavalUnit");
 		AssetManager.actor_library.add(bDestroyer_alliance);
-		Localization.addLocalization(bDestroyer_alliance.name_locale, bDestroyer_alliance.name_locale);
+		ModernBoxLocale.Register(bDestroyer_alliance.name_locale, bDestroyer_alliance.name_locale);
 
         ///////jet attack for carrier/no spawn
 
@@ -4628,7 +4628,7 @@ CarrierVessel_alliance.inspect_avatar_offset_y = 6f;
 		CarrierVessel_alliance.addTrait("light_lamp");
 		CarrierVessel_alliance.addTrait("NavalUnit");
 		AssetManager.actor_library.add(CarrierVessel_alliance);
-		Localization.addLocalization(CarrierVessel_alliance.name_locale, CarrierVessel_alliance.name_locale);
+		ModernBoxLocale.Register(CarrierVessel_alliance.name_locale, CarrierVessel_alliance.name_locale);
 
 
 DecisionAsset nuclearmissileDecision = new DecisionAsset();
@@ -4715,7 +4715,7 @@ Submarine_alliance.inspect_avatar_offset_y = 6f;
 		Submarine_alliance.addTrait("light_lamp");
 		Submarine_alliance.addTrait("NavalUnit");
 		AssetManager.actor_library.add(Submarine_alliance);
-		Localization.addLocalization(Submarine_alliance.name_locale, Submarine_alliance.name_locale);
+		ModernBoxLocale.Register(Submarine_alliance.name_locale, Submarine_alliance.name_locale);
 
 	var FishingBoat_alliance = AssetManager.actor_library.clone("FishingBoat_alliance","$boat$");
 	    FishingBoat_alliance.id = "FishingBoat_alliance";
@@ -4766,7 +4766,7 @@ Submarine_alliance.inspect_avatar_offset_y = 6f;
 		FishingBoat_alliance.addTrait("light_lamp");
 		FishingBoat_alliance.addTrait("NavalUnit");
 		AssetManager.actor_library.add(FishingBoat_alliance);
-		Localization.addLocalization(FishingBoat_alliance.name_locale, FishingBoat_alliance.name_locale);
+		ModernBoxLocale.Register(FishingBoat_alliance.name_locale, FishingBoat_alliance.name_locale);
 
 
 
@@ -4817,7 +4817,7 @@ Submarine_alliance.inspect_avatar_offset_y = 6f;
 		abrawler_alliance.addTrait("boat");
 		abrawler_alliance.addTrait("light_lamp");
 		AssetManager.actor_library.add(abrawler_alliance);
-		Localization.addLocalization(abrawler_alliance.name_locale, abrawler_alliance.name_locale);
+		ModernBoxLocale.Register(abrawler_alliance.name_locale, abrawler_alliance.name_locale);
 
 		var bbrawler_alliance = AssetManager.actor_library.clone("bbrawler_alliance","$boat$");
 	    bbrawler_alliance.id = "bbrawler_alliance";
@@ -4866,7 +4866,7 @@ Submarine_alliance.inspect_avatar_offset_y = 6f;
 		bbrawler_alliance.addTrait("boat");
 		bbrawler_alliance.addTrait("light_lamp");
 		AssetManager.actor_library.add(bbrawler_alliance);
-		Localization.addLocalization(bbrawler_alliance.name_locale, bbrawler_alliance.name_locale);
+		ModernBoxLocale.Register(bbrawler_alliance.name_locale, bbrawler_alliance.name_locale);
 
 			var cbrawler_alliance = AssetManager.actor_library.clone("cbrawler_alliance","$boat$");
 	    cbrawler_alliance.id = "cbrawler_alliance";
@@ -4915,7 +4915,7 @@ Submarine_alliance.inspect_avatar_offset_y = 6f;
 		cbrawler_alliance.addTrait("boat");
 		cbrawler_alliance.addTrait("light_lamp");
 		AssetManager.actor_library.add(cbrawler_alliance);
-		Localization.addLocalization(cbrawler_alliance.name_locale, cbrawler_alliance.name_locale);
+		ModernBoxLocale.Register(cbrawler_alliance.name_locale, cbrawler_alliance.name_locale);
 
 			var dbrawler_alliance = AssetManager.actor_library.clone("dbrawler_alliance","$boat$");
 	    dbrawler_alliance.id = "dbrawler_alliance";
@@ -4964,7 +4964,7 @@ Submarine_alliance.inspect_avatar_offset_y = 6f;
 		dbrawler_alliance.addTrait("boat");
 		dbrawler_alliance.addTrait("light_lamp");
 		AssetManager.actor_library.add(dbrawler_alliance);
-		Localization.addLocalization(dbrawler_alliance.name_locale, dbrawler_alliance.name_locale);
+		ModernBoxLocale.Register(dbrawler_alliance.name_locale, dbrawler_alliance.name_locale);
 
 			var ebrawler_alliance = AssetManager.actor_library.clone("ebrawler_alliance","$boat$");
 	    ebrawler_alliance.id = "ebrawler_alliance";
@@ -5013,7 +5013,7 @@ Submarine_alliance.inspect_avatar_offset_y = 6f;
 		ebrawler_alliance.addTrait("boat");
 		ebrawler_alliance.addTrait("light_lamp");
 		AssetManager.actor_library.add(ebrawler_alliance);
-		Localization.addLocalization(ebrawler_alliance.name_locale, ebrawler_alliance.name_locale);
+		ModernBoxLocale.Register(ebrawler_alliance.name_locale, ebrawler_alliance.name_locale);
 
 			var fbrawler_alliance = AssetManager.actor_library.clone("fbrawler_alliance","$boat$");
 	    fbrawler_alliance.id = "fbrawler_alliance";
@@ -5062,7 +5062,7 @@ Submarine_alliance.inspect_avatar_offset_y = 6f;
 		fbrawler_alliance.addTrait("boat");
 		fbrawler_alliance.addTrait("light_lamp");
 		AssetManager.actor_library.add(fbrawler_alliance);
-		Localization.addLocalization(fbrawler_alliance.name_locale, fbrawler_alliance.name_locale);
+		ModernBoxLocale.Register(fbrawler_alliance.name_locale, fbrawler_alliance.name_locale);
 
 
 
@@ -5127,7 +5127,7 @@ Submarine_alliance.inspect_avatar_offset_y = 6f;
 		CargoShip_horde.addTrait("boat");
 		CargoShip_horde.addTrait("light_lamp");
 		AssetManager.actor_library.add(CargoShip_horde);
-		Localization.addLocalization(CargoShip_horde.name_locale, CargoShip_horde.name_locale);
+		ModernBoxLocale.Register(CargoShip_horde.name_locale, CargoShip_horde.name_locale);
 
 
 	var Transporter_horde = AssetManager.actor_library.clone("Transporter_horde","$boat$");
@@ -5178,7 +5178,7 @@ Submarine_alliance.inspect_avatar_offset_y = 6f;
 		Transporter_horde.addTrait("boat");
 		Transporter_horde.addTrait("light_lamp");
 		AssetManager.actor_library.add(Transporter_horde);
-		Localization.addLocalization(Transporter_horde.name_locale, Transporter_horde.name_locale);
+		ModernBoxLocale.Register(Transporter_horde.name_locale, Transporter_horde.name_locale);
 
 	var aDestroyer_horde = AssetManager.actor_library.clone("aDestroyer_horde","$boat$");
 	    aDestroyer_horde.id = "aDestroyer_horde";
@@ -5230,7 +5230,7 @@ aDestroyer_horde.inspect_avatar_offset_y = 6f;
 		aDestroyer_horde.addTrait("boat");
 		aDestroyer_horde.addTrait("light_lamp");
 		AssetManager.actor_library.add(aDestroyer_horde);
-		Localization.addLocalization(aDestroyer_horde.name_locale, aDestroyer_horde.name_locale);
+		ModernBoxLocale.Register(aDestroyer_horde.name_locale, aDestroyer_horde.name_locale);
 
 	var bDestroyer_horde = AssetManager.actor_library.clone("bDestroyer_horde","$boat$");
 	    bDestroyer_horde.id = "bDestroyer_horde";
@@ -5282,7 +5282,7 @@ bDestroyer_horde.inspect_avatar_offset_y = 6f;
 		bDestroyer_horde.addTrait("boat");
 		bDestroyer_horde.addTrait("light_lamp");
 		AssetManager.actor_library.add(bDestroyer_horde);
-		Localization.addLocalization(bDestroyer_horde.name_locale, bDestroyer_horde.name_locale);
+		ModernBoxLocale.Register(bDestroyer_horde.name_locale, bDestroyer_horde.name_locale);
 
         ///////jet attack for carrier/no spawn
 
@@ -5336,7 +5336,7 @@ CarrierVessel_horde.inspect_avatar_offset_y = 6f;
 		CarrierVessel_horde.addTrait("boat");
 		CarrierVessel_horde.addTrait("light_lamp");
 		AssetManager.actor_library.add(CarrierVessel_horde);
-		Localization.addLocalization(CarrierVessel_horde.name_locale, CarrierVessel_horde.name_locale);
+		ModernBoxLocale.Register(CarrierVessel_horde.name_locale, CarrierVessel_horde.name_locale);
 
 	var Submarine_horde = AssetManager.actor_library.clone("Submarine_horde","$boat$");
 	    Submarine_horde.id = "Submarine_horde";
@@ -5391,7 +5391,7 @@ Submarine_horde.inspect_avatar_offset_y = 6f;
 		Submarine_horde.addTrait("boat");
 		Submarine_horde.addTrait("light_lamp");
 		AssetManager.actor_library.add(Submarine_horde);
-		Localization.addLocalization(Submarine_horde.name_locale, Submarine_horde.name_locale);
+		ModernBoxLocale.Register(Submarine_horde.name_locale, Submarine_horde.name_locale);
 
 	var FishingBoat_horde = AssetManager.actor_library.clone("FishingBoat_horde","$boat$");
 	    FishingBoat_horde.id = "FishingBoat_horde";
@@ -5441,7 +5441,7 @@ Submarine_horde.inspect_avatar_offset_y = 6f;
 		FishingBoat_horde.addTrait("boat");
 		FishingBoat_horde.addTrait("light_lamp");
 		AssetManager.actor_library.add(FishingBoat_horde);
-		Localization.addLocalization(FishingBoat_horde.name_locale, FishingBoat_horde.name_locale);
+		ModernBoxLocale.Register(FishingBoat_horde.name_locale, FishingBoat_horde.name_locale);
 
 			var abrawler_horde = AssetManager.actor_library.clone("abrawler_horde","$boat$");
 	    abrawler_horde.id = "abrawler_horde";
@@ -5490,7 +5490,7 @@ Submarine_horde.inspect_avatar_offset_y = 6f;
 		abrawler_horde.addTrait("boat");
 		abrawler_horde.addTrait("light_lamp");
 		AssetManager.actor_library.add(abrawler_horde);
-		Localization.addLocalization(abrawler_horde.name_locale, abrawler_horde.name_locale);
+		ModernBoxLocale.Register(abrawler_horde.name_locale, abrawler_horde.name_locale);
 
 		var bbrawler_horde = AssetManager.actor_library.clone("bbrawler_horde","$boat$");
 	    bbrawler_horde.id = "bbrawler_horde";
@@ -5539,7 +5539,7 @@ Submarine_horde.inspect_avatar_offset_y = 6f;
 		bbrawler_horde.addTrait("boat");
 		bbrawler_horde.addTrait("light_lamp");
 		AssetManager.actor_library.add(bbrawler_horde);
-		Localization.addLocalization(bbrawler_horde.name_locale, bbrawler_horde.name_locale);
+		ModernBoxLocale.Register(bbrawler_horde.name_locale, bbrawler_horde.name_locale);
 
 			var cbrawler_horde = AssetManager.actor_library.clone("cbrawler_horde","$boat$");
 	    cbrawler_horde.id = "cbrawler_horde";
@@ -5588,7 +5588,7 @@ Submarine_horde.inspect_avatar_offset_y = 6f;
 		cbrawler_horde.addTrait("boat");
 		cbrawler_horde.addTrait("light_lamp");
 		AssetManager.actor_library.add(cbrawler_horde);
-		Localization.addLocalization(cbrawler_horde.name_locale, cbrawler_horde.name_locale);
+		ModernBoxLocale.Register(cbrawler_horde.name_locale, cbrawler_horde.name_locale);
 
 			var dbrawler_horde = AssetManager.actor_library.clone("dbrawler_horde","$boat$");
 	    dbrawler_horde.id = "dbrawler_horde";
@@ -5637,7 +5637,7 @@ Submarine_horde.inspect_avatar_offset_y = 6f;
 		dbrawler_horde.addTrait("boat");
 		dbrawler_horde.addTrait("light_lamp");
 		AssetManager.actor_library.add(dbrawler_horde);
-		Localization.addLocalization(dbrawler_horde.name_locale, dbrawler_horde.name_locale);
+		ModernBoxLocale.Register(dbrawler_horde.name_locale, dbrawler_horde.name_locale);
 
 			var ebrawler_horde = AssetManager.actor_library.clone("ebrawler_horde","$boat$");
 	    ebrawler_horde.id = "ebrawler_horde";
@@ -5686,7 +5686,7 @@ Submarine_horde.inspect_avatar_offset_y = 6f;
 		ebrawler_horde.addTrait("boat");
 		ebrawler_horde.addTrait("light_lamp");
 		AssetManager.actor_library.add(ebrawler_horde);
-		Localization.addLocalization(ebrawler_horde.name_locale, ebrawler_horde.name_locale);
+		ModernBoxLocale.Register(ebrawler_horde.name_locale, ebrawler_horde.name_locale);
 
 			var fbrawler_horde = AssetManager.actor_library.clone("fbrawler_horde","$boat$");
 	    fbrawler_horde.id = "fbrawler_horde";
@@ -5735,7 +5735,7 @@ Submarine_horde.inspect_avatar_offset_y = 6f;
 		fbrawler_horde.addTrait("boat");
 		fbrawler_horde.addTrait("light_lamp");
 		AssetManager.actor_library.add(fbrawler_horde);
-		Localization.addLocalization(fbrawler_horde.name_locale, fbrawler_horde.name_locale);
+		ModernBoxLocale.Register(fbrawler_horde.name_locale, fbrawler_horde.name_locale);
 
 
 		////////////////////////////////////GAIA/////////////////////////////////////////////
@@ -5788,7 +5788,7 @@ Submarine_horde.inspect_avatar_offset_y = 6f;
 		CargoShip_gaia.addTrait("boat");
 		CargoShip_gaia.addTrait("light_lamp");
 		AssetManager.actor_library.add(CargoShip_gaia);
-		Localization.addLocalization(CargoShip_gaia.name_locale, CargoShip_gaia.name_locale);
+		ModernBoxLocale.Register(CargoShip_gaia.name_locale, CargoShip_gaia.name_locale);
 
 
 	var Transporter_gaia = AssetManager.actor_library.clone("Transporter_gaia","$boat$");
@@ -5839,7 +5839,7 @@ Submarine_horde.inspect_avatar_offset_y = 6f;
 		Transporter_gaia.addTrait("boat");
 		Transporter_gaia.addTrait("light_lamp");
 		AssetManager.actor_library.add(Transporter_gaia);
-		Localization.addLocalization(Transporter_gaia.name_locale, Transporter_gaia.name_locale);
+		ModernBoxLocale.Register(Transporter_gaia.name_locale, Transporter_gaia.name_locale);
 
 	var aDestroyer_gaia = AssetManager.actor_library.clone("aDestroyer_gaia","$boat$");
 	    aDestroyer_gaia.id = "aDestroyer_gaia";
@@ -5891,7 +5891,7 @@ aDestroyer_gaia.inspect_avatar_offset_y = 6f;
 		aDestroyer_gaia.addTrait("boat");
 		aDestroyer_gaia.addTrait("light_lamp");
 		AssetManager.actor_library.add(aDestroyer_gaia);
-		Localization.addLocalization(aDestroyer_gaia.name_locale, aDestroyer_gaia.name_locale);
+		ModernBoxLocale.Register(aDestroyer_gaia.name_locale, aDestroyer_gaia.name_locale);
 
 	var bDestroyer_gaia = AssetManager.actor_library.clone("bDestroyer_gaia","$boat$");
 	    bDestroyer_gaia.id = "bDestroyer_gaia";
@@ -5943,7 +5943,7 @@ bDestroyer_gaia.inspect_avatar_offset_y = 6f;
 		bDestroyer_gaia.addTrait("boat");
 		bDestroyer_gaia.addTrait("light_lamp");
 		AssetManager.actor_library.add(bDestroyer_gaia);
-		Localization.addLocalization(bDestroyer_gaia.name_locale, bDestroyer_gaia.name_locale);
+		ModernBoxLocale.Register(bDestroyer_gaia.name_locale, bDestroyer_gaia.name_locale);
 
         ///////jet attack for carrier/no spawn
 
@@ -5997,7 +5997,7 @@ CarrierVessel_gaia.inspect_avatar_offset_y = 6f;
 		CarrierVessel_gaia.addTrait("boat");
 		CarrierVessel_gaia.addTrait("light_lamp");
 		AssetManager.actor_library.add(CarrierVessel_gaia);
-		Localization.addLocalization(CarrierVessel_gaia.name_locale, CarrierVessel_gaia.name_locale);
+		ModernBoxLocale.Register(CarrierVessel_gaia.name_locale, CarrierVessel_gaia.name_locale);
 
 	var Submarine_gaia = AssetManager.actor_library.clone("Submarine_gaia","$boat$");
 	    Submarine_gaia.id = "Submarine_gaia";
@@ -6052,7 +6052,7 @@ Submarine_gaia.inspect_avatar_offset_y = 6f;
 		Submarine_gaia.addTrait("boat");
 		Submarine_gaia.addTrait("light_lamp");
 		AssetManager.actor_library.add(Submarine_gaia);
-		Localization.addLocalization(Submarine_gaia.name_locale, Submarine_gaia.name_locale);
+		ModernBoxLocale.Register(Submarine_gaia.name_locale, Submarine_gaia.name_locale);
 
 	var FishingBoat_gaia = AssetManager.actor_library.clone("FishingBoat_gaia","$boat$");
 	    FishingBoat_gaia.id = "FishingBoat_gaia";
@@ -6102,7 +6102,7 @@ Submarine_gaia.inspect_avatar_offset_y = 6f;
 		FishingBoat_gaia.addTrait("boat");
 		FishingBoat_gaia.addTrait("light_lamp");
 		AssetManager.actor_library.add(FishingBoat_gaia);
-		Localization.addLocalization(FishingBoat_gaia.name_locale, FishingBoat_gaia.name_locale);
+		ModernBoxLocale.Register(FishingBoat_gaia.name_locale, FishingBoat_gaia.name_locale);
 
 			var abrawler_gaia = AssetManager.actor_library.clone("abrawler_gaia","$boat$");
 	    abrawler_gaia.id = "abrawler_gaia";
@@ -6151,7 +6151,7 @@ Submarine_gaia.inspect_avatar_offset_y = 6f;
 		abrawler_gaia.addTrait("boat");
 		abrawler_gaia.addTrait("light_lamp");
 		AssetManager.actor_library.add(abrawler_gaia);
-		Localization.addLocalization(abrawler_gaia.name_locale, abrawler_gaia.name_locale);
+		ModernBoxLocale.Register(abrawler_gaia.name_locale, abrawler_gaia.name_locale);
 
 		var bbrawler_gaia = AssetManager.actor_library.clone("bbrawler_gaia","$boat$");
 	    bbrawler_gaia.id = "bbrawler_gaia";
@@ -6200,7 +6200,7 @@ Submarine_gaia.inspect_avatar_offset_y = 6f;
 		bbrawler_gaia.addTrait("boat");
 		bbrawler_gaia.addTrait("light_lamp");
 		AssetManager.actor_library.add(bbrawler_gaia);
-		Localization.addLocalization(bbrawler_gaia.name_locale, bbrawler_gaia.name_locale);
+		ModernBoxLocale.Register(bbrawler_gaia.name_locale, bbrawler_gaia.name_locale);
 
 			var cbrawler_gaia = AssetManager.actor_library.clone("cbrawler_gaia","$boat$");
 	    cbrawler_gaia.id = "cbrawler_gaia";
@@ -6249,7 +6249,7 @@ Submarine_gaia.inspect_avatar_offset_y = 6f;
 		cbrawler_gaia.addTrait("boat");
 		cbrawler_gaia.addTrait("light_lamp");
 		AssetManager.actor_library.add(cbrawler_gaia);
-		Localization.addLocalization(cbrawler_gaia.name_locale, cbrawler_gaia.name_locale);
+		ModernBoxLocale.Register(cbrawler_gaia.name_locale, cbrawler_gaia.name_locale);
 
 			var dbrawler_gaia = AssetManager.actor_library.clone("dbrawler_gaia","$boat$");
 	    dbrawler_gaia.id = "dbrawler_gaia";
@@ -6298,7 +6298,7 @@ Submarine_gaia.inspect_avatar_offset_y = 6f;
 		dbrawler_gaia.addTrait("boat");
 		dbrawler_gaia.addTrait("light_lamp");
 		AssetManager.actor_library.add(dbrawler_gaia);
-		Localization.addLocalization(dbrawler_gaia.name_locale, dbrawler_gaia.name_locale);
+		ModernBoxLocale.Register(dbrawler_gaia.name_locale, dbrawler_gaia.name_locale);
 
 			var ebrawler_gaia = AssetManager.actor_library.clone("ebrawler_gaia","$boat$");
 	    ebrawler_gaia.id = "ebrawler_gaia";
@@ -6347,7 +6347,7 @@ Submarine_gaia.inspect_avatar_offset_y = 6f;
 		ebrawler_gaia.addTrait("boat");
 		ebrawler_gaia.addTrait("light_lamp");
 		AssetManager.actor_library.add(ebrawler_gaia);
-		Localization.addLocalization(ebrawler_gaia.name_locale, ebrawler_gaia.name_locale);
+		ModernBoxLocale.Register(ebrawler_gaia.name_locale, ebrawler_gaia.name_locale);
 
 			var fbrawler_gaia = AssetManager.actor_library.clone("fbrawler_gaia","$boat$");
 	    fbrawler_gaia.id = "fbrawler_gaia";
@@ -6396,7 +6396,7 @@ Submarine_gaia.inspect_avatar_offset_y = 6f;
 		fbrawler_gaia.addTrait("boat");
 		fbrawler_gaia.addTrait("light_lamp");
 		AssetManager.actor_library.add(fbrawler_gaia);
-		Localization.addLocalization(fbrawler_gaia.name_locale, fbrawler_gaia.name_locale);
+		ModernBoxLocale.Register(fbrawler_gaia.name_locale, fbrawler_gaia.name_locale);
 
 
 
@@ -6450,7 +6450,7 @@ Submarine_gaia.inspect_avatar_offset_y = 6f;
 		CargoShip_harden.addTrait("boat");
 		CargoShip_harden.addTrait("light_lamp");
 		AssetManager.actor_library.add(CargoShip_harden);
-		Localization.addLocalization(CargoShip_harden.name_locale, CargoShip_harden.name_locale);
+		ModernBoxLocale.Register(CargoShip_harden.name_locale, CargoShip_harden.name_locale);
 
 
 	var Transporter_harden = AssetManager.actor_library.clone("Transporter_harden","$boat$");
@@ -6501,7 +6501,7 @@ Submarine_gaia.inspect_avatar_offset_y = 6f;
 		Transporter_harden.addTrait("boat");
 		Transporter_harden.addTrait("light_lamp");
 		AssetManager.actor_library.add(Transporter_harden);
-		Localization.addLocalization(Transporter_harden.name_locale, Transporter_harden.name_locale);
+		ModernBoxLocale.Register(Transporter_harden.name_locale, Transporter_harden.name_locale);
 
 	var aDestroyer_harden = AssetManager.actor_library.clone("aDestroyer_harden","$boat$");
 	    aDestroyer_harden.id = "aDestroyer_harden";
@@ -6553,7 +6553,7 @@ aDestroyer_harden.inspect_avatar_offset_y = 6f;
 		aDestroyer_harden.addTrait("boat");
 		aDestroyer_harden.addTrait("light_lamp");
 		AssetManager.actor_library.add(aDestroyer_harden);
-		Localization.addLocalization(aDestroyer_harden.name_locale, aDestroyer_harden.name_locale);
+		ModernBoxLocale.Register(aDestroyer_harden.name_locale, aDestroyer_harden.name_locale);
 
 	var bDestroyer_harden = AssetManager.actor_library.clone("bDestroyer_harden","$boat$");
 	    bDestroyer_harden.id = "bDestroyer_harden";
@@ -6605,7 +6605,7 @@ bDestroyer_harden.inspect_avatar_offset_y = 6f;
 		bDestroyer_harden.addTrait("boat");
 		bDestroyer_harden.addTrait("light_lamp");
 		AssetManager.actor_library.add(bDestroyer_harden);
-		Localization.addLocalization(bDestroyer_harden.name_locale, bDestroyer_harden.name_locale);
+		ModernBoxLocale.Register(bDestroyer_harden.name_locale, bDestroyer_harden.name_locale);
 
         ///////jet attack for carrier/no spawn
 
@@ -6659,7 +6659,7 @@ CarrierVessel_harden.inspect_avatar_offset_y = 6f;
 		CarrierVessel_harden.addTrait("boat");
 		CarrierVessel_harden.addTrait("light_lamp");
 		AssetManager.actor_library.add(CarrierVessel_harden);
-		Localization.addLocalization(CarrierVessel_harden.name_locale, CarrierVessel_harden.name_locale);
+		ModernBoxLocale.Register(CarrierVessel_harden.name_locale, CarrierVessel_harden.name_locale);
 
 	var Submarine_harden = AssetManager.actor_library.clone("Submarine_harden","$boat$");
 	    Submarine_harden.id = "Submarine_harden";
@@ -6714,7 +6714,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		Submarine_harden.addTrait("boat");
 		Submarine_harden.addTrait("light_lamp");
 		AssetManager.actor_library.add(Submarine_harden);
-		Localization.addLocalization(Submarine_harden.name_locale, Submarine_harden.name_locale);
+		ModernBoxLocale.Register(Submarine_harden.name_locale, Submarine_harden.name_locale);
 
 	var FishingBoat_harden = AssetManager.actor_library.clone("FishingBoat_harden","$boat$");
 	    FishingBoat_harden.id = "FishingBoat_harden";
@@ -6764,7 +6764,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		FishingBoat_harden.addTrait("boat");
 		FishingBoat_harden.addTrait("light_lamp");
 		AssetManager.actor_library.add(FishingBoat_harden);
-		Localization.addLocalization(FishingBoat_harden.name_locale, FishingBoat_harden.name_locale);
+		ModernBoxLocale.Register(FishingBoat_harden.name_locale, FishingBoat_harden.name_locale);
 
 
 	var abrawler_harden = AssetManager.actor_library.clone("abrawler_harden","$boat$");
@@ -6814,7 +6814,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		abrawler_harden.addTrait("boat");
 		abrawler_harden.addTrait("light_lamp");
 		AssetManager.actor_library.add(abrawler_harden);
-		Localization.addLocalization(abrawler_harden.name_locale, abrawler_harden.name_locale);
+		ModernBoxLocale.Register(abrawler_harden.name_locale, abrawler_harden.name_locale);
 
 		var bbrawler_harden = AssetManager.actor_library.clone("bbrawler_harden","$boat$");
 	    bbrawler_harden.id = "bbrawler_harden";
@@ -6863,7 +6863,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		bbrawler_harden.addTrait("boat");
 		bbrawler_harden.addTrait("light_lamp");
 		AssetManager.actor_library.add(bbrawler_harden);
-		Localization.addLocalization(bbrawler_harden.name_locale, bbrawler_harden.name_locale);
+		ModernBoxLocale.Register(bbrawler_harden.name_locale, bbrawler_harden.name_locale);
 
 			var cbrawler_harden = AssetManager.actor_library.clone("cbrawler_harden","$boat$");
 	    cbrawler_harden.id = "cbrawler_harden";
@@ -6912,7 +6912,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		cbrawler_harden.addTrait("boat");
 		cbrawler_harden.addTrait("light_lamp");
 		AssetManager.actor_library.add(cbrawler_harden);
-		Localization.addLocalization(cbrawler_harden.name_locale, cbrawler_harden.name_locale);
+		ModernBoxLocale.Register(cbrawler_harden.name_locale, cbrawler_harden.name_locale);
 
 			var dbrawler_harden = AssetManager.actor_library.clone("dbrawler_harden","$boat$");
 	    dbrawler_harden.id = "dbrawler_harden";
@@ -6961,7 +6961,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		dbrawler_harden.addTrait("boat");
 		dbrawler_harden.addTrait("light_lamp");
 		AssetManager.actor_library.add(dbrawler_harden);
-		Localization.addLocalization(dbrawler_harden.name_locale, dbrawler_harden.name_locale);
+		ModernBoxLocale.Register(dbrawler_harden.name_locale, dbrawler_harden.name_locale);
 
 			var ebrawler_harden = AssetManager.actor_library.clone("ebrawler_harden","$boat$");
 	    ebrawler_harden.id = "ebrawler_harden";
@@ -7010,7 +7010,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		ebrawler_harden.addTrait("boat");
 		ebrawler_harden.addTrait("light_lamp");
 		AssetManager.actor_library.add(ebrawler_harden);
-		Localization.addLocalization(ebrawler_harden.name_locale, ebrawler_harden.name_locale);
+		ModernBoxLocale.Register(ebrawler_harden.name_locale, ebrawler_harden.name_locale);
 
 			var fbrawler_harden = AssetManager.actor_library.clone("fbrawler_harden","$boat$");
 	    fbrawler_harden.id = "fbrawler_harden";
@@ -7059,7 +7059,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		fbrawler_harden.addTrait("boat");
 		fbrawler_harden.addTrait("light_lamp");
 		AssetManager.actor_library.add(fbrawler_harden);
-		Localization.addLocalization(fbrawler_harden.name_locale, fbrawler_harden.name_locale);
+		ModernBoxLocale.Register(fbrawler_harden.name_locale, fbrawler_harden.name_locale);
 
 
 
@@ -7105,7 +7105,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		SpaceMarine.addTrait("dodge");
 		SpaceMarine.addTrait("dash");
 		AssetManager.actor_library.add(SpaceMarine);
-		Localization.addLocalization(SpaceMarine.name_locale, SpaceMarine.name_locale);
+		ModernBoxLocale.Register(SpaceMarine.name_locale, SpaceMarine.name_locale);
 
 
 
@@ -7141,7 +7141,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		spaceork.addTrait("dodge");
 		spaceork.addTrait("dash");
 		AssetManager.actor_library.add(spaceork);
-		Localization.addLocalization(spaceork.name_locale, spaceork.name_locale);
+		ModernBoxLocale.Register(spaceork.name_locale, spaceork.name_locale);
 
 
 
@@ -7178,7 +7178,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		teslatruckgun.addTrait("dash");
 		teslatruckgun.addTrait("fire_proof");
 		AssetManager.actor_library.add(teslatruckgun);
-		Localization.addLocalization(teslatruckgun.name_locale, teslatruckgun.name_locale);
+		ModernBoxLocale.Register(teslatruckgun.name_locale, teslatruckgun.name_locale);
 
 
 
@@ -7213,7 +7213,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		Terran.name_locale = "Light Vehicle";
 		Terran.addTrait("fire_proof");
 		AssetManager.actor_library.add(Terran);
-		Localization.addLocalization(Terran.name_locale, Terran.name_locale);
+		ModernBoxLocale.Register(Terran.name_locale, Terran.name_locale);
 
 
 
@@ -7248,7 +7248,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		atstsniper.name_locale = "Light Vehicle";
 		atstsniper.addTrait("fire_proof");
 		AssetManager.actor_library.add(atstsniper);
-		Localization.addLocalization(atstsniper.name_locale, atstsniper.name_locale);
+		ModernBoxLocale.Register(atstsniper.name_locale, atstsniper.name_locale);
 
 
 
@@ -7284,7 +7284,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		atst.name_locale = "Light Vehicle";
 		atst.addTrait("fire_proof");
 		AssetManager.actor_library.add(atst);
-		Localization.addLocalization(atst.name_locale, atst.name_locale);
+		ModernBoxLocale.Register(atst.name_locale, atst.name_locale);
 
 
 		var artilleryatst = AssetManager.actor_library.clone("artilleryatst","baseWarUnit");
@@ -7318,7 +7318,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		artilleryatst.name_locale = "Light Vehicle";
 		artilleryatst.addTrait("fire_proof");
 		AssetManager.actor_library.add(artilleryatst);
-		Localization.addLocalization(artilleryatst.name_locale, artilleryatst.name_locale);
+		ModernBoxLocale.Register(artilleryatst.name_locale, artilleryatst.name_locale);
 
 
 		var supportatst = AssetManager.actor_library.clone("supportatst","baseWarUnit");
@@ -7364,7 +7364,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		supportatst.addDecision("check_warrior_transport");
 		supportatst.addDecision("swim_to_island");
 		AssetManager.actor_library.add(supportatst);
-		Localization.addLocalization(supportatst.name_locale, supportatst.name_locale);
+		ModernBoxLocale.Register(supportatst.name_locale, supportatst.name_locale);
 
 
 		var HeliELite = AssetManager.actor_library.clone("HeliELite","baseWarUnit");
@@ -7406,7 +7406,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		HeliELite.inspect_avatar_scale = 0.5f;
 		HeliELite.ignore_blocks = true;
 		AssetManager.actor_library.add(HeliELite);
-		Localization.addLocalization(HeliELite.name_locale, HeliELite.name_locale);
+		ModernBoxLocale.Register(HeliELite.name_locale, HeliELite.name_locale);
 
 
 		var FutureGunship = AssetManager.actor_library.clone("FutureGunship","baseWarUnit");
@@ -7448,7 +7448,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		FutureGunship.inspect_avatar_scale = 0.5f;
 		FutureGunship.ignore_blocks = true;
 		AssetManager.actor_library.add(FutureGunship);
-		Localization.addLocalization(FutureGunship.name_locale, FutureGunship.name_locale);
+		ModernBoxLocale.Register(FutureGunship.name_locale, FutureGunship.name_locale);
 
 		var TIEfighter = AssetManager.actor_library.clone("TIEfighter","baseWarUnit");
 		TIEfighter.die_in_lava = false;
@@ -7490,7 +7490,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		TIEfighter.die_on_blocks = false;
 		TIEfighter.ignore_blocks = true;
 		AssetManager.actor_library.add(TIEfighter);
-		Localization.addLocalization(TIEfighter.name_locale, TIEfighter.name_locale);
+		ModernBoxLocale.Register(TIEfighter.name_locale, TIEfighter.name_locale);
 
 		var EliteBomber = AssetManager.actor_library.clone("EliteBomber","baseWarUnit");
 		EliteBomber.die_in_lava = false;
@@ -7531,7 +7531,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		EliteBomber.ignore_blocks = true;
 		EliteBomber.inspect_avatar_scale = 0.5f;
 		AssetManager.actor_library.add(EliteBomber);
-		Localization.addLocalization(EliteBomber.name_locale, EliteBomber.name_locale);
+		ModernBoxLocale.Register(EliteBomber.name_locale, EliteBomber.name_locale);
 
 
 		var P9000 = AssetManager.actor_library.clone("P9000","baseWarUnit");
@@ -7569,7 +7569,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		P9000.addTrait("block");
 		P9000.addTrait("deflect_projectile");
 		AssetManager.actor_library.add(P9000);
-		Localization.addLocalization(P9000.name_locale, P9000.name_locale);
+		ModernBoxLocale.Register(P9000.name_locale, P9000.name_locale);
 
 		var EliteP9000 = AssetManager.actor_library.clone("EliteP9000","baseWarUnit");
 		EliteP9000.die_in_lava = false;
@@ -7606,7 +7606,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		EliteP9000.addTrait("block");
 		EliteP9000.addTrait("deflect_projectile");
 		AssetManager.actor_library.add(EliteP9000);
-		Localization.addLocalization(EliteP9000.name_locale, EliteP9000.name_locale);
+		ModernBoxLocale.Register(EliteP9000.name_locale, EliteP9000.name_locale);
 
 
 		var Railgun = AssetManager.actor_library.clone("Railgun","baseWarUnit");
@@ -7643,7 +7643,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		Railgun.addTrait("block");
 		Railgun.addTrait("deflect_projectile");
 		AssetManager.actor_library.add(Railgun);
-		Localization.addLocalization(Railgun.name_locale, Railgun.name_locale);
+		ModernBoxLocale.Register(Railgun.name_locale, Railgun.name_locale);
 
 
 		var OmegaRailgun = AssetManager.actor_library.clone("OmegaRailgun","baseWarUnit");
@@ -7680,7 +7680,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		OmegaRailgun.addTrait("block");
 		OmegaRailgun.addTrait("deflect_projectile");
 		AssetManager.actor_library.add(OmegaRailgun);
-		Localization.addLocalization(OmegaRailgun.name_locale, OmegaRailgun.name_locale);
+		ModernBoxLocale.Register(OmegaRailgun.name_locale, OmegaRailgun.name_locale);
 
 
 		var AT9000 = AssetManager.actor_library.clone("AT9000","baseWarUnit");
@@ -7719,7 +7719,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		AT9000.addDecision("check_cure");
 		AT9000.addDecision("check_heal");
 		AssetManager.actor_library.add(AT9000);
-		Localization.addLocalization(AT9000.name_locale, AT9000.name_locale);
+		ModernBoxLocale.Register(AT9000.name_locale, AT9000.name_locale);
 
 
 		var eliteAT9000 = AssetManager.actor_library.clone("eliteAT9000","baseWarUnit");
@@ -7758,7 +7758,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		eliteAT9000.addDecision("check_cure");
 		eliteAT9000.addDecision("check_heal");
 		AssetManager.actor_library.add(eliteAT9000);
-		Localization.addLocalization(eliteAT9000.name_locale, eliteAT9000.name_locale);
+		ModernBoxLocale.Register(eliteAT9000.name_locale, eliteAT9000.name_locale);
 
 
 
@@ -7796,7 +7796,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		MA9000.addTrait("block");
 		MA9000.addTrait("deflect_projectile");
 		AssetManager.actor_library.add(MA9000);
-		Localization.addLocalization(MA9000.name_locale, MA9000.name_locale);
+		ModernBoxLocale.Register(MA9000.name_locale, MA9000.name_locale);
 
 		var eliteMA9000 = AssetManager.actor_library.clone("eliteMA9000","baseWarUnit");
 		eliteMA9000.die_in_lava = false;
@@ -7832,7 +7832,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		eliteMA9000.addTrait("block");
 		eliteMA9000.addTrait("deflect_projectile");
 		AssetManager.actor_library.add(eliteMA9000);
-		Localization.addLocalization(eliteMA9000.name_locale, eliteMA9000.name_locale);
+		ModernBoxLocale.Register(eliteMA9000.name_locale, eliteMA9000.name_locale);
 
 
 
@@ -7869,7 +7869,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		dreadnaught.addTrait("block");
 		dreadnaught.addTrait("deflect_projectile");
 		AssetManager.actor_library.add(dreadnaught);
-		Localization.addLocalization(dreadnaught.name_locale, dreadnaught.name_locale);
+		ModernBoxLocale.Register(dreadnaught.name_locale, dreadnaught.name_locale);
 
 
 
@@ -7906,7 +7906,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		dreadnaught_brrt.addTrait("block");
 		dreadnaught_brrt.addTrait("deflect_projectile");
 		AssetManager.actor_library.add(dreadnaught_brrt);
-		Localization.addLocalization(dreadnaught_brrt.name_locale, dreadnaught_brrt.name_locale);
+		ModernBoxLocale.Register(dreadnaught_brrt.name_locale, dreadnaught_brrt.name_locale);
 
 
 
@@ -7943,7 +7943,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		HumanTitan.addTrait("block");
 		HumanTitan.addTrait("deflect_projectile");
 		AssetManager.actor_library.add(HumanTitan);
-		Localization.addLocalization(HumanTitan.name_locale, HumanTitan.name_locale);
+		ModernBoxLocale.Register(HumanTitan.name_locale, HumanTitan.name_locale);
 
 
 		var HumanTitanElite = AssetManager.actor_library.clone("HumanTitanElite","baseWarUnit");
@@ -7979,7 +7979,7 @@ Submarine_harden.inspect_avatar_offset_y = 6f;
 		HumanTitanElite.addTrait("block");
 		HumanTitanElite.addTrait("deflect_projectile");
 		AssetManager.actor_library.add(HumanTitanElite);
-		Localization.addLocalization(HumanTitanElite.name_locale, HumanTitanElite.name_locale);
+		ModernBoxLocale.Register(HumanTitanElite.name_locale, HumanTitanElite.name_locale);
 
 
 
@@ -7993,27 +7993,29 @@ string[] unitNames = new string[]
 {
     "EliteP9000", "OmegaRailgun", "eliteAT9000", "eliteMA9000", "dreadnaught_brrt", "HumanTitanElite", "SpaceMarine",
 	"Terran", "teslatruckgun", "atst", "artilleryatst", "atstsniper",
-    "modernhumvee_Human", "howitzer_Human", "Humvee", "humancavalry", "humancannon",
+    "modernhumvee_Human", "howitzer_Human", "humancavalry", "humancannon",
     "spaceork", "modernhumvee_Ork", "howitzer_Ork", "ogreunit", "orccannon", "armoredwolf",
     "modernhumvee_Dwarf", "howitzer_Dwarf", "dwarfcannon", "golemgem",
     "modernhumvee_Gaia", "howitzer_Gaia", "treant", "elfcannon", "demonscorpion",
-    "demonwyvern", "xenolevitank", "xenoUFO", "P9000", "dreadnaught", "Railgun",
-    "baseMA9000", "Tank_Human", "MissileSystem_Human", "wheeledtank_Human", "AbramTank",
-    "shermanww", "tankie", "genericwwtank", "landship", "bigtankww", "davincitank",
+    "demonwyvern", "xenolevitank", "xenoUFO", "P9000", "dreadnaught", "Railgun", "Tank_Human", "MissileSystem_Human", "wheeledtank_Human", "davincitank",
     "catapulta", "batteringram", "Tank_Ork", "MissileSystem_Ork", "wheeledtank_Ork",
     "orcatapulta", "Tank_Dwarf", "MissileSystem_Dwarf", "wheeledtank_Dwarf", "santaguin",
     "Tank_Gaia", "MissileSystem_Gaia", "wheeledtank_Gaia", "woolyrhino", "demoncroc",
     "demongolem", "demonreaver", "xenorailgun", "xenotripod", "AT9000", "supportatst",
-    "supporttruck_Human", "wwsupporttruck", "humanpaladin", "supporttruck_Ork",
+    "supporttruck_Human", "humanpaladin", "supporttruck_Ork",
     "orcwarlock", "supporttruck_Dwarf", "dwarfdoctor", "supporttruck_Gaia",
     "fairydragon", "HeliELite", "FutureGunship", "TIEfighter", "EliteBomber",
-    "Heli_Human", "Bomber_Human", "FighterJet_Human", "F55FighterJet", "Zeppelin",
-    "EliteZeppelin", "americanbomberww", "biplane", "fighterww", "balloonunit",
+    "Heli_Human", "Bomber_Human", "FighterJet_Human", "F55FighterJet", "balloonunit",
     "Heli_Ork", "Bomber_Ork", "FighterJet_Ork", "Gunship", "Heli_Dwarf", "Bomber_Dwarf",
     "FighterJet_Dwarf", "Heli_Gaia", "Bomber_Gaia", "FighterJet_Gaia", "bigfaerydragon",
-    "Bomber_Demon", "xenoUFObomber", "HumanTitan", "MA9000", "crusaderdreadnaught"
+    "Bomber_Demon", "xenoUFObomber", "HumanTitan", "MA9000"
 };
 
+// Manu-Fix 003: 14 Namen ohne Definition und Grafik in ModernBox 5.01 entfernt (Humvee, baseMA9000, AbramTank,
+// shermanww, tankie, genericwwtank, landship, bigtankww, wwsupporttruck, Zeppelin, EliteZeppelin, americanbomberww,
+// biplane, fighterww) - sie erzeugten nur "Registration skipped"-Warnungen.
+// Manu-Fix 005: "crusaderdreadnaught" hat Grafiken, aber keine Einheitendefinition; sein Spawn-Knopf warf eine
+// NullReferenceException in PowerButton.init (ButtonBuilder.cs:213).
 foreach (string unitName in unitNames)
 {
     UnitTracker.Instance.RegisterUnit(unitName);
@@ -8117,6 +8119,13 @@ public static readonly string[] swim_0_5 = Toolbox.a<string>("swim_0", "swim_1",
 
 
 
+// Manu-Fix 041: Patch_Actor_BomberHumanRuntime runs for every actor on every AI update. For ordinary units it scanned
+// the asset's whole decision list by string (List.Contains) and checked a trait by name each time. Whether an asset is
+// an air vehicle never changes while playing, so the answer is kept per ActorAsset (concurrent: AI updates can run in
+// parallel batches). Measured with 21,000 units: removing the patch raised throughput by 4 %; the lookup now costs ~0.
+private static readonly System.Collections.Concurrent.ConcurrentDictionary<ActorAsset, AirVehicleProfile> AirProfileByAsset =
+	new System.Collections.Concurrent.ConcurrentDictionary<ActorAsset, AirVehicleProfile>();
+
 private static bool TryGetAirVehicleProfile(Actor actor, out AirVehicleProfile profile)
 {
 	profile = null;
@@ -8125,19 +8134,18 @@ private static bool TryGetAirVehicleProfile(Actor actor, out AirVehicleProfile p
 		return false;
 	}
 
-	if (AirVehicleProfiles.TryGetValue(actor.asset.id, out profile))
+	ActorAsset asset = actor.asset;
+	if (!AirProfileByAsset.TryGetValue(asset, out profile))
 	{
-		return true;
+		if (!AirVehicleProfiles.TryGetValue(asset.id, out profile))
+		{
+			List<string> decisionIds = asset.decision_ids;
+			profile = decisionIds != null && decisionIds.Contains("bomber_force_reload_rtb") ? DefaultAirVehicleProfile : null;
+		}
+		AirProfileByAsset[asset] = profile;
 	}
 
-	List<string> decisionIds = actor.asset.decision_ids;
-	if (decisionIds != null && decisionIds.Contains("bomber_force_reload_rtb"))
-	{
-		profile = DefaultAirVehicleProfile;
-		return true;
-	}
-
-	return false;
+	return profile != null;
 }
 
 private static AirVehicleProfile GetAirVehicleProfileOrDefault(Actor actor)
@@ -8173,17 +8181,20 @@ private static bool IsVehicleActor(Actor actor)
 private static bool TryGetLandVehicleAmmoProfile(Actor actor, out LandVehicleAmmoProfile profile)
 {
 	profile = null;
-	if (actor == null || actor.asset == null || !actor.hasTrait("Unitpotential"))
+	// Manu-Fix 041: the profile table is checked first; ordinary units leave before the trait lookup by name.
+	if (actor == null || actor.asset == null || !LandVehicleAmmoProfiles.TryGetValue(actor.asset.id, out profile))
 	{
+		profile = null;
 		return false;
 	}
 
-	if (IsAirVehicleActor(actor))
+	if (!actor.hasTrait("Unitpotential") || IsAirVehicleActor(actor))
 	{
+		profile = null;
 		return false;
 	}
 
-	return LandVehicleAmmoProfiles.TryGetValue(actor.asset.id, out profile);
+	return true;
 }
 
 private static bool IsLandVehicleAmmoActor(Actor actor)
@@ -9181,7 +9192,6 @@ private static bool BomberForceReloadRtbDecisionEffect(Actor actor)
 		return false;
 	}
 
-	EnsureBomberState(actor);
 	int ammo = GetBomberAmmo(actor);
 	bool forceRtb = GetBomberBool(actor, BomberForceRtbKey);
 	return ammo <= 0 || forceRtb;
@@ -9194,7 +9204,6 @@ private static bool BomberLandAndReloadDecisionEffect(Actor actor)
 		return false;
 	}
 
-	EnsureBomberState(actor);
 	int ammo = GetBomberAmmo(actor);
 	bool forceRtb = GetBomberBool(actor, BomberForceRtbKey);
 	return (forceRtb || ammo < profile.ammoMax) && GetBomberBool(actor, BomberLandedKey);
@@ -9207,7 +9216,6 @@ private static bool BomberTakeoffForWarDecisionEffect(Actor actor)
 		return false;
 	}
 
-	EnsureBomberState(actor);
 	if (GetBomberAmmo(actor) < profile.takeoffAmmoThreshold || GetBomberBool(actor, BomberForceRtbKey))
 	{
 		return false;
@@ -9229,7 +9237,6 @@ private static bool BomberEngageEnemyTargetsDecisionEffect(Actor actor)
 		return false;
 	}
 
-	EnsureBomberState(actor);
 	if (GetBomberBool(actor, BomberForceRtbKey) || GetBomberAmmo(actor) < profile.takeoffAmmoThreshold)
 	{
 		return false;
@@ -9253,7 +9260,6 @@ private static bool BomberPeaceStationDecisionEffect(Actor actor)
 		return false;
 	}
 
-	EnsureBomberState(actor);
 	if (GetBomberBool(actor, BomberForceRtbKey))
 	{
 		return false;
@@ -9738,6 +9744,8 @@ public static bool HARDENmissileArtilleryEffect(BaseSimObject pTarget, WorldTile
 
 public static bool NuclearMissileArtilleryEffect(BaseSimObject pTarget, WorldTile pTile = null)
 {
+    if (pTarget == null || !Development.NuclearAllowed(pTarget.kingdom)) return false;
+
 	if (!nukesEnabled)
 	{
 	//	ModernBoxLogger.Log("Nukes disabled.");
@@ -9754,8 +9762,6 @@ public static bool NuclearMissileArtilleryEffect(BaseSimObject pTarget, WorldTil
     City ownerCity = caster.city;
     if (ownerCity == null || ownerCity.amount_gold < 50)
         return false;
-
-    ownerCity.takeResource("gold", 50);
 
     using (var enemies = caster.kingdom.getEnemiesKingdoms())
     {
@@ -9804,7 +9810,10 @@ public static bool NuclearMissileArtilleryEffect(BaseSimObject pTarget, WorldTil
 						{
 							addNews("this wont work");
 						}
-                        World.world.projectiles.spawn(caster, null, "NUKER", startProjectile, attackVector);
+                        // Manu-Fix 027: only a launched projectile costs gold; failed targeting/pool allocation is free.
+                        if (World.world.projectiles.spawn(caster, null, "NUKER", startProjectile, attackVector) == null)
+                            return false;
+                        ownerCity.takeResource("gold", 50);
 						StatManager.Instance.SpawnUnit();
                         caster.punchTargetAnimation(attackVector, true, false, 45f);
                         return true;
@@ -9825,6 +9834,8 @@ public static bool NuclearMissileArtilleryEffect(BaseSimObject pTarget, WorldTil
 
 public static bool AntiBossNuke(BaseSimObject pTarget, WorldTile pTile = null)
 {
+    if (pTarget == null || !Development.NuclearAllowed(pTarget.kingdom)) return false;
+
 	if (!nukesEnabled)
 	{
 	//	ModernBoxLogger.Log("Nukes disabled.");
@@ -9841,8 +9852,6 @@ public static bool AntiBossNuke(BaseSimObject pTarget, WorldTile pTile = null)
     City ownerCity = caster.city;
     if (ownerCity == null || ownerCity.amount_gold < 10)
         return false;
-
-    ownerCity.takeResource("gold", 10);
 
     List<Actor> validTargets = new List<Actor>();
     foreach (var other in World.world.units)
@@ -9870,7 +9879,10 @@ public static bool AntiBossNuke(BaseSimObject pTarget, WorldTile pTile = null)
     Vector3 startProjectile = Toolbox.getNewPoint(start.x, start.y, end.x, end.y, caster.stats["size"]);
     startProjectile.y += 0.5f;
 
-    World.world.projectiles.spawn(caster, target, "NUKER", startProjectile, attackVector);
+    // Manu-Fix 027: the no-boss path must not drain the city's gold during every decision check.
+    if (World.world.projectiles.spawn(caster, target, "NUKER", startProjectile, attackVector) == null)
+        return false;
+    ownerCity.takeResource("gold", 10);
 	StatManager.Instance.SpawnUnit();
     caster.punchTargetAnimation(attackVector, true, false, 45f);
 
@@ -10137,9 +10149,13 @@ public static class Patch_Kingdom_Exclude_Unitpotential_King
 [HarmonyPatch(typeof(City), "setLeader")]
 public static class Patch_City_Exclude_Unitpotential_Leader
 {
+    // Manu-Fix 044: City.loadLeader() passes null when the saved leader id no longer belongs to a unit, and vanilla
+    // setLeader simply ignores null. Reading pActor.hasTrait() first threw a NullReferenceException inside
+    // SaveManager.loadLeaders, the loader stopped there and the old world stayed on screen (measured with a year-740
+    // save whose city still pointed at a leader that had died before saving).
     static bool Prefix(City __instance, Actor pActor, bool pNew)
     {
-        if (pActor.hasTrait("Unitpotential"))
+        if (pActor != null && pActor.hasTrait("Unitpotential"))
             return false;
         return true;
     }

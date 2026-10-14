@@ -202,7 +202,8 @@ namespace ModernBox
 
         public AchievementNotification(M3Achievement M3Achievement)
         {
-            M3Achievement = M3Achievement;
+            // Manu-Fix 035: assign the notification field, not the shadowing parameter.
+            this.M3Achievement = M3Achievement;
         }
     }
 }

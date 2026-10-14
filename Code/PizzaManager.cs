@@ -31,37 +31,38 @@ namespace ModernBox
             switch (pizzaClicks)
             {
                 case 1:
-                    WorldTip.showNow("The first pizza click... the journey begins.", true, "top", 3f);
+                    // Manu-Fix 023: fester Hinweistext, kein Textschluessel (pTranslate false) - Begruendung in UnitTracker.SpawnVehicle.
+                    WorldTip.showNow("The first pizza click... the journey begins.", false, "top", 3f);
                     break;
                 case 10:
-                    WorldTip.showNow("10 pizza clicks! You're just getting started.", true, "top", 3f);
+                    WorldTip.showNow("10 pizza clicks! You're just getting started.", false, "top", 3f);
                     break;
                 case 20:
-                    WorldTip.showNow("20 clicks! That's a lot of finger grease.", true, "top", 3f);
+                    WorldTip.showNow("20 clicks! That's a lot of finger grease.", false, "top", 3f);
                     break;
                 case 30:
-                    WorldTip.showNow("30 clicks! This pizza is feeling the pressure.", true, "top", 3f);
+                    WorldTip.showNow("30 clicks! This pizza is feeling the pressure.", false, "top", 3f);
                     break;
                 case 40:
-                    WorldTip.showNow("40 clicks! Are you... okay?", true, "top", 3f);
+                    WorldTip.showNow("40 clicks! Are you... okay?", false, "top", 3f);
                     break;
                 case 50:
-                    WorldTip.showNow("Halfway to pizza insanity. 50 clicks!", true, "top", 3f);
+                    WorldTip.showNow("Halfway to pizza insanity. 50 clicks!", false, "top", 3f);
                     break;
                 case 60:
-                    WorldTip.showNow("60 clicks. This is beyond casual pizza behavior.", true, "top", 3f);
+                    WorldTip.showNow("60 clicks. This is beyond casual pizza behavior.", false, "top", 3f);
                     break;
                 case 70:
-                    WorldTip.showNow("70 clicks... pizza is starting to sweat.", true, "top", 3f);
+                    WorldTip.showNow("70 clicks... pizza is starting to sweat.", false, "top", 3f);
                     break;
                 case 80:
-                    WorldTip.showNow("80 clicks! Your dedication to pizza is admirable.", true, "top", 3f);
+                    WorldTip.showNow("80 clicks! Your dedication to pizza is admirable.", false, "top", 3f);
                     break;
                 case 90:
-                    WorldTip.showNow("90 clicks! Final stretch to the ultimate pizza moment.", true, "top", 3f);
+                    WorldTip.showNow("90 clicks! Final stretch to the ultimate pizza moment.", false, "top", 3f);
                     break;
                 case 100:
-                    WorldTip.showNow("100 clicks! YOU HAVE ENTERED... PIZZA MODE!", true, "top", 3f);
+                    WorldTip.showNow("100 clicks! YOU HAVE ENTERED... PIZZA MODE!", false, "top", 3f);
                     ActivatePizzaMode();
                     break;
             }

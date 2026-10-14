@@ -124,7 +124,7 @@ namespace ModernBox {
       Ideology.name = "trait_group_Ideology";
       Ideology.color = "#5EFFFF";
       AssetManager.trait_groups.add(Ideology);
-      LM.AddToCurrentLocale("trait_group_Ideology", "Ideology");
+      ModernBox.ModernBoxLocale.Register("trait_group_Ideology", "Ideology");
 
 ////////ideology must be changed so it does not override existing
 ///////ideology must be changed so it does not override existing
@@ -154,9 +154,9 @@ namespace ModernBox {
       Dynastic.addOpposite("Peoplewoven");
       Dynastic.addOpposite("Chaosvolt");
       AssetManager.traits.add(Dynastic);
-      LM.AddToCurrentLocale("trait_Dynastic", "Dynastic Ideology");
-      LM.AddToCurrentLocale("trait_Dynastic_info", "LONG LIVE THE KING!!!!");
-      LM.AddToCurrentLocale("trait_Dynastic_info_2",
+      ModernBox.ModernBoxLocale.Register("trait_Dynastic", "Dynastic Ideology");
+      ModernBox.ModernBoxLocale.Register("trait_Dynastic_info", "LONG LIVE THE KING!!!!");
+      ModernBox.ModernBoxLocale.Register("trait_Dynastic_info_2",
                             "Nepo bebes and cake loving royals");
 
       ActorTrait Martial = new ActorTrait();
@@ -173,11 +173,11 @@ namespace ModernBox {
       Martial.addOpposite("Peoplewoven");
       Martial.addOpposite("Chaosvolt");
       AssetManager.traits.add(Martial);
-      LM.AddToCurrentLocale("trait_Martial", "Martial Ideology");
-      LM.AddToCurrentLocale(
+      ModernBox.ModernBoxLocale.Register("trait_Martial", "Martial Ideology");
+      ModernBox.ModernBoxLocale.Register(
           "trait_Martial_info",
           "All others will learn of our peaceful ways, BY FORCE!!!");
-      LM.AddToCurrentLocale("trait_Martial_info_2", "HOI4 enjoyers");
+      ModernBox.ModernBoxLocale.Register("trait_Martial_info_2", "HOI4 enjoyers");
 
       ActorTrait Peoplewoven = new ActorTrait();
       Peoplewoven.id = "Peoplewoven";
@@ -193,9 +193,9 @@ namespace ModernBox {
       Peoplewoven.addOpposite("Chaosvolt");
       Peoplewoven.addOpposite("Dynastic");
       AssetManager.traits.add(Peoplewoven);
-      LM.AddToCurrentLocale("trait_Peoplewoven", "Peoplewoven Ideology");
-      LM.AddToCurrentLocale("trait_Peoplewoven_info", "FOR THE PEASANTS!!");
-      LM.AddToCurrentLocale("trait_Peoplewoven_info_2",
+      ModernBox.ModernBoxLocale.Register("trait_Peoplewoven", "Peoplewoven Ideology");
+      ModernBox.ModernBoxLocale.Register("trait_Peoplewoven_info", "FOR THE PEASANTS!!");
+      ModernBox.ModernBoxLocale.Register("trait_Peoplewoven_info_2",
                             "HOI4 enjoyers as well");
 
       ActorTrait Mercantile = new ActorTrait();
@@ -212,11 +212,11 @@ namespace ModernBox {
       Mercantile.addOpposite("Peoplewoven");
       Mercantile.addOpposite("Martial");
       AssetManager.traits.add(Mercantile);
-      LM.AddToCurrentLocale("trait_Mercantile", "Mercantile Ideology");
-      LM.AddToCurrentLocale(
+      ModernBox.ModernBoxLocale.Register("trait_Mercantile", "Mercantile Ideology");
+      ModernBox.ModernBoxLocale.Register(
           "trait_Mercantile_info",
           "Not selling my own family for coins was the friends we made along the way");
-      LM.AddToCurrentLocale("trait_Mercantile_info_2",
+      ModernBox.ModernBoxLocale.Register("trait_Mercantile_info_2",
                             "bro, want some Maximcoin?");
 
       ActorTrait Chaosvolt = new ActorTrait();
@@ -233,10 +233,10 @@ namespace ModernBox {
       Chaosvolt.addOpposite("Peoplewoven");
       Chaosvolt.addOpposite("Dynastic");
       AssetManager.traits.add(Chaosvolt);
-      LM.AddToCurrentLocale("trait_Chaosvolt", "Chaosvolt Ideology");
-      LM.AddToCurrentLocale("trait_Chaosvolt_info",
+      ModernBox.ModernBoxLocale.Register("trait_Chaosvolt", "Chaosvolt Ideology");
+      ModernBox.ModernBoxLocale.Register("trait_Chaosvolt_info",
                             "REVOLT! REVOLT!! REVOLUTION!!!");
-      LM.AddToCurrentLocale("trait_Chaosvolt_info_2",
+      ModernBox.ModernBoxLocale.Register("trait_Chaosvolt_info_2",
                             "Mostly peaceful nuclear civil wars");
 
       ActorTrait Unitpotential = new ActorTrait();
@@ -255,10 +255,10 @@ namespace ModernBox {
       Unitpotential.action_special_effect =
           new WorldAction(UnitpotentialEffect);
       AssetManager.traits.add(Unitpotential);
-      LM.AddToCurrentLocale("trait_Unitpotential", "Vehicle/War Unit");
-      LM.AddToCurrentLocale("trait_Unitpotential_info",
+      ModernBox.ModernBoxLocale.Register("trait_Unitpotential", "Vehicle/War Unit");
+      ModernBox.ModernBoxLocale.Register("trait_Unitpotential_info",
                             "Enables lots of fun :3");
-      LM.AddToCurrentLocale("trait_Unitpotential_info_2",
+      ModernBox.ModernBoxLocale.Register("trait_Unitpotential_info_2",
                             "helicopter helicopter");
 
       ActorTrait NavalUnit = new ActorTrait();
@@ -271,9 +271,9 @@ namespace ModernBox {
       NavalUnit.can_be_given = false;
       NavalUnit.unlocked_with_achievement = false;
       AssetManager.traits.add(NavalUnit);
-      LM.AddToCurrentLocale("trait_NavalUnit", "Naval Unit");
-      LM.AddToCurrentLocale("trait_NavalUnit_info", "Enables lots of fun :3");
-      LM.AddToCurrentLocale("trait_NavalUnit_info_2",
+      ModernBox.ModernBoxLocale.Register("trait_NavalUnit", "Naval Unit");
+      ModernBox.ModernBoxLocale.Register("trait_NavalUnit_info", "Enables lots of fun :3");
+      ModernBox.ModernBoxLocale.Register("trait_NavalUnit_info_2",
                             "Big boats, big cannons, and lots of fun :D");
 
       ActorTrait Gay = new ActorTrait();
@@ -285,11 +285,11 @@ namespace ModernBox {
       Gay.group_id = "mind";
       Gay.unlocked_with_achievement = false;
       AssetManager.traits.add(Gay);
-      LM.AddToCurrentLocale("trait_Gay", "Gay");
-      LM.AddToCurrentLocale(
+      ModernBox.ModernBoxLocale.Register("trait_Gay", "Gay");
+      ModernBox.ModernBoxLocale.Register(
           "trait_Gay_info",
           "THis is only needed for the homo bomb, this person likes the same sex.");
-      LM.AddToCurrentLocale("trait_Gay_info_2", "literally dank btw");
+      ModernBox.ModernBoxLocale.Register("trait_Gay_info_2", "literally dank btw");
 
       LM.ApplyLocale(true);
     }
@@ -722,7 +722,7 @@ namespace ModernBox {
     public static void turnOffSpaceMarines() => allowSpaceMarines = false;
 
     public static void toggleSpaceMarines() {
-      Main.modifyBoolOption("SpaceMarinesOption",
+      Main.modifyBoolOption("SpaceMarineOption", // Manu-Fix 028: same saved key as the default and startup consumer.
                             PowerButtons.GetToggleValue("spacemarines"));
       if (PowerButtons.GetToggleValue("spacemarines")) {
         turnOnSpaceMarines();
@@ -844,148 +844,19 @@ namespace ModernBox {
       if (leader == null || leader.asset == null)
         return false;
 
-      string leaderId = leader.asset.id;
-
-      string[] alliancecivs = {
-        "human",          "plague_doctor", "evil_mage",
-        "civ_white_mage", "civ_cat",       "civ_dog",
-        "civ_chicken",    "civ_sheep",     "civ_acid_gentleman",
-        "bandit"
-      };
-      string[] hardencivs = {
-        "dwarf",         "cold_one",   "snowman",
-        "civ_armadillo", "civ_rhino",  "civ_crab",
-        "civ_penguin",   "civ_turtle", "civ_crystal_golem",
-        "civ_candy_man", "civ_goat"
-      };
-      string[] gaiacivs = { "elf",           "civ_rabbit",  "civ_monkey",
-                            "civ_cow",       "civ_buffalo", "civ_alpaca",
-                            "civ_capybara",  "civ_frog",    "civ_liliar",
-                            "druid",         "fairy",       "civ_garlic_man",
-                            "civ_lemon_man", "unicorn" };
-      string[] hordecivs = { "orc",        "necromancer",  "civ_fox",
-                             "civ_wolf",   "civ_bear",     "civ_hyena",
-                             "civ_rat",    "civ_scorpion", "civ_crocodile",
-                             "civ_snake",  "civ_piranha",  "greg",
-                             "jumpy_skull" };
-
-      string[] civGroups =
-          new string[] { "alliance", "harden", "gaia", "horde" };
-
-      string civGroup = alliancecivs.Contains(leaderId) ? "alliance"
-                        : hardencivs.Contains(leaderId) ? "harden"
-                        : gaiacivs.Contains(leaderId)   ? "gaia"
-                        : hordecivs.Contains(leaderId)  ? "horde"
-                                                        : "alliance";
-
-      Building bonfire = actor.city.getBuildingOfType("type_bonfire");
-      if (bonfire == null || bonfire.asset == null)
-        return false;
-
-      int bonfireLevel = bonfire.asset.upgrade_level;
-      string currentBonfireId = bonfire.asset.id;
-
-      var enabledEras =
-          EraLibrary.All
-              .Where(e => {
-                return e.key switch {
-                  "medieval" => StatManager.Instance.enableMedieval,
-                  "renaissance" => StatManager.Instance.enableRenaissance,
-                  "modern" => StatManager.Instance.enableModern,
-                  "hyperfuture" => StatManager.Instance.enableHyperfuture,
-                  _ => false
-                };
-              })
-              .ToList();
-
-      if (enabledEras.Count == 0)
-        return false;
-
-      var detectedEra = EraLibrary.All.FirstOrDefault(
-          e => e.bonfires.ContainsKey(civGroup) &&
-               e.bonfires[civGroup].Contains(currentBonfireId));
-
-      string overrideEra = StatManager.Instance.eraoverride?.ToLower();
-
-      EraDefinition targetEra = null;
-
-      if (!string.IsNullOrEmpty(overrideEra)) {
-        targetEra = enabledEras.FirstOrDefault(e => e.key == overrideEra);
-
-        if (targetEra == null) {
-
-          int index = Mathf.Clamp(bonfireLevel, 0, enabledEras.Count - 1);
-          targetEra = enabledEras[index];
-        }
-      } else {
-        int index = Mathf.Clamp(bonfireLevel, 0, enabledEras.Count - 1);
-        targetEra = enabledEras[index];
+      string civGroup = Development.Group(actor.city.getActorAsset());
+      string eraKey = Development.Era(actor.city);
+      EraDefinition targetEra = EraLibrary.All.FirstOrDefault(e => e.key == eraKey);
+      if (targetEra == null) return false;
+      if (StatManager.Instance != null) {
+        bool enabled = eraKey == "medieval" ? StatManager.Instance.enableMedieval :
+          eraKey == "renaissance" ? StatManager.Instance.enableRenaissance :
+          eraKey == "modern" ? StatManager.Instance.enableModern : StatManager.Instance.enableHyperfuture;
+        if (!enabled) return false;
+        StatManager.Instance.currentEra = targetEra.name;
+        StatManager.Instance.currentEraDescription = "Forschung je Reich – " + targetEra.description;
       }
-
-      if (targetEra == null) {
-        ModernBoxLogger.Error("era is null");
-        return false;
-      }
-
-      foreach (var civGroupa in civGroups) {
-        SetEraCity(targetEra.key, civGroupa);
-      }
-
-      bool needsFix = detectedEra == null ||
-                      !enabledEras.Contains(detectedEra) ||
-                      detectedEra.key != targetEra.key;
-
-      if (needsFix) {
-
-        foreach (var era in EraLibrary.All) {
-          if (!era.bonfires.ContainsKey(civGroup))
-            continue;
-
-          foreach (var oldId in era.bonfires[civGroup]) {
-            string replacement = targetEra.bonfires[civGroup][0];
-            changeAllBuildings(oldId, replacement);
-          }
-        }
-
-        foreach (var era in EraLibrary.All) {
-          if (!era.cityBuildings.ContainsKey(civGroup) ||
-              !targetEra.cityBuildings.ContainsKey(civGroup))
-            continue;
-
-          var sourceList = era.cityBuildings[civGroup];
-          var targetList = targetEra.cityBuildings[civGroup];
-
-          foreach (string oldId in sourceList) {
-
-            string functionalKeyword = bitch(oldId);
-            if (functionalKeyword == "building") {
-              continue;
-            }
-
-            string replacement = targetList.FirstOrDefault(
-                newId =>
-                    newId.IndexOf(functionalKeyword,
-                                  StringComparison.OrdinalIgnoreCase) >= 0);
-
-            if (string.IsNullOrEmpty(replacement)) {
-              continue;
-            }
-
-            if (!string.IsNullOrEmpty(replacement) && oldId != replacement) {
-              changeAllBuildings(oldId, replacement);
-            }
-          }
-        }
-
-      }
-
-      StatManager.Instance.currentEra = targetEra.name;
-      StatManager.Instance.currentEraDescription = targetEra.description;
-
-      string leaderSpeciesId = leader.subspecies?.data?.species_id;
-      if (string.IsNullOrEmpty(leaderSpeciesId)) {
-        leaderSpeciesId = leader.asset.id;
-      }
+      string leaderSpeciesId = actor.city.getActorAsset().id;
       string role = GetRoleType(UnityEngine.Random.Range(0f, 1f));
 
       Dictionary<string, Dictionary<string, List<string>>> roleMapDict =
@@ -1002,14 +873,15 @@ namespace ModernBox {
       if (roleMapDict == null)
         return false;
 
-      if (!roleMapDict.TryGetValue(leaderSpeciesId, out var roleMap))
+      if (!roleMapDict.TryGetValue(leaderSpeciesId, out var roleMap) &&
+          !roleMapDict.TryGetValue(Development.VehicleSpecies(actor.city.getActorAsset()), out roleMap))
         return false;
 
       if (!roleMap.TryGetValue(role, out var candidates) ||
           candidates.Count == 0)
         return false;
 
-        var filteredCandidates = SuckDick(candidates);
+        var filteredCandidates = SuckDick(candidates).Where(id => Development.AllowsVehicle(actor.city,id)).ToList();
 
         if (filteredCandidates.Count == 0)
             return false;
@@ -1051,6 +923,11 @@ namespace ModernBox {
                   continue;
 
               if (!allowTIEFighter && unit.Contains("TIEfighter"))
+                  continue;
+
+              // Manu-Fix 028: the visible Space Marine switch must filter both faction variants before conversion.
+              // Explicit player spawning remains a separate god power.
+              if (!allowSpaceMarines && (unit == "SpaceMarine" || unit == "spaceork"))
                   continue;
 
               filtered.Add(unit);
@@ -1129,23 +1006,8 @@ namespace ModernBox {
       if (!city.hasBuildingType("type_hall"))
         return false;
 
-      int pop = city.getPopulationPeople();
-      int vehicleLimit = 0;
-      if (pop >= 200)
-        vehicleLimit = 25;
-      else if (pop >= 120)
-        vehicleLimit = 20;
-      else if (pop >= 80)
-        vehicleLimit = 15;
-      else if (pop >= 50)
-        vehicleLimit = 10;
-      else if (pop >= 30)
-        vehicleLimit = 8;
-      else if (pop >= 20)
-        vehicleLimit = 5;
-      else
-        return false;
-
+      if (!Development.CanProduceVehicle(city)) return false;
+      int vehicleLimit = Development.VehicleLimit(city);
       int currentVehicles = 0;
       foreach (Actor unit in city.units) {
         if (unit.hasTrait("Unitpotential"))
@@ -1172,6 +1034,7 @@ namespace ModernBox {
       vehicle.makeWait(1f);
       vehicle.setKingdom(caster.kingdom);
       vehicle.setCity(city);
+      Development.PayVehicle(city);
       return true;
     }
 
