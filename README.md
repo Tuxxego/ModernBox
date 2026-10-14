@@ -1,63 +1,72 @@
-# ModernBox M1 Rewrite - WorldBox 0.51.2
+# ModernBox
 
-This is a clean NML rewrite of ModernBox M1 for WorldBox **0.51.2 (build 558)**.
+Welcome to the Modern Age. Guns, vehicles, drugs, casinos and MIRVs.
+
+This is ModernBox M1 (10.0) ported to WorldBox 0.51.2 so it runs on the new game. The aim was to keep it as close to the original M1 as possible, bugs included.
+
+## Required loader
+
+Made with `NeoModLoader.dll` version `1.2.0.1` on WorldBox 0.51.2 (build 719). Other versions might work but no promises.
 
 ## Install
 
-1. Disable or remove every other ModernBox edition. The original content IDs intentionally collide.
-2. Copy this entire folder into `worldbox_Data/StreamingAssets/mods/`.
-3. Keep NML 1.2.0.1 or the matching experimental build installed.
-4. Start WorldBox and open the ModernBox toolbar tab.
+1. Copy `NeoModLoader.dll` into:
+   `WorldBox\worldbox_Data\StreamingAssets\mods`
+2. Copy the `ModernBox-M1` folder into that same `mods` folder.
+3. Take ModernBox 2 out of the `mods` folder if it's there. Both use the same units and buildings, so only one can be loaded.
+4. Start WorldBox. The mod shows up as the ModernBox tab.
 
-## Human-city progression
+```text
+WorldBox
+└─ worldbox_Data
+   └─ StreamingAssets
+      └─ mods
+         ├─ NeoModLoader.dll
+         └─ ModernBox-M1
+```
 
-| Tier | Population | Buildings | Main unlocks |
-|---|---:|---:|---|
-| Urban | 50 | 16 | Unlimited casino, restaurant, mall, school, and modern-residence construction |
-| Industrial | 75 | 18 | Pipe weapons, ModernBarracks, Soldier |
-| Modern | 100 | 20 | Normal factories, vehicles, aircraft, guns, Budget MIRV |
-| Advanced | 130 | 23 | Railgun/Gunship/Missile System, cyberware, drugs, Decent MIRV |
-| Strategic | 170 | 26 | Strategic AirFactory, MIRVBomber, CargoPlane, MIRV weapons |
-| Nuclear | 220 | 30 | MissileSilo and STRONGMIRV |
+## Tech
 
-Only human architecture receives these build orders. All five civilian buildings have an effectively unlimited direct build-order count. Ordinary human houses at stages 1 through 4 may also branch into a modern residence whenever the city can afford the modern target; their original vanilla upgrade destinations are restored immediately, so cities that cannot afford that branch can still reach the final ordinary house normally. The final ordinary house retains a native modern-residence upgrade. Each factory, ModernBarracks, and MissileSilo remains limited to one of that type per city, matching M1's factory-order limit.
+0.51.2 removed culture tech, so the port brings it back. Every human, orc, elf and dwarf culture researches techs on its own, with the same costs and speed as the old game. The culture level is the number of techs it has, and the M1 techs unlock at the same levels as before:
 
-## Factory economy
+- Casino (casinos, restaurants, malls, schools, modern buildings) at level 40
+- Pipe Guns at 55
+- Modern Military (Modern Barracks, much bigger armies) at 60
+- Guns, Tanks, Helicopters, Fighter Jets, MIRV Bombers, F55, Drones, Nukes and Short Range MIRVs at 65
+- Cyberware, Decent Range MIRVs and Gunships at 70
+- Long Range MIRVs at 80
+- Nuclear MIRVs at 90
 
-The production service checks cities every five seconds and produces at most one unit per city per check. A city must meet the progression, factory, toggle, resource, interval, and military-cap requirements. Resources are spent only after a unit has been created and assigned successfully.
+Research is slow, like it was in the original. Smart city leaders speed it up.
 
-Factories generate bounded Parts, schools generate CyberWareParts, and AirFactory/MissileSilo generate Xenium. Casinos, restaurants, and malls generate bounded gold.
+The Tech button under Developer Mode in the ModernBox tab shows each culture's level, what it is researching and which ModernBox techs it has. The original didn't need this button because the old game had its own culture tech window.
 
-| Production class | Interval | Cost |
-|---|---:|---|
-| Soldier | 30 seconds | 1 common metal, 1 gold |
-| Light vehicle | 45 seconds | 1 wood, 1 common metal, 1 gold |
-| Armor | 60 seconds | 1 stone, 3 common metals, 2 gold |
-| Normal aircraft | 75 seconds | 1 wood, 2 common metals, 2 gold |
-| Advanced aircraft | 90 seconds | 1 stone, 4 common metals, 4 gold |
-| MIRV bomber / strategic aircraft | 120 seconds | 1 stone, 6 common metals, 8 gold |
+## Kept from the original on purpose
 
-The ModernBox military cap per city is `clamp(population / 10, 4, 30)`. AirFactory alternates between MIRVBomber and CargoPlane.
+These look like bugs, but the original M1 did them too:
 
-## Controls
+- A city only ever builds one M1 building (plus one missile silo).
+- Cities never build the Tank, Airship, Railgun or Missile System factories.
+- Drones are never made.
+- Factory toggles only work on factories built or loaded after you switch them on.
+- Missile silos can only be built after the nuke toggle is switched on, and switching it off does nothing until you restart.
+- Turning off modern names for other races doesn't change the dwarves back.
+- The Random bomb's sizes don't match the bombs they're named after.
+- Reset to defaults only takes effect after a restart.
+- Cultures run out of techs to research before the last unlocks. Humans stop at level 79 and dwarves at 78, so Long Range and Nuclear MIRVs are never researched. Elves stop at 64 and orcs at 62, so they never get guns or vehicles.
 
-Open the **ModernBox** toolbar tab. Its page buttons switch between **Industry**, **Units**, **Bombs**, **Equipment**, and **Settings**. Industry controls factory and silo production toggles; Units contains all 13 manual spawn powers; Bombs contains all ten custom drops. A press creates one bomb at the cursor and holding the mouse repeats single drops without filling the selected brush. Equipment controls guns, pipe guns, cyberware, drugs, ideologies, and name sets; Settings opens the credits, complete settings, and bounded diagnostics windows.
+## Different from the original
 
-## Exact-scale bombs
+Some things couldn't be done the same way on 0.51.2:
 
-MOAB 50, Cobalt 120, Ultron 100, Death 100, Xenium 400, Mini 5, Proton 786, Jupiter 1486, and Eraser 1000. Random uses the original M1 radius set. The nine nuclear drops use M1's vanilla czar-bomb falling sprite and Eraser uses the vanilla antimatter sprite, starting from M1's original 60-70 fall height. Bomb landings retain M1's vanilla visual effects and terrain behavior; because WorldBox 0.51.2 no longer generates missing oversized `MapAction.damageWorld` brushes correctly, the exact circular area is processed directly over multiple frames in concentric center-outward shells. Multiple active explosions share the per-frame budget instead of blocking one another. No M2 custom bomb-effect system is included. Test Jupiter, Eraser, Proton, and Xenium only on disposable worlds because their original radii can cover most or all of a map.
+- Cyberware and drugs are made like rings. In the original they came out of the weapon list.
+- In the original, a city that picked a gun it couldn't make yet made nothing that time. Here it makes a normal item instead.
+- Fertility, max children and zone range don't exist in 0.51.2, so the stats that used them (drugs, Primalism, the Vehicle trait) do nothing.
+- The saved factory, Modern Militaries and ideology toggles work as soon as the game starts. In the original they did nothing until you clicked them again, so Modern Barracks always made soldiers and ideologies were always on.
+- Developer mode only writes extra lines to the game log. The original sent errors to a private Discord channel.
+- The original's log file writer and start-up sound aren't included. The sound never played in the original.
+- The eraser drop uses a different sprite. The original one isn't in the game anymore.
 
-## Included content
+## Bugs
 
-- 13 units and manual spawn powers
-- 18 finished buildings
-- 26 guns, 5 MIRV weapons, 2 cyberware accessories, and 2 drug accessories
-- Parts, CyberWareParts, and Xenium resources
-- 8 vehicle traits and 11 ideology traits
-- Modern human/orc/elf/dwarf and vehicle name generators
-- 10 custom bombs with complete DropAsset registration
-- Paginated in-game tab, settings, credits/info, bounded diagnostics, and optional local startup audio
-
-## Conflicts
-
-Do not enable this rewrite alongside M1, M5, or any other ModernBox variant. The rewrite checks core original IDs during startup and stops with a clear error if another edition registered them first.
+If something breaks, send the `error_*.log` from `AppData\LocalLow\mkarpenko\WorldBox\logs` along with what you were doing.

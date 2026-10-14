@@ -1,228 +1,79 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
-namespace ModernBoxRewrite
+namespace ModernBoxM1Rewrite
 {
     internal static class BombService
     {
-        private sealed class BombJob
-        {
-            internal MapBox Map;
-            internal WorldTile CenterTile;
-            internal int CenterX;
-            internal int CenterY;
-            internal int Radius;
-            internal int MaxShell;
-            internal int Shell = -1;
-            internal int ShellIndex;
-            internal readonly List<Vector2Int> ShellPoints = new List<Vector2Int>();
-            internal TerraformOptions Options;
-            internal string Name;
-            internal bool ErasesToDeepOcean;
-            internal long Processed;
-        }
-
-        private const int TileBudgetPerFrame = 4096;
-        private const float TimeBudgetPerFrame = 0.004f;
-
-        private static readonly Queue<BombJob> Jobs = new Queue<BombJob>();
+        private static readonly HashSet<int> BuiltBrushes = new HashSet<int>();
+        // Buttonz.randomdrop picks one entry from these three lists. They don't line up
+        // with the named bombs (radius 50 gets the Cobalt's effect size), as in the original.
         private static readonly int[] RandomRadii = { 50, 120, 100, 100, 400, 5, 786 };
         private static readonly float[] RandomScaleMin = { 0.2f, 0.4f, 0.8f, 1.2f, 4.3f, 0.4f, 16.3f };
         private static readonly float[] RandomScaleMax = { 0.3f, 0.6f, 0.9f, 1.6f, 7.9f, 0.6f, 28.9f };
 
-        internal static int PendingJobs { get { return Jobs.Count; } }
-
-        // M1 called MapAction.damageWorld with radii far beyond the game's built-in
-        // brush sizes. WorldBox 0.51.2 no longer generates those missing circular
-        // brushes correctly: Brush.get clones circ_1, leaving every large call with
-        // a one-tile footprint. Process the same circular area explicitly so the M1
-        // radii remain real, while spreading the work across frames to avoid a long
-        // simulation stall.
-        internal static void EnqueueOriginalM1Blast(WorldTile tile, BombSpec spec)
+        // Same sequence as the original drop actions: effect, MapAction.damageWorld, shake.
+        internal static void Detonate(WorldTile tile, BombSpec spec)
         {
             if (tile == null || spec == null || World.world == null) return;
-
             int radius = spec.Radius;
             float scaleMin = spec.EffectScaleMin;
             float scaleMax = spec.EffectScaleMax;
-            if (spec.Id == "Random")
+            if (spec.Pattern == BombPattern.RandomLegacy)
             {
-                int index = UnityEngine.Random.Range(0, RandomRadii.Length);
+                System.Random random = new System.Random();
+                int index = random.Next(RandomRadii.Length);
                 radius = RandomRadii[index];
-                scaleMin = RandomScaleMin[index];
-                scaleMax = RandomScaleMax[index];
+                float scale = (float)(RandomScaleMin[index] + random.NextDouble() * (RandomScaleMax[index] - RandomScaleMin[index]));
+                scaleMin = scale;
+                scaleMax = scale;
             }
 
             TerraformOptions options = AssetManager.terraform.get(spec.TerraformId);
             if (options == null)
             {
-                ModernBoxDiagnostics.Error("Bomb terraform asset is missing: " + spec.TerraformId);
+                ModernBoxDiagnostics.Error("Bomb terraform is missing: " + spec.TerraformId);
                 return;
             }
-
             EffectsLibrary.spawnAtTileRandomScale(spec.EffectId, tile, scaleMin, scaleMax);
+            // The old engine's blasts never stunned.
+            M1NoBlastStun.Begin();
+            try { MapAction.damageWorld(tile, EnsureCircleBrush(radius), options, null); }
+            finally { M1NoBlastStun.End(); }
             World.world.startShake(0.3f, 0.01f, 2f, true, true);
-            World.world.resetRedrawTimer();
-            if (options.remove_tornado) MapAction.tryRemoveTornadoFromTile(tile);
-
-            long maxDx = Math.Max(tile.x, MapBox.width - 1 - tile.x);
-            long maxDy = Math.Max(tile.y, MapBox.height - 1 - tile.y);
-            int lastWorldShell = (int)Math.Floor(Math.Sqrt(maxDx * maxDx + maxDy * maxDy));
-            Jobs.Enqueue(new BombJob
-            {
-                Map = World.world,
-                CenterTile = tile,
-                CenterX = tile.x,
-                CenterY = tile.y,
-                Radius = radius,
-                MaxShell = Math.Min(radius, lastWorldShell),
-                Options = options,
-                Name = spec.DisplayName,
-                ErasesToDeepOcean = spec.TerraformId == "destroy_no_flash"
-            });
-
-            ModernBoxDiagnostics.Info("Queued original M1 " + spec.DisplayName + " at radius " + radius + ".");
         }
 
-        internal static void Update()
+        // 0.51.2's Brush.get clones circ_1 for sizes the game never pre-built, so large radii
+        // would only touch a few tiles. Build the real circle once per radius, like the old
+        // Brush.get did. Radii past the map diagonal are capped to it, which still covers the map.
+        private static int EnsureCircleBrush(int radius)
         {
-            if (Jobs.Count == 0 || World.world == null) return;
-
-            float deadline = Time.realtimeSinceStartup + TimeBudgetPerFrame;
-            int budget = TileBudgetPerFrame;
-            while (Jobs.Count > 0 && budget-- > 0 && Time.realtimeSinceStartup < deadline)
+            int diagonal = (int)Math.Ceiling(Math.Sqrt((double)MapBox.width * MapBox.width + (double)MapBox.height * MapBox.height));
+            if (diagonal > 0 && radius > diagonal) radius = diagonal;
+            if (radius < 1) radius = 1;
+            if (BuiltBrushes.Contains(radius)) return radius;
+            BrushData brush = Brush.get(radius, "circ_");
+            if (brush == null) return radius;
+            if (brush.pos == null || brush.width < radius * 2 - 1)
             {
-                // Rotate after every tile so a Jupiter or Eraser job cannot block
-                // newer bomb landings until its entire radius has finished.
-                BombJob job = Jobs.Dequeue();
-                if (job.Map == World.world && ProcessNextTile(job))
+                List<BrushPixelData> pixels = new List<BrushPixelData>();
+                int radiusSquared = radius * radius;
+                for (int y = -radius; y <= radius; y++)
                 {
-                    Jobs.Enqueue(job);
+                    for (int x = -radius; x <= radius; x++)
+                    {
+                        int distanceSquared = x * x + y * y;
+                        if (distanceSquared > radiusSquared) continue;
+                        pixels.Add(new BrushPixelData(x, y, (int)Math.Sqrt(distanceSquared)));
+                    }
                 }
-                else if (job.Map == World.world)
-                {
-                    ModernBoxDiagnostics.Info(job.Name + " completed at radius " + job.Radius +
-                        " after processing " + job.Processed + " tile(s).");
-                }
+                brush.pos = pixels.ToArray();
+                brush.width = radius * 2 + 1;
+                brush.height = radius * 2 + 1;
+                brush.sqr_size = brush.width * brush.height;
             }
-        }
-
-        internal static void Clear()
-        {
-            Jobs.Clear();
-        }
-
-        private static bool ProcessNextTile(BombJob job)
-        {
-            while (job.ShellIndex >= job.ShellPoints.Count)
-            {
-                job.Shell++;
-                if (job.Shell > job.MaxShell) return false;
-                BuildShell(job);
-            }
-
-            Vector2Int position = job.ShellPoints[job.ShellIndex++];
-            int x = position.x;
-            int y = position.y;
-            long dx = x - job.CenterX;
-            long dy = y - job.CenterY;
-            long distanceSquared = dx * dx + dy * dy;
-            WorldTile tile = World.world.GetTileSimple(x, y);
-            if (tile == null) return true;
-
-            if (job.ErasesToDeepOcean)
-            {
-                MapAction.terraformMain(tile, TileLibrary.pit_deep_ocean, job.Options, false);
-            }
-            else
-            {
-                ApplyNuclearTile(tile, Mathf.Sqrt(distanceSquared), job);
-            }
-
-            job.Processed++;
-            return true;
-        }
-
-        // Enumerate integer-distance shells instead of scanning the bounding box
-        // from one corner. Every tile in shell N has floor(distance) == N, so all
-        // center damage finishes before the next outward ring begins.
-        private static void BuildShell(BombJob job)
-        {
-            job.ShellPoints.Clear();
-            job.ShellIndex = 0;
-
-            int shell = job.Shell;
-            long innerSquared = (long)shell * shell;
-            long outerSquared = shell == job.Radius
-                ? innerSquared
-                : (long)(shell + 1) * (shell + 1) - 1;
-            int minY = Math.Max(0, job.CenterY - shell);
-            int maxY = Math.Min(MapBox.height - 1, job.CenterY + shell);
-
-            for (int y = minY; y <= maxY; y++)
-            {
-                long dy = y - job.CenterY;
-                long dySquared = dy * dy;
-                long maximumDxSquared = outerSquared - dySquared;
-                if (maximumDxSquared < 0) continue;
-
-                int maximumAbsDx = FloorSqrt(maximumDxSquared);
-                long minimumDxSquared = innerSquared - dySquared;
-                int minimumAbsDx = minimumDxSquared <= 0 ? 0 : CeilSqrt(minimumDxSquared);
-                for (int dx = -maximumAbsDx; dx <= maximumAbsDx; dx++)
-                {
-                    if (Math.Abs(dx) < minimumAbsDx) continue;
-                    int x = job.CenterX + dx;
-                    if (x >= 0 && x < MapBox.width) job.ShellPoints.Add(new Vector2Int(x, y));
-                }
-            }
-        }
-
-        private static int FloorSqrt(long value)
-        {
-            int result = (int)Math.Floor(Math.Sqrt(value));
-            while ((long)(result + 1) * (result + 1) <= value) result++;
-            while ((long)result * result > value) result--;
-            return result;
-        }
-
-        private static int CeilSqrt(long value)
-        {
-            int floor = FloorSqrt(value);
-            return (long)floor * floor == value ? floor : floor + 1;
-        }
-
-        private static void ApplyNuclearTile(WorldTile tile, float distance, BombJob job)
-        {
-            TerraformOptions options = job.Options;
-
-            if (options.add_burned && !tile.Type.liquid) tile.setBurned(-1);
-            if (options.lightning_effect) MapAction.applyLightningEffect(tile);
-            if (options.add_heat != 0) World.world.heat.addTile(tile, options.add_heat);
-
-            if (tile.hasBuilding() && options.damage_buildings && tile.building != null && tile.building.isAlive())
-            {
-                tile.building.getHit(options.damage, true, AttackType.Explosion, null, true, false, true);
-            }
-
-            if (options.apply_force && tile.hasUnits())
-            {
-                tile.doUnits(actor =>
-                {
-                    if (actor != null && actor.isAlive())
-                        actor.applyRandomForce(0.4f, Math.Max(0.8f, options.force_power));
-                });
-            }
-
-            if (options.set_fire) tile.startFire(true);
-
-            bool exploded = false;
-            if (options.explode_tile)
-                exploded = MapAction.explodeTile(tile, distance, job.Radius, job.CenterTile, options);
-
-            if (options.transform_to_wasteland && !exploded)
-                MapAction.checkAcidTerraform(tile);
+            BuiltBrushes.Add(radius);
+            return radius;
         }
     }
 }

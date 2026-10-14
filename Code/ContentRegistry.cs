@@ -1,166 +1,370 @@
 using System;
 using System.Collections.Generic;
-using NCMS.Utils;
-using UnityEngine;
 
-namespace ModernBoxRewrite
+namespace ModernBoxM1Rewrite
 {
+    // Every unit, building, item and bomb of the original M1 10.0, with its values.
     internal static class ContentRegistry
     {
         internal static readonly List<ModernUnitSpec> Units = new List<ModernUnitSpec>();
         internal static readonly List<BuildingSpec> Buildings = new List<BuildingSpec>();
-        internal static readonly List<FactorySpec> Factories = new List<FactorySpec>();
         internal static readonly List<EquipmentSpec> Equipment = new List<EquipmentSpec>();
         internal static readonly List<BombSpec> Bombs = new List<BombSpec>();
+        private static readonly Dictionary<string, ModernUnitSpec> UnitsById = new Dictionary<string, ModernUnitSpec>(StringComparer.Ordinal);
+        private static readonly Dictionary<string, BuildingSpec> BuildingsById = new Dictionary<string, BuildingSpec>(StringComparer.Ordinal);
+        private static readonly Dictionary<string, EquipmentSpec> EquipmentById = new Dictionary<string, EquipmentSpec>(StringComparer.Ordinal);
         internal static string Summary { get; private set; }
+
+        internal static ModernUnitSpec FindUnit(string id)
+        {
+            ModernUnitSpec spec;
+            return id != null && UnitsById.TryGetValue(id, out spec) ? spec : null;
+        }
+
+        internal static BuildingSpec FindBuilding(string id)
+        {
+            BuildingSpec spec;
+            return id != null && BuildingsById.TryGetValue(id, out spec) ? spec : null;
+        }
+
+        internal static EquipmentSpec FindEquipment(string id)
+        {
+            EquipmentSpec spec;
+            return id != null && EquipmentById.TryGetValue(id, out spec) ? spec : null;
+        }
 
         internal static void RegisterAll()
         {
             BuildSpecifications();
+            M1OldVanillaStats.SnapshotGameTraits();
+            M1AttackSpeed.AllowOriginalSlowest();
+            // Same order as Main.Awake: names and guns first, the kingdoms and units after.
+            EquipmentAndTraitsRegistry.RegisterNames();
             EquipmentAndTraitsRegistry.RegisterResourcesAndProjectiles();
             EquipmentAndTraitsRegistry.RegisterEquipment();
             EquipmentAndTraitsRegistry.RegisterTraits();
-            EquipmentAndTraitsRegistry.RegisterNames();
             ActorsAndBuildingsRegistry.RegisterUnits();
             ActorsAndBuildingsRegistry.RegisterBuildingsAndOrders();
-            BombRegistry.RegisterBombs();
-            SiloLaunchEvents.Register();
-            ProductionService.ApplyDynamicSettings();
-            ModernBoxDiagnostics.ValidateRegisteredContent();
+            Safe("BombRegistry.RegisterBombs", BombRegistry.RegisterBombs);
+            M1Toggles.ApplyStartup();
             ModernLocalization.Apply();
-            Summary = Units.Count + " units, " + Buildings.Count + " buildings, " + Equipment.Count + " equipment, " + Bombs.Count + " bombs";
-            ModernBoxDiagnostics.ValidateAssets();
-            ModernBoxDiagnostics.Info("Registered " + Summary + ".");
+            Summary = Units.Count + " units, " + Buildings.Count + " buildings, " + Equipment.Count + " items, " + Bombs.Count + " bombs";
+            Safe("ModernBoxDiagnostics.ValidateAssets", ModernBoxDiagnostics.ValidateAssets);
+            Safe("M1HeldSpriteGuard.Apply", M1HeldSpriteGuard.Apply);
+        }
+
+        // One broken feature shouldn't stop the whole mod from loading.
+        private static void Safe(string name, Action action)
+        {
+            try { action(); }
+            catch (Exception e) { ModernBoxDiagnostics.Error(name + " failed: " + e); }
         }
 
         private static void BuildSpecifications()
         {
-            Units.Clear(); Buildings.Clear(); Factories.Clear(); Equipment.Clear(); Bombs.Clear();
-
-            AddUnit("Soldier", "Mp5", "Modern_Names", "actors/Soldier/walk_0", 100, 40, 100, 40, 80, 25, 0.1f, false);
-            AddUnit("Tank", "RocketLauncher", "Jet_Names", "ui/Icons/Tank", 200, 100, 100, 40, 20, 150, 0.25f, false, "Vehicle", "Tank");
-            AddUnit("MissileSystem", EquipmentAndTraitsRegistry.MissileSystemAttackId, "MIRV_Names", "actors/MissileSystem/swim_1", 200, 100, 100, 40, 15, 150, 0.3f, false, "Vehicle");
-            AddUnit("Railgun", "RocketLauncher", "Jet_Names", "ui/Icons/Railgun", 600, 80, 100, 60, 12, 150, 0.25f, false, "Vehicle", "Railgun");
-            AddUnit("Humvee", "Minigun", "Humvee_Names", "ui/Icons/Humvee", 200, 100, 100, 40, 25, 150, 0.2f, false, "Vehicle", "Humvee");
-            AddUnit("Heli", "Mp5", "Jet_Names", "ui/Icons/Heli", 200, 200, 35, 93, 100, 25, 0.2f, true, "Vehicle", "Helicopter");
-            AddUnit("Gunship", "GunshipCannon", "Jet_Names", "ui/Icons/Gunship", 350, 200, 60, 93, 100, 40, 0.2f, true, "Vehicle", "Helicopter");
-            AddUnit("Drone", "Mp5", "Jet_Names", "ui/Icons/Drone", 15, 90, 10, 30, 100, 20, 0.15f, true, "Vehicle", "Helicopter");
-            AddUnit("Zeppelin", "Mp5", "Jet_Names", "ui/Icons/Airship", 1000, 50, 70, 93, 70, 35, 0.5f, true, "Vehicle", "Zeppelin");
-            AddUnit("MIRVBomber", "MIRVBomb", "MIRV_Names", "ui/Icons/MIRVBomber", 1000, 500, 100, 93, 50, 30, 0.4f, true, "Vehicle", "Jet");
-            AddUnit("CargoPlane", "MIRV", "Jet_Names", "ui/Icons/Bomber", 5000, 500, 100, 93, 45, 30, 0.5f, true, "Vehicle", "Jet");
-            AddUnit("F22", "RocketLauncher", "Jet_Names", "ui/Icons/F22", 600, 800, 80, 93, 40, 60, 0.3f, true, "Vehicle", "Jet");
-            AddUnit("F55", "RocketLauncher", "Jet_Names", "ui/Icons/F55", 600, 800, 90, 93, 45, 65, 0.3f, true, "Vehicle", "Jet");
-
-            AddBuilding("casino", ProgressionTier.Urban, new ConstructionCost(15, 25, 0, 250), int.MaxValue, 0, true);
-            AddBuilding("restaurant", ProgressionTier.Urban, new ConstructionCost(15, 25, 0, 250), int.MaxValue, 0, true);
-            AddBuilding("mall", ProgressionTier.Urban, new ConstructionCost(15, 25, 0, 250), int.MaxValue, 0, true);
-            AddBuilding("school", ProgressionTier.Urban, new ConstructionCost(15, 25, 0, 250), int.MaxValue, 0, true);
-            AddBuilding("modernbuilding", ProgressionTier.Urban, new ConstructionCost(0, 2, 1, 1), int.MaxValue, 60, true);
-            AddBuilding("ModernBarracks", ProgressionTier.Industrial, new ConstructionCost(0, 0, 1, 1), 1, 0, false);
-            AddBuilding("HumveeFactory", ProgressionTier.Modern, new ConstructionCost(0, 2, 1, 1), 1, 0, false);
-            AddBuilding("TankFactory", ProgressionTier.Modern, new ConstructionCost(0, 2, 1, 1), 1, 0, false);
-            AddBuilding("AirshipFactory", ProgressionTier.Modern, new ConstructionCost(0, 2, 1, 1), 1, 0, false);
-            AddBuilding("HelicopterFactory", ProgressionTier.Modern, new ConstructionCost(0, 2, 1, 1), 1, 0, false);
-            AddBuilding("DroneFactory", ProgressionTier.Modern, new ConstructionCost(0, 2, 1, 1), 1, 0, false);
-            AddBuilding("F22Factory", ProgressionTier.Modern, new ConstructionCost(0, 2, 1, 1), 1, 0, false);
-            AddBuilding("F55Factory", ProgressionTier.Modern, new ConstructionCost(0, 2, 1, 1), 1, 0, false);
-            AddBuilding("RailgunFactory", ProgressionTier.Advanced, new ConstructionCost(0, 2, 1, 1), 1, 0, false);
-            AddBuilding("BoiFactory", ProgressionTier.Advanced, new ConstructionCost(0, 2, 1, 1), 1, 0, false);
-            AddBuilding("GunshipFactory", ProgressionTier.Advanced, new ConstructionCost(0, 2, 1, 1), 1, 0, false);
-            AddBuilding("AirFactory", ProgressionTier.Strategic, new ConstructionCost(0, 2, 1, 1), 1, 0, false);
-            AddBuilding("MissileSilo", ProgressionTier.Nuclear, new ConstructionCost(0, 0, 32, 72), 1, 0, false, true);
-
-            Factories.Add(new FactorySpec { BuildingId = "ModernBarracks", UnitIds = new[] { "Soldier" }, Tier = ProgressionTier.Industrial, Interval = 30f, UnitCost = new ConstructionCost(0, 0, 1, 1), SettingKey = "SoldierOption" });
-            Factories.Add(new FactorySpec { BuildingId = "HumveeFactory", UnitIds = new[] { "Humvee" }, Tier = ProgressionTier.Modern, Interval = 45f, UnitCost = new ConstructionCost(1, 0, 1, 1), SettingKey = "HumveeOption" });
-            Factories.Add(new FactorySpec { BuildingId = "TankFactory", UnitIds = new[] { "Tank" }, Tier = ProgressionTier.Modern, Interval = 60f, UnitCost = new ConstructionCost(0, 1, 3, 2), SettingKey = "TankOption" });
-            Factories.Add(new FactorySpec { BuildingId = "AirshipFactory", UnitIds = new[] { "Zeppelin" }, Tier = ProgressionTier.Modern, Interval = 75f, UnitCost = new ConstructionCost(1, 0, 2, 2), SettingKey = "AirshipOption" });
-            Factories.Add(new FactorySpec { BuildingId = "HelicopterFactory", UnitIds = new[] { "Heli" }, Tier = ProgressionTier.Modern, Interval = 75f, UnitCost = new ConstructionCost(1, 0, 2, 2), SettingKey = "HeliOption" });
-            Factories.Add(new FactorySpec { BuildingId = "DroneFactory", UnitIds = new[] { "Drone" }, Tier = ProgressionTier.Modern, Interval = 45f, UnitCost = new ConstructionCost(1, 0, 1, 1), SettingKey = "DronesOption" });
-            Factories.Add(new FactorySpec { BuildingId = "F22Factory", UnitIds = new[] { "F22" }, Tier = ProgressionTier.Modern, Interval = 90f, UnitCost = new ConstructionCost(0, 1, 4, 4), SettingKey = "F22Option" });
-            Factories.Add(new FactorySpec { BuildingId = "F55Factory", UnitIds = new[] { "F55" }, Tier = ProgressionTier.Modern, Interval = 90f, UnitCost = new ConstructionCost(0, 1, 4, 4), SettingKey = "F55Option" });
-            Factories.Add(new FactorySpec { BuildingId = "RailgunFactory", UnitIds = new[] { "Railgun" }, Tier = ProgressionTier.Advanced, Interval = 60f, UnitCost = new ConstructionCost(0, 1, 3, 2), SettingKey = "RailgunOption" });
-            Factories.Add(new FactorySpec { BuildingId = "GunshipFactory", UnitIds = new[] { "Gunship" }, Tier = ProgressionTier.Advanced, Interval = 90f, UnitCost = new ConstructionCost(0, 1, 4, 4), SettingKey = "GunshipOption" });
-            Factories.Add(new FactorySpec { BuildingId = "BoiFactory", UnitIds = new[] { "MissileSystem" }, Tier = ProgressionTier.Advanced, Interval = 60f, UnitCost = new ConstructionCost(0, 1, 3, 2), SettingKey = "BoiOption" });
-            Factories.Add(new FactorySpec { BuildingId = "AirFactory", UnitIds = new[] { "MIRVBomber", "CargoPlane" }, Tier = ProgressionTier.Strategic, Interval = 120f, UnitCost = new ConstructionCost(0, 1, 6, 8), SettingKey = "MIRVBomberOption" });
-
-            BuildEquipmentSpecs();
-            BuildBombSpecs();
+            Units.Clear();
+            Buildings.Clear();
+            Equipment.Clear();
+            Bombs.Clear();
+            UnitsById.Clear();
+            BuildingsById.Clear();
+            EquipmentById.Clear();
+            ModernBoxCatalog.UnitIds.Clear();
+            ModernBoxCatalog.EquipmentIds.Clear();
+            BuildUnits();
+            BuildBuildings();
+            BuildGuns();
+            BuildMirvs();
+            BuildAccessories();
+            BuildBombs();
         }
 
-        private static void AddUnit(string id, string attack, string names, string icon, float health, float speed, float armor, float damage, float attackSpeed, float range, float scale, bool flying, params string[] traits)
+        // Aircraft.cs: walk_0 then walk_1,walk_2 47 times, for walking and idling.
+        private static string[] AircraftFrames()
         {
-            Units.Add(new ModernUnitSpec { Id = id, Attack = attack, NameTemplate = names, IconPath = icon, Health = health, Speed = speed, Armor = armor, Damage = damage, AttackSpeed = attackSpeed, Range = range, Scale = scale, Flying = flying, Traits = traits });
+            string[] frames = new string[95];
+            frames[0] = "walk_0";
+            for (int i = 1; i < frames.Length; i++) frames[i] = i % 2 == 1 ? "walk_1" : "walk_2";
+            return frames;
         }
 
-        private static void AddBuilding(string id, ProgressionTier tier, ConstructionCost cost, int limit, int housing, bool civilian, bool tower = false)
+        private static void BuildUnits()
         {
-            Buildings.Add(new BuildingSpec { Id = id, Tier = tier, Cost = cost, Limit = limit, Housing = housing, Civilian = civilian, Tower = tower });
+            string[] aircraft = AircraftFrames();
+            string[] aircraftSwim = { "walk_1", "walk_2" };
+            // The Gunship's frame string is missing commas after the 8th frame. The old
+            // loader stopped at the first frame it couldn't find, so only these 7 played.
+            string[] gunship = { "walk_0", "walk_1", "walk_2", "walk_3", "walk_0", "walk_1", "walk_2" };
+            string[] four = { "walk_0", "walk_1", "walk_2", "walk_3" };
+            string[] first = { "walk_0" };
+
+            // Aircraft.cs
+            AddUnit(new ModernUnitSpec { Id = "Heli", Health = 200f, Speed = 200f, Damage = 93f, AttackSpeed = 100f, Accuracy = 100f, Scale = 0.2f, Attack = "Mp5", NameTemplate = "Jet_Names", KnockbackReduction = 300f, Flying = true, IgnoreBlocks = true, Walk = aircraft, Idle = aircraft, Swim = aircraftSwim, Traits = new[] { "Helicopter", "immortal", "Vehicle" } });
+            AddUnit(new ModernUnitSpec { Id = "Gunship", Health = 200f, Speed = 200f, Damage = 93f, AttackSpeed = 100f, Accuracy = 100f, Scale = 0.2f, Attack = "GunshipCannon", NameTemplate = "Jet_Names", KnockbackReduction = 300f, Flying = true, IgnoreBlocks = true, Walk = gunship, Idle = gunship, Swim = aircraftSwim, Traits = new[] { "immortal", "Vehicle" } });
+            // The Drone never set its scale or block flags, so it kept the _mob defaults.
+            AddUnit(new ModernUnitSpec { Id = "Drone", Health = 15f, Speed = 30f, Damage = 93f, AttackSpeed = 100f, Accuracy = 100f, Attack = "Mp5", NameTemplate = "Jet_Names", KnockbackReduction = 300f, Flying = true, DieOnBlocks = true, MoveFromBlock = true, Walk = aircraft, Idle = aircraft, Swim = aircraftSwim, Traits = new[] { "immortal", "Vehicle" } });
+            AddUnit(new ModernUnitSpec { Id = "Zeppelin", Health = 1000f, Speed = 50f, Damage = 93f, AttackSpeed = 100f, Accuracy = 100f, Scale = 0.5f, Attack = "Mp5", NameTemplate = "Jet_Names", KnockbackReduction = 300f, Flying = true, IgnoreBlocks = true, Walk = aircraft, Idle = aircraft, Swim = aircraftSwim, Traits = new[] { "Zeppelin", "immortal", "Vehicle" } });
+            AddUnit(new ModernUnitSpec { Id = "MIRVBomber", Health = 1000f, Speed = 500f, Damage = 93f, AttackSpeed = 100f, Accuracy = 100f, Range = 10f, Scale = 0.4f, Attack = "MIRVBomb", NameTemplate = "Jet_Names", KnockbackReduction = 300f, Flying = true, IgnoreBlocks = true, JetJob = true, Walk = aircraft, Idle = aircraft, Swim = aircraftSwim, Traits = new[] { "Jet", "immortal", "Vehicle" } });
+            AddUnit(new ModernUnitSpec { Id = "CargoPlane", Health = 5000f, Speed = 500f, Damage = 93f, AttackSpeed = 100f, Accuracy = 100f, Scale = 0.5f, Attack = "MIRV", NameTemplate = "Jet_Names", KnockbackReduction = 300f, Flying = true, IgnoreBlocks = true, JetJob = true, Walk = aircraft, Idle = aircraft, Swim = aircraftSwim, Traits = new[] { "Jet", "immortal", "Vehicle" } });
+            AddUnit(new ModernUnitSpec { Id = "F22", Health = 600f, Speed = 800f, Damage = 93f, AttackSpeed = 0f, Accuracy = 0f, Scale = 0.3f, Attack = "RocketLauncher", NameTemplate = "Jet_Names", KnockbackReduction = 300f, Flying = true, IgnoreBlocks = true, JetJob = true, Walk = aircraft, Idle = aircraft, Swim = aircraftSwim, Traits = new[] { "immortal", "Vehicle" } });
+            AddUnit(new ModernUnitSpec { Id = "F55", Health = 600f, Speed = 800f, Damage = 93f, AttackSpeed = 0f, Accuracy = 0f, Scale = 0.3f, Attack = "RocketLauncher", NameTemplate = "Jet_Names", KnockbackReduction = 300f, Flying = true, IgnoreBlocks = true, JetJob = true, Walk = aircraft, Idle = aircraft, Swim = aircraftSwim, Traits = new[] { "immortal", "Vehicle" } });
+
+            // LandVehicles.cs. Tank and MissileSystem never set an idle animation (walk_0 by default).
+            AddUnit(new ModernUnitSpec { Id = "Tank", Health = 200f, Speed = 100f, Damage = 40f, AttackSpeed = 0f, Range = 150f, Armor = 100f, Scale = 0.25f, Attack = "RocketLauncher", NameTemplate = "Jet_Names", KnockbackReduction = 300f, DieOnBlocks = true, MoveFromBlock = true, Walk = four, Idle = first, Swim = four, Traits = new[] { "Vehicle", "Tank", "immortal" } });
+            AddUnit(new ModernUnitSpec { Id = "MissileSystem", Health = 200f, Speed = 100f, Damage = 40f, AttackSpeed = 0f, Range = 150f, Armor = 100f, Scale = 0.3f, Attack = "MIRV", NameTemplate = "Jet_Names", KnockbackReduction = 300f, IgnoreBlocks = true, MoveFromBlock = true, Walk = four, Idle = first, Swim = four, Traits = new[] { "Vehicle", "immortal" } });
+            AddUnit(new ModernUnitSpec { Id = "Railgun", Health = 600f, Speed = 80f, Damage = 60f, AttackSpeed = 0f, Range = 150f, Armor = 100f, Scale = 0.25f, Attack = "RocketLauncher", NameTemplate = "Jet_Names", KnockbackReduction = 320f, DieOnBlocks = true, MoveFromBlock = true, Walk = four, Idle = first, Swim = four, Traits = new[] { "Vehicle", "Railgun", "immortal" } });
+            AddUnit(new ModernUnitSpec { Id = "Humvee", Health = 200f, Speed = 100f, Damage = 40f, AttackSpeed = 0f, Range = 150f, Armor = 100f, Scale = 0.2f, Attack = "Minigun", NameTemplate = "Humvee_Names", KnockbackReduction = 300f, MoveFromBlock = true, Walk = four, Idle = first, Swim = four, Traits = new[] { "Humvee", "Vehicle", "immortal" } });
+
+            // ModernMilitary.cs: a soldier that uses items and starts with an XM8 or Mp5.
+            AddUnit(new ModernUnitSpec { Id = "Soldier", Health = 100f, Speed = 40f, Damage = 40f, AttackSpeed = 80f, Range = 25f, Armor = 100f, Scale = 0.1f, Warfare = 20f, Attack = "base", NameTemplate = "Modern_Names", Humanoid = true, Equipment = true, MoveFromBlock = true, DefaultWeapons = new[] { "XM8", "Mp5" }, Walk = four, Idle = first, Swim = four });
         }
 
-        private static void BuildEquipmentSpecs()
+        private static void AddUnit(ModernUnitSpec spec)
         {
-            Dictionary<string, float[]> values = new Dictionary<string, float[]>(StringComparer.Ordinal)
+            spec.IconPath = "actors/" + spec.Id + "/walk_0";
+            Units.Add(spec);
+            UnitsById[spec.Id] = spec;
+            ModernBoxCatalog.UnitIds.Add(spec.Id);
+        }
+
+        private static ConstructionCost Cost(int wood, int stone, int metals, int gold)
+        {
+            return new ConstructionCost(wood, stone, metals, gold);
+        }
+
+        // Commerce.cs
+        private static void BuildBuildings()
+        {
+            foreach (string id in new[] { "casino", "restaurant", "mall", "school" })
+                AddBuilding(new BuildingSpec { Id = id, Tech = "Casino", Cost = Cost(15, 25, 0, 250), Burnable = false, PlaceSingle = true, LivingHouse = false });
+            AddBuilding(new BuildingSpec { Id = "modernbuilding", Tech = "Casino", Cost = Cost(0, 2, 1, 1), Housing = 60 });
+
+            AddFactory("AirFactory", "MIRVBomber", "MIRVBomber", "MIRVBomberOption");
+            // Commerce.cs:168 adds order_RailgunFactory where the tank factory's order should be.
+            AddFactory("TankFactory", "Tanks", "Tank", "TankOption").HasOrder = false;
+            // "Railguns" and "Boi" were never made as techs, so cities can never build these two.
+            AddFactory("RailgunFactory", "Railguns", "Railgun", "RailgunOption");
+            AddFactory("HumveeFactory", "Tanks", "Humvee", "HumveeOption");
+            AddFactory("HelicopterFactory", "Helicopter", "Heli", "HeliOption");
+            // The drone toggle always set spawnUnits to false, so drones are never made.
+            AddFactory("DroneFactory", "Drone", "Drone", null);
+            AddFactory("AirshipFactory", "Casino", "Zeppelin", "AirshipOption").HasOrder = false;
+            AddFactory("F22Factory", "FighterJet", "F22", "F22Option");
+            // No button ever turned the F55 factory on.
+            AddFactory("F55Factory", "F55", "F55", null);
+            AddFactory("BoiFactory", "Boi", "MissileSystem", "BoiOption");
+            AddFactory("GunshipFactory", "Gunship", "Gunship", "GunshipOption");
+            BuildingSpec barracks = AddFactory("ModernBarracks", "MilitaryModern", "Soldier", "SoldierOption");
+            barracks.Cost = Cost(0, 0, 1, 1);
+            barracks.Priority = 89893289;
+            barracks.SpawnsByDefault = true;
+
+            // Only buildable after the nuke toggle has been switched on.
+            AddBuilding(new BuildingSpec
             {
-                { "Mp5", new[] { 60f, 14f, 12f, 0.70f } }, { "NorincoCQ", new[] { 60f, 14f, 8f, 0.68f } },
-                { "Sniper", new[] { 193f, 20f, 3f, 0.92f } }, { "mm9", new[] { 12f, 6f, 18f, 0.75f } },
-                { "RocketLauncher", new[] { 150f, 18f, 2f, 0.72f } }, { "Uzi", new[] { 25f, 8f, 16f, 0.55f } },
-                { "Minigun", new[] { 13f, 14f, 28f, 0.62f } }, { "GunshipCannon", new[] { 20f, 35f, 30f, 0.70f } },
-                { "AK47", new[] { 40f, 15f, 9f, 0.68f } }, { "AK103", new[] { 62f, 15f, 8f, 0.72f } },
-                { "XM8", new[] { 45f, 14f, 10f, 0.76f } }, { "SGT44", new[] { 45f, 14f, 7f, 0.65f } },
-                { "ThompsonM1A1", new[] { 32f, 10f, 10f, 0.60f } }, { "M4A1", new[] { 45f, 15f, 10f, 0.78f } },
-                { "FAMAS", new[] { 42f, 14f, 12f, 0.74f } }, { "malorian", new[] { 75f, 10f, 5f, 0.82f } },
-                { "SCAR", new[] { 50f, 14f, 8f, 0.78f } }, { "PipeRifle", new[] { 22f, 8f, 4f, 0.50f } },
-                { "PipePistol", new[] { 13f, 6f, 5f, 0.48f } }, { "PipeShotgun", new[] { 18f, 6f, 3f, 0.30f } },
-                { "Musket", new[] { 80f, 12f, 2f, 0.58f } }, { "MP7", new[] { 28f, 9f, 13f, 0.68f } },
-                { "HK416", new[] { 48f, 15f, 10f, 0.82f } }, { "M16", new[] { 45f, 15f, 9f, 0.80f } },
-                { "DesertEagle", new[] { 50f, 10f, 3f, 0.76f } }, { "Glock17", new[] { 35f, 9f, 5f, 0.82f } }
+                Id = M1Silo.SiloId, Tech = "Nukes", Cost = Cost(0, 0, 32, 72), Health = 2500f, Priority = 3750,
+                Burnable = false, PlaceSingle = true, Tower = true, HasOrder = false
+            });
+        }
+
+        private static BuildingSpec AddFactory(string id, string tech, string unit, string setting)
+        {
+            return AddBuilding(new BuildingSpec { Id = id, Tech = tech, Cost = Cost(0, 2, 1, 1), Housing = 60, SpawnUnit = unit, SpawnSetting = setting });
+        }
+
+        private static BuildingSpec AddBuilding(BuildingSpec spec)
+        {
+            Buildings.Add(spec);
+            BuildingsById[spec.Id] = spec;
+            return spec;
+        }
+
+        // guns.cs: every gun is iron and fires the old shotgun bullet, except the RPG (fireball)
+        // and the gunship cannon. XM8, FAMAS, SCAR, the pipe guns and the musket never set a
+        // quality and use bow names.
+        private static void BuildGuns()
+        {
+            Gun("Mp5", "Mp5", 60f, 14f, 12f, 5f, 10f, 500, true, "Firearms");
+            Gun("NorincoCQ", "Norinco CQ", 60f, 14f, -16f, 5f, 10f, 500, true, "Firearms");
+            Gun("Sniper", "Sniper", 193f, 20f, 12f, 5f, 10f, 500, true, "Firearms");
+            Gun("mm9", "9mm", 3f, 6f, 70f, 400f, 10f, 500, true, "Firearms");
+            Gun("RocketLauncher", "Rocket Propelled Grenade (RPG)", 993f, 14f, -101f, 400f, 10f, 1000, true, "Firearms").Projectile = M1Projectiles.LegacyFireballId;
+            Gun("Uzi", "Uzi", 3f, 6f, 70f, 400f, 10f, 500, true, "Firearms");
+            Gun("Minigun", "Minigun", 13f, 14f, 200f, 3f, 10f, 500, true, "Firearms");
+            Gun("GunshipCannon", "GunshipCannon", 13f, 0f, 200f, 400f, 10f, 500, true, "Firearms").Projectile = "GunshipBullet";
+            Gun("AK47", "AK47", 13f, 14f, 170f, 3f, 10f, 500, true, "Firearms");
+            Gun("AK103", "AK-103", 13f, 14f, 170f, 400f, 10f, 500, true, "Firearms");
+            Gun("XM8", "XM8", 13f, 14f, 180f, 400f, 0f, 500, false, "Firearms", "bow_name");
+            Gun("SGT44", "SGT44", 11f, 14f, 70f, 400f, 10f, 500, true, "Firearms");
+            Gun("ThompsonM1A1", "ThompsonM1A1", 13f, 14f, 170f, 400f, 10f, 500, true, "Firearms");
+            Gun("M4A1", "M4A1", 15f, 14f, 170f, 400f, 10f, 500, true, "Firearms");
+            Gun("FAMAS", "FAMAS", 13f, 14f, 180f, 400f, 0f, 500, false, "Firearms", "bow_name");
+            Gun("malorian", "Malorian Arms 3516", 3f, 6f, 70f, 400f, 10f, 500, true, "Firearms");
+            Gun("SCAR", "SCAR", 13f, 6f, 180f, 400f, 0f, 500, false, "Firearms", "bow_name");
+            Gun("PipeRifle", "Pipe Rifle", 13f, 6f, 180f, 70f, 0f, 100, false, "LowFirearms", "bow_name");
+            Gun("PipePistol", "Pipe Pistol", 13f, 6f, 20f, 70f, 0f, 100, false, "LowFirearms", "bow_name");
+            Gun("PipeShotgun", "Pipe Shotgun", 130f, 6f, 20f, 70f, 0f, 100, false, "LowFirearms", "bow_name");
+            Gun("Musket", "Musket", 130f, 0f, 20f, 70f, 0f, 100, false, "LowFirearms", "bow_name");
+            Gun("MP7", "MP7", 60f, 0f, 12f, 5f, 10f, 500, true, "Firearms");
+            Gun("HK416", "HK416", 60f, 0f, 12f, 5f, 10f, 500, true, "Firearms");
+            Gun("M16", "M16", 60f, 0f, 12f, 5f, 10f, 500, true, "Firearms");
+            Gun("DesertEagle", "Desert Eagle", 40f, 20f, 1f, 90f, 10f, 500, true, "Firearms");
+            Gun("Glock17", "Glock 17", 35f, 15f, 1f, 95f, 10f, 500, true, "Firearms");
+        }
+
+        private static EquipmentSpec Gun(string id, string name, float damage, float range, float attackSpeed, float accuracy,
+            float health, int value, bool legendary, string tech, string names = "sword_name")
+        {
+            EquipmentSpec spec = new EquipmentSpec
+            {
+                Id = id, DisplayName = name, Tech = tech, Value = value, Legendary = legendary, NameTemplate = names,
+                Projectile = M1Projectiles.LegacyBulletId
             };
-            foreach (string id in ModernBoxCatalog.GunIds)
+            // _range gave every gun 1 projectile and 0.6 damage range.
+            spec.BaseStats["projectiles"] = 1f;
+            spec.BaseStats["damage_range"] = 0.6f;
+            spec.BaseStats["damage"] = damage;
+            spec.BaseStats["range"] = range;
+            spec.BaseStats["attack_speed"] = attackSpeed;
+            spec.BaseStats["accuracy"] = accuracy;
+            spec.BaseStats["health"] = health;
+            return AddEquipment(spec);
+        }
+
+        // MIRV.cs: bow copies that shoot the vanilla fireball. MIRVBomb and STRONGMIRV asked
+        // for name generators that were never made, so they use MIRV_Names here. Their Xenium cost was set on the
+        // item, which the old game never charged (it charged the iron material instead).
+        private static void BuildMirvs()
+        {
+            Mirv("BudgetMIRV", "Short Range MIRV", 200f, 40f, "BudgetMIRV");
+            Mirv("DecentMIRV", "Decent Range MIRV", 500f, 70f, "DecentMIRV");
+            Mirv("MIRV", "Long Range Ballistic MIRV", 50000f, 101f, "MIRV");
+            Mirv("MIRVBomb", "MIRV Bomber Dropper", 0f, 101f, "MIRV");
+            Mirv("STRONGMIRV", "Nuclear Powered MIRV", 50000f, 1001f, "STRONGMIRV");
+        }
+
+        private static void Mirv(string id, string name, float range, float attackSpeed, string tech)
+        {
+            EquipmentSpec spec = new EquipmentSpec
             {
-                float[] stats = values[id];
-                bool pipe = id.StartsWith("Pipe", StringComparison.Ordinal) || id == "Musket";
-                string projectile = id == "RocketLauncher" ? "modernbox_blast" : (id == "GunshipCannon" ? "modernbox_gunship_bullet" : "modernbox_bullet");
-                Equipment.Add(new EquipmentSpec { Id = id, DisplayName = id, Projectile = projectile, Tier = pipe ? ProgressionTier.Industrial : ProgressionTier.Modern, Type = EquipmentType.Weapon, Damage = stats[0], Range = stats[1], AttackSpeed = stats[2], Accuracy = stats[3], Value = pipe ? 350 : 900, Resource1 = pipe ? "wood" : "Parts", Resource1Cost = pipe ? 1 : 2, Resource2 = "common_metals", Resource2Cost = pipe ? 0 : 1 });
-            }
-            AddEquipment("BudgetMIRV", "Budget MIRV", "modernbox_mirv_budget", ProgressionTier.Modern, 993, 20, 4, 0.5f, 1225, "Parts", 2, "Xenium", 1);
-            AddEquipment("DecentMIRV", "Decent MIRV", "modernbox_mirv_decent", ProgressionTier.Advanced, 993, 28, 3, 0.6f, 1600, "Parts", 3, "Xenium", 2);
-            AddEquipment("MIRV", "MIRV", "modernbox_mirv", ProgressionTier.Strategic, 993, 36, 2, 0.7f, 2200, "Parts", 5, "Xenium", 4);
-            AddEquipment("MIRVBomb", "MIRV Bomb", "modernbox_mirv_bomb", ProgressionTier.Strategic, 993, 30, 2, 0.65f, 2600, "Parts", 6, "Xenium", 5);
-            AddEquipment("STRONGMIRV", "Strong MIRV", "modernbox_mirv_strong", ProgressionTier.Nuclear, 993, 45, 1, 0.8f, 4000, "Parts", 8, "Xenium", 8);
-            AddAccessory("Sandevistan", "Sandevistan", ProgressionTier.Advanced, EquipmentType.Amulet, 1800, "CyberWareParts", 4, "Xenium", 1);
-            AddAccessory("TurboBooster", "Turbo Booster", ProgressionTier.Advanced, EquipmentType.Amulet, 1500, "CyberWareParts", 3, "Parts", 2);
-            AddAccessory("Meth", "Meth", ProgressionTier.Advanced, EquipmentType.Ring, 700, "CyberWareParts", 1, "gold", 1);
-            AddAccessory("Crack", "Crack", ProgressionTier.Advanced, EquipmentType.Ring, 700, "CyberWareParts", 1, "gold", 1);
+                Id = id, DisplayName = name, Tech = tech, Value = 1000, Legendary = true,
+                NameTemplate = "MIRV_Names", Projectile = M1Projectiles.LegacyFireballId
+            };
+            // From the bow and _range they were cloned from.
+            spec.BaseStats["projectiles"] = 1f;
+            spec.BaseStats["damage_range"] = 0.6f;
+            spec.BaseStats["critical_chance"] = 0.1f;
+            spec.BaseStats["critical_damage_multiplier"] = 0.5f;
+            spec.BaseStats["range"] = range;
+            spec.BaseStats["accuracy"] = 0f;
+            spec.BaseStats["attack_speed"] = attackSpeed;
+            spec.BaseStats["damage"] = 993f;
+            spec.BaseStats["health"] = 10f;
+            AddEquipment(spec);
         }
 
-        private static void AddEquipment(string id, string name, string projectile, ProgressionTier tier, float damage, float range, float speed, float accuracy, int value, string resource1, int cost1, string resource2, int cost2)
+        // cyberware.cs and Drugs.cs: steel rings, tech Cyberware, value 1500.
+        private static void BuildAccessories()
         {
-            Equipment.Add(new EquipmentSpec { Id = id, DisplayName = name, Projectile = projectile, Tier = tier, Type = EquipmentType.Weapon, Damage = damage, Range = range, AttackSpeed = speed, Accuracy = accuracy, Value = value, Resource1 = resource1, Resource1Cost = cost1, Resource2 = resource2, Resource2Cost = cost2 });
+            EquipmentSpec sandevistan = Accessory("Sandevistan", "Military Grade Sandevistan");
+            CyberwareStats(sandevistan);
+            sandevistan.BaseStats["speed"] = 500f;
+
+            EquipmentSpec booster = Accessory("TurboBooster", "Military Grade TurboBooster");
+            CyberwareStats(booster);
+            booster.BaseStats["health"] = 1000f;
+            booster.BaseStats["armor"] = 100f;
+            booster.BaseStats["knockback_reduction"] = 200f;
+
+            EquipmentSpec meth = Accessory("Meth", "Meth");
+            DrugStats(meth, 20f, 50f);
+            EquipmentSpec crack = Accessory("Crack", "Crack");
+            DrugStats(crack, -20f, -50f);
+            crack.BaseStats["cities"] = -5f;
         }
 
-        private static void AddAccessory(string id, string name, ProgressionTier tier, EquipmentType type, int value, string resource1, int cost1, string resource2, int cost2)
+        private static EquipmentSpec Accessory(string id, string name)
         {
-            Equipment.Add(new EquipmentSpec { Id = id, DisplayName = name, Projectile = null, Tier = tier, Type = type, Damage = 0, Range = 0, AttackSpeed = 0, Accuracy = 0, Value = value, Resource1 = resource1, Resource1Cost = cost1, Resource2 = resource2, Resource2Cost = cost2 });
+            return AddEquipment(new EquipmentSpec
+            {
+                Id = id, DisplayName = name, Tech = "Cyberware", Value = 1500, Material = "steel",
+                Type = EquipmentType.Ring, NameTemplate = "ring_name"
+            });
         }
 
-        private static void BuildBombSpecs()
+        private static void CyberwareStats(EquipmentSpec spec)
         {
-            Bombs.Add(Bomb("MOAB", "Super-Nuke", "ui/Icons/MOAB", 50, "czar_bomba", "fx_explosion_huge", 0.4f, 0.6f));
-            Bombs.Add(Bomb("Cobalt", "Cobalt Bomb", "ui/Icons/Cobalt", 120, "czar_bomba", "fx_explosion_huge", 0.2f, 0.3f));
-            Bombs.Add(Bomb("Ultron", "Ultron Bomb", "ui/Icons/Ultron", 100, "czar_bomba", "fx_explosion_huge", 0.8f, 0.9f));
-            Bombs.Add(Bomb("Death", "Death Bomb", "ui/Icons/Death", 100, "czar_bomba", "fx_explosion_huge", 1.2f, 1.6f));
-            Bombs.Add(Bomb("Xenium", "Xenium Bomb", "ui/Icons/Xeno", 400, "czar_bomba", "fx_explosion_huge", 4.3f, 7.9f));
-            Bombs.Add(Bomb("Mini", "Mini Nuke", "ui/Icons/Mini", 5, "czar_bomba", "fx_explosion_huge", 0.4f, 0.6f));
-            Bombs.Add(Bomb("Proton", "Proton Bomb", "ui/Icons/Proton", 786, "czar_bomba", "fx_explosion_huge", 16.3f, 28.9f));
-            Bombs.Add(Bomb("Jupiter", "Jupiter Bomb", "ui/Icons/Jupiter", 1486, "czar_bomba", "fx_explosion_huge", 32.3f, 56.9f));
-            Bombs.Add(Bomb("Eraser", "Eraser Bomb", "ui/Icons/Eraser", 1000, "destroy_no_flash", "fx_antimatter_effect", 5.3f, 9.9f));
-            Bombs.Add(Bomb("Random", "Random Bomb", "ui/Icons/wat", 0, "czar_bomba", "fx_explosion_huge", 0.2f, 28.9f));
+            spec.BaseStats["fertility"] = -0.1f;
+            spec.BaseStats["max_age"] = 10f;
+            spec.BaseStats["attack_speed"] = 20f;
+            spec.BaseStats["damage"] = 20f;
+            spec.BaseStats["range"] = 1f;
+            spec.BaseStats["targets"] = 2f;
+            spec.BaseStats["critical_chance"] = 0.15f;
+            spec.BaseStats["intelligence"] = 7f;
+            spec.BaseStats["warfare"] = 4f;
         }
 
-        private static BombSpec Bomb(string id, string name, string icon, int radius, string terraform, string effect, float minScale, float maxScale)
+        private static void DrugStats(EquipmentSpec spec, float attackSpeed, float speed)
         {
-            string dropTexture = terraform == "destroy_no_flash" ? "drops/drop_antimatterbomb" : "drops/drop_czarbomba";
-            return new BombSpec { Id = id, DisplayName = name, IconPath = icon, DropTexture = dropTexture, Radius = radius, TerraformId = terraform, EffectId = effect, EffectScaleMin = minScale, EffectScaleMax = maxScale };
+            spec.BaseStats["fertility"] = -0.1f;
+            spec.BaseStats["max_children"] = -5f;
+            spec.BaseStats["max_age"] = -10f;
+            spec.BaseStats["attack_speed"] = attackSpeed;
+            spec.BaseStats["damage"] = 90f;
+            spec.BaseStats["speed"] = speed;
+            spec.BaseStats["health"] = -30f;
+            spec.BaseStats["range"] = 1f;
+            spec.BaseStats["armor"] = 100f;
+            spec.BaseStats["targets"] = 2f;
+            spec.BaseStats["critical_chance"] = 0.15f;
+            spec.BaseStats["knockback_reduction"] = 200f;
+            spec.BaseStats["intelligence"] = -7f;
+            spec.BaseStats["warfare"] = -4f;
+        }
+
+        private static EquipmentSpec AddEquipment(EquipmentSpec spec)
+        {
+            M1Materials.Apply(spec);
+            Equipment.Add(spec);
+            EquipmentById[spec.Id] = spec;
+            ModernBoxCatalog.EquipmentIds.Add(spec.Id);
+            return spec;
+        }
+
+        // Buttonz.cs: radius, terraform, effect and effect size of each bomb.
+        private static void BuildBombs()
+        {
+            AddBomb("MOAB", "Super-Nuke", "Also known as the 'Lag Bomb'.", "ui/Icons/MOAB", 50, "czar_bomba", "fx_explosion_huge", 0.4f, 0.6f);
+            AddBomb("Cobalt", "Cobalt Bomb", "Small Mushroom but huge radius, watch out with this one.", "ui/Icons/Cobalt", 120, "czar_bomba", "fx_explosion_huge", 0.2f, 0.3f);
+            AddBomb("Ultron", "Ultron Bomb", "WOOOAH", "ui/Icons/Ultron", 100, "czar_bomba", "fx_explosion_huge", 0.8f, 0.9f);
+            AddBomb("Death", "Death Bomb", "Such an original name.", "ui/Icons/Death", 100, "czar_bomba", "fx_explosion_huge", 1.2f, 1.6f);
+            AddBomb("Xenium", "Xenium Bomb", "You thought the ultron bomb was big? This thing is HUGE.", "ui/Icons/Xeno", 400, "czar_bomba", "fx_explosion_huge", 4.3f, 7.9f);
+            AddBomb("Mini", "Mini Nuke", "Small nukes, great for minor scuffles.", "ui/Icons/Mini", 5, "czar_bomba", "fx_explosion_huge", 0.4f, 0.6f);
+            AddBomb("Proton", "Proton Bomb", "wtf is this?", "ui/Icons/Proton", 786, "czar_bomba", "fx_explosion_huge", 16.3f, 28.9f);
+            AddBomb("Jupiter", "Jupiter Bomb", "The new monster.", "ui/Icons/Jupiter", 1486, "czar_bomba", "fx_explosion_huge", 32.3f, 56.9f);
+            AddBomb("Eraser", "Eraser Bomb", "also known as the overcompensating bomb.", "ui/Icons/Eraser", 1000, "destroy_no_flash", "fx_antimatter_effect", 5.3f, 9.9f);
+            AddBomb("Random", "Random Bomb", "You could be dropping a proton bomb, or a mini nuke, it's random!", "ui/Icons/wat", 0, "czar_bomba", "fx_explosion_huge", 0f, 0f, BombPattern.RandomLegacy);
+        }
+
+        private static void AddBomb(string id, string name, string description, string icon, int radius, string terraform,
+            string effect, float scaleMin, float scaleMax, BombPattern pattern = BombPattern.Radial)
+        {
+            Bombs.Add(new BombSpec
+            {
+                Id = id,
+                DisplayName = name,
+                Description = description,
+                IconPath = icon,
+                // M1 used drops/drop_antimatter for the Eraser; 0.51.2 only ships drop_antimatterbomb.
+                DropTexture = id == "Eraser" ? "drops/drop_antimatterbomb" : "drops/drop_czarbomba",
+                Radius = radius,
+                TerraformId = terraform,
+                EffectId = effect,
+                EffectScaleMin = scaleMin,
+                EffectScaleMax = scaleMax,
+                Pattern = pattern
+            });
         }
     }
 }

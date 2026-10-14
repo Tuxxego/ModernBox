@@ -1,13 +1,10 @@
 {
-  "name": "ModernBox M1 Rewrite",
-  "author": "Tuxxego / microwave",
+  "name": "ModernBox",
+  "author": "Tuxxego (0.51.2 port by microwave805)",
   "version": "10.1.0",
-  "targetGameBuild": 558,
-  "description": "M1 rewrite for WorldBox 0.51.2.",
-  "RepoUrl": "https://gamebanana.com/mods/462076",
+  "targetGameBuild": 719,
+  "description": "Welcome to the Modern Age.",
   "iconPath": "icon.jpg",
   "GUID": "TUXXEGO_MODERNBOX_M1_REWRITE",
-  "Dependencies": [],
-  "OptionalDependencies": [],
-  "IncompatibleWith": []
+  "RepoUrl": "https://github.com/Tuxxego/ModernBox"
 }

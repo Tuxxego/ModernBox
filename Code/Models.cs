@@ -2,55 +2,58 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace ModernBoxRewrite
+namespace ModernBoxM1Rewrite
 {
-    internal enum ProgressionTier
-    {
-        None = 0,
-        Urban = 1,
-        Industrial = 2,
-        Modern = 3,
-        Advanced = 4,
-        Strategic = 5,
-        Nuclear = 6
-    }
-
     internal sealed class ModernUnitSpec
     {
         internal string Id;
         internal string Attack;
         internal string NameTemplate;
         internal string IconPath;
+        internal string Race = "human";
         internal float Health;
         internal float Speed;
-        internal float Armor;
+        // -1 means the original never set it, so the _mob default is kept.
+        internal float Armor = -1f;
         internal float Damage;
         internal float AttackSpeed;
-        internal float Range;
-        internal float Scale;
+        internal float Range = -1f;
+        internal float Accuracy = -1f;
+        internal float Scale = -1f;
+        internal float KnockbackReduction;
+        internal float Warfare;
         internal bool Flying;
-        internal string[] Traits;
+        internal bool Humanoid;
+        internal bool Equipment;
+        internal bool DieOnBlocks;
+        internal bool IgnoreBlocks;
+        internal bool MoveFromBlock;
+        internal bool JetJob;
+        internal string[] Walk;
+        internal string[] Idle;
+        internal string[] Swim;
+        internal string[] DefaultWeapons = Array.Empty<string>();
+        internal string[] Traits = Array.Empty<string>();
     }
 
     internal sealed class BuildingSpec
     {
         internal string Id;
-        internal ProgressionTier Tier;
+        internal string Tech;
         internal ConstructionCost Cost;
-        internal int Limit;
         internal int Housing;
-        internal bool Civilian;
+        internal float Health = 3000f;
+        internal int Priority = 69999;
+        internal bool Burnable = true;
+        internal bool PlaceSingle;
+        internal bool LivingHouse = true;
         internal bool Tower;
-    }
-
-    internal sealed class FactorySpec
-    {
-        internal string BuildingId;
-        internal string[] UnitIds;
-        internal ProgressionTier Tier;
-        internal float Interval;
-        internal ConstructionCost UnitCost;
-        internal string SettingKey;
+        // False when Commerce.cs never added an order for it (TankFactory, AirshipFactory).
+        internal bool HasOrder = true;
+        internal string SpawnUnit;
+        internal string SpawnSetting;
+        // Only ModernBarracks started with spawnUnits = true.
+        internal bool SpawnsByDefault;
     }
 
     internal sealed class EquipmentSpec
@@ -58,23 +61,33 @@ namespace ModernBoxRewrite
         internal string Id;
         internal string DisplayName;
         internal string Projectile;
-        internal ProgressionTier Tier;
-        internal EquipmentType Type;
-        internal float Damage;
-        internal float Range;
-        internal float AttackSpeed;
-        internal float Accuracy;
+        internal string Tech;
+        internal string Material = "iron";
+        internal string NameTemplate = "sword_name";
+        internal EquipmentType Type = EquipmentType.Weapon;
+        internal bool Legendary;
         internal int Value;
-        internal string Resource1;
+        internal string Resource1 = "none";
         internal int Resource1Cost;
-        internal string Resource2;
+        internal string Resource2 = "none";
         internal int Resource2Cost;
+        internal int MinimumStorage;
+        internal readonly Dictionary<string, float> BaseStats = new Dictionary<string, float>(StringComparer.Ordinal);
+        // Added by the material when the item is made; a unit's built-in attack doesn't get them.
+        internal readonly Dictionary<string, float> MaterialStats = new Dictionary<string, float>(StringComparer.Ordinal);
+    }
+
+    internal enum BombPattern
+    {
+        Radial,
+        RandomLegacy
     }
 
     internal sealed class BombSpec
     {
         internal string Id;
         internal string DisplayName;
+        internal string Description;
         internal string IconPath;
         internal string DropTexture;
         internal int Radius;
@@ -82,139 +95,87 @@ namespace ModernBoxRewrite
         internal string EffectId;
         internal float EffectScaleMin;
         internal float EffectScaleMax;
+        internal BombPattern Pattern;
     }
 
     internal static class ModernBoxCatalog
     {
         internal const string Guid = "TUXXEGO_MODERNBOX_M1_REWRITE";
         internal const string HarmonyId = "tuxxego.modernbox.m1.rewrite.0_51_2";
-        internal const string Human = "human";
 
-        internal static readonly HashSet<string> UnitIds = new HashSet<string>(StringComparer.Ordinal)
+        internal static readonly string[] SupportedRaces = { "human", "orc", "elf", "dwarf" };
+
+        internal static readonly HashSet<string> UnitIds = new HashSet<string>(StringComparer.Ordinal);
+        internal static readonly HashSet<string> EquipmentIds = new HashSet<string>(StringComparer.Ordinal);
+        internal static readonly string[] MirvIds = { "BudgetMIRV", "DecentMIRV", "MIRV", "MIRVBomb", "STRONGMIRV" };
+
+        internal static bool IsSupportedRace(string id)
         {
-            "Soldier", "Tank", "MissileSystem", "Railgun", "Humvee", "Heli", "Gunship",
-            "Drone", "Zeppelin", "MIRVBomber", "CargoPlane", "F22", "F55"
-        };
-
-        internal static readonly HashSet<string> CivilianBuildingIds = new HashSet<string>(StringComparer.Ordinal)
-        {
-            "casino", "restaurant", "mall", "school", "modernbuilding"
-        };
-
-        internal static readonly HashSet<string> FactoryBuildingIds = new HashSet<string>(StringComparer.Ordinal)
-        {
-            "ModernBarracks", "AirFactory", "TankFactory", "RailgunFactory", "HumveeFactory",
-            "HelicopterFactory", "DroneFactory", "AirshipFactory", "F22Factory", "F55Factory",
-            "BoiFactory", "GunshipFactory"
-        };
-
-        internal static readonly string[] GunIds =
-        {
-            "Mp5", "NorincoCQ", "Sniper", "mm9", "RocketLauncher", "Uzi", "Minigun",
-            "GunshipCannon", "AK47", "AK103", "XM8", "SGT44", "ThompsonM1A1", "M4A1",
-            "FAMAS", "malorian", "SCAR", "PipeRifle", "PipePistol", "PipeShotgun", "Musket",
-            "MP7", "HK416", "M16", "DesertEagle", "Glock17"
-        };
-
-        internal static readonly string[] MirvIds =
-        {
-            "BudgetMIRV", "DecentMIRV", "MIRV", "MIRVBomb", "STRONGMIRV"
-        };
-
-        internal static readonly HashSet<string> EquipmentIds = CreateEquipmentSet();
-        internal static readonly Dictionary<string, ProgressionTier> EquipmentTiers = new Dictionary<string, ProgressionTier>(StringComparer.Ordinal);
-
-        private static HashSet<string> CreateEquipmentSet()
-        {
-            HashSet<string> result = new HashSet<string>(GunIds, StringComparer.Ordinal);
-            foreach (string id in MirvIds) result.Add(id);
-            result.Add("Sandevistan");
-            result.Add("TurboBooster");
-            result.Add("Meth");
-            result.Add("Crack");
-            return result;
-        }
-    }
-
-    internal static class ModernProgression
-    {
-        internal static ProgressionTier GetTier(City city)
-        {
-            if (!IsHumanCity(city)) return ProgressionTier.None;
-            int population = city.getPopulationPeople();
-            int buildings = city.countBuildings();
-            if (population >= 220 && buildings >= 30) return ProgressionTier.Nuclear;
-            if (population >= 170 && buildings >= 26) return ProgressionTier.Strategic;
-            if (population >= 130 && buildings >= 23) return ProgressionTier.Advanced;
-            if (population >= 100 && buildings >= 20) return ProgressionTier.Modern;
-            if (population >= 75 && buildings >= 18) return ProgressionTier.Industrial;
-            if (population >= 50 && buildings >= 16) return ProgressionTier.Urban;
-            return ProgressionTier.None;
+            return Array.IndexOf(SupportedRaces, id) >= 0;
         }
 
-        internal static bool IsHumanCity(City city)
+        internal static bool IsSupportedCity(City city)
+        {
+            if (city == null || city.isRekt() || city.kingdom == null || city.kingdom.wild || !city.kingdom.isCiv()) return false;
+            ActorAsset species = city.getActorAsset();
+            return species != null && IsSupportedRace(species.id);
+        }
+
+        internal static string GetRace(City city)
         {
             ActorAsset asset = city == null ? null : city.getActorAsset();
-            return asset != null && string.Equals(asset.id, ModernBoxCatalog.Human, StringComparison.Ordinal);
-        }
-
-        internal static void GetRequirements(ProgressionTier tier, out int population, out int buildings)
-        {
-            switch (tier)
-            {
-                case ProgressionTier.Urban: population = 50; buildings = 16; break;
-                case ProgressionTier.Industrial: population = 75; buildings = 18; break;
-                case ProgressionTier.Modern: population = 100; buildings = 20; break;
-                case ProgressionTier.Advanced: population = 130; buildings = 23; break;
-                case ProgressionTier.Strategic: population = 170; buildings = 26; break;
-                case ProgressionTier.Nuclear: population = 220; buildings = 30; break;
-                default: population = int.MaxValue; buildings = int.MaxValue; break;
-            }
+            return asset == null ? string.Empty : asset.id;
         }
     }
 
+    // SavedSettings.cs: one PlayerPrefs bool per option and a version string.
     internal static class ModernBoxSettings
     {
         private const string Prefix = ModernBoxCatalog.Guid + ".";
-        private const string MigrationKey = Prefix + "migration_10_1";
+        private const string VersionKey = Prefix + "SettingVersion";
+        internal const string SettingsVersion = "10.0.0";
         private static readonly Dictionary<string, bool> Values = new Dictionary<string, bool>(StringComparer.Ordinal);
 
-        internal static readonly string[] FactoryKeys =
+        internal static bool IsNewVersion { get; private set; }
+
+        private static readonly Dictionary<string, bool> Defaults = new Dictionary<string, bool>(StringComparer.Ordinal)
         {
-            "SoldierOption", "HumveeOption", "TankOption", "AirshipOption", "HeliOption", "DronesOption",
-            "RailgunOption", "F22Option", "F55Option", "GunshipOption", "BoiOption", "MIRVBomberOption"
+            { "namesOption", true },
+            { "othernamesOption", true },
+            { "CyberwareOption", true },
+            { "DrugsOption", true },
+            { "PipeGunOption", true },
+            { "IdeologiesOption", true },
+            { "GunOption", true },
+            { "DronesOption", true },
+            { "MIRVOption", false },
+            { "NukeOption", false },
+            { "STRONGMIRVOption", false },
+            { "Developer_Mode", false },
+            { "HeliOption", false },
+            { "AirshipOption", false },
+            { "TankOption", false },
+            { "MIRVBomberOption", false },
+            { "HumveeOption", false },
+            { "F22Option", false },
+            { "BoiOption", false },
+            { "GunshipOption", false },
+            { "RailgunOption", false },
+            { "SoldierOption", false }
         };
 
-        internal static readonly string[] FeatureKeys =
+        internal static void Load()
         {
-            "NukeOption", "MIRVOption", "GunOption", "PipeGunOption", "CyberwareOption", "DrugsOption",
-            "IdeologiesOption", "namesOption", "othernamesOption", "StartupAudio", "DeveloperDiagnostics"
-        };
-
-        internal static void LoadAndMigrate()
-        {
-            foreach (string key in FactoryKeys) Values[key] = Read(key, true);
-            foreach (string key in FeatureKeys) Values[key] = Read(key, key != "DeveloperDiagnostics" && key != "MIRVOption");
-            if (PlayerPrefs.GetInt(MigrationKey, 0) == 0)
+            foreach (KeyValuePair<string, bool> pair in Defaults) Values[pair.Key] = pair.Value;
+            // Like the original, a new version resets your settings.
+            IsNewVersion = PlayerPrefs.GetString(VersionKey, string.Empty) != SettingsVersion;
+            if (IsNewVersion)
             {
-                foreach (string key in FactoryKeys) MigrateLegacy(key);
-                foreach (string key in FeatureKeys) MigrateLegacy(key);
-                PlayerPrefs.SetInt(MigrationKey, 1);
-                PlayerPrefs.Save();
+                SaveDefaults();
+                return;
             }
-        }
-
-        private static bool Read(string key, bool defaultValue)
-        {
-            return PlayerPrefs.GetInt(Prefix + key, defaultValue ? 1 : 0) == 1;
-        }
-
-        private static void MigrateLegacy(string key)
-        {
-            if (PlayerPrefs.HasKey(Prefix + key) || !PlayerPrefs.HasKey(key)) return;
-            bool value = PlayerPrefs.GetInt(key, 0) == 1;
-            Values[key] = value;
-            PlayerPrefs.SetInt(Prefix + key, value ? 1 : 0);
+            foreach (KeyValuePair<string, bool> pair in Defaults)
+                Values[pair.Key] = PlayerPrefs.GetInt(Prefix + pair.Key, pair.Value ? 1 : 0) == 1;
         }
 
         internal static bool Get(string key)
@@ -223,19 +184,26 @@ namespace ModernBoxRewrite
             return Values.TryGetValue(key, out value) && value;
         }
 
+        // Main.modifyBoolOption: saved straight away.
         internal static void Set(string key, bool value)
         {
             Values[key] = value;
             PlayerPrefs.SetInt(Prefix + key, value ? 1 : 0);
             PlayerPrefs.Save();
-            ProductionService.ApplyDynamicSettings();
-            ModernBoxUi.SyncNativeToggle(key, value);
         }
 
-        internal static void Reset()
+        // Main.resetToDefaults only writes the defaults; the buttons keep their state
+        // until the game is restarted ("Restart the game for them to take affect!").
+        internal static void ResetSaved()
         {
-            foreach (string key in FactoryKeys) Set(key, true);
-            foreach (string key in FeatureKeys) Set(key, key != "DeveloperDiagnostics" && key != "MIRVOption");
+            SaveDefaults();
+        }
+
+        private static void SaveDefaults()
+        {
+            foreach (KeyValuePair<string, bool> pair in Defaults) PlayerPrefs.SetInt(Prefix + pair.Key, pair.Value ? 1 : 0);
+            PlayerPrefs.SetString(VersionKey, SettingsVersion);
+            PlayerPrefs.Save();
         }
     }
 }

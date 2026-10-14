@@ -1,6 +1,6 @@
 using NeoModLoader.General;
 
-namespace ModernBoxRewrite
+namespace ModernBoxM1Rewrite
 {
     internal static class ModernLocalization
     {
@@ -24,3 +24,4 @@ namespace ModernBoxRewrite
         }
     }
 }
+
