@@ -169,7 +169,7 @@ namespace ModernBox
             string gold = "#FFD700";
             string Dgold = "#ffae00";
             var description =
-            @"<color='" + gold + @"'>Toggle custom galaxies you have installed, to install some or create your own, join the discord server.</color>
+            @"<color='" + gold + @"'>" + ModernBoxLocale.Tr("Toggle custom galaxies you have installed, to install some or create your own, join the discord server.") + @"</color>
             ";
             var name = window.transform.Find("Background").Find("Name").gameObject;
             var nameText = name.GetComponent<Text>();

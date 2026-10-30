@@ -7,6 +7,8 @@ using NCMS;
 
 public class CloudBuilder
 {
+    private static readonly FieldInfo CachedSpritesField = typeof(CloudAsset).GetField("cached_sprites", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+    private static readonly FieldInfo CachedDropAssetField = typeof(GodPower).GetField("cached_drop_asset", BindingFlags.NonPublic | BindingFlags.Instance);
     private string id;
     private string name;
     private string colorHex = "#FFFFFF";
@@ -112,7 +114,7 @@ public class CloudBuilder
             speed_max = this.speedMax
         };
 
-        FieldInfo cachedField = typeof(CloudAsset).GetField("cached_sprites", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        FieldInfo cachedField = CachedSpritesField;
         if (cachedField != null && pathSprites != null && pathSprites.Length > 0)
         {
             List<Sprite> loadedSprites = new List<Sprite>(pathSprites.Length);
@@ -170,13 +172,10 @@ public class CloudBuilder
             drop_id = spawnCloudDropId, 
 
             click_power_action = this.clickPowerAction,
-            click_power_brush_action = new PowerAction((WorldTile pTile, GodPower pPower) =>
-            {
-                return (bool)AssetManager.powers.CallMethod("loopWithCurrentBrushPowerForDropsFull", pTile, pPower);
-            })
+            click_power_brush_action = AssetManager.powers.loopWithCurrentBrushPowerForDropsFull
         };
 
-        FieldInfo dropField = typeof(GodPower).GetField("cached_drop_asset", BindingFlags.NonPublic | BindingFlags.Instance);
+        FieldInfo dropField = CachedDropAssetField;
         if (dropField != null)
         {
             dropField.SetValue(power, cloudSpawnDrop);

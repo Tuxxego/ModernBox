@@ -140,7 +140,7 @@ namespace ModernBox
             textRT.sizeDelta = new Vector2(250, 30);
             textRT.anchoredPosition = new Vector2(0, -50);
 
-            string message = "Performing first time setup...";
+            string message = ModernBoxLocale.Tr("Performing first time setup...");
             statusText.text = "";
             foreach (char c in message)
             {
@@ -158,7 +158,7 @@ namespace ModernBox
             RectTransform thanksRT = thanksGO.GetComponent<RectTransform>();
             thanksRT.sizeDelta = new Vector2(300, 20);
             thanksRT.anchoredPosition = new Vector2(0, -100);
-            thanksLabel.text = "THANKS TO";
+            thanksLabel.text = ModernBoxLocale.Tr("THANKS TO");
 
             currentName = CreateNameText("CurrentName", new Vector2(0, -125));
             nextName = CreateNameText("NextName", new Vector2(0, -125));

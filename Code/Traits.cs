@@ -756,7 +756,7 @@ namespace ModernBox {
     public static bool UnitpotentialEffect(BaseSimObject pTarget,
                                            WorldTile pTile = null) {
       Actor actor = pTarget?.a;
-      if (actor == null || actor.isRekt() || !actor.hasTrait("Unitpotential"))
+      if (actor == null || actor.isRekt() || !Vehicles.HasUnitPotentialFast(actor))
         return false;
 
       bool didSomething = false;
@@ -846,7 +846,11 @@ namespace ModernBox {
 
       string civGroup = Development.Group(actor.city.getActorAsset());
       string eraKey = Development.Era(actor.city);
-      EraDefinition targetEra = EraLibrary.All.FirstOrDefault(e => e.key == eraKey);
+      EraDefinition targetEra = null;
+      for (int i = 0; i < EraLibrary.All.Count; i++)
+      {
+          if (EraLibrary.All[i].key == eraKey) { targetEra = EraLibrary.All[i]; break; }
+      }
       if (targetEra == null) return false;
       if (StatManager.Instance != null) {
         bool enabled = eraKey == "medieval" ? StatManager.Instance.enableMedieval :
@@ -881,8 +885,7 @@ namespace ModernBox {
           candidates.Count == 0)
         return false;
 
-        var filteredCandidates = SuckDick(candidates).Where(id => Development.AllowsVehicle(actor.city,id)).ToList();
-
+        List<string> filteredCandidates = FilterVehicleCandidates(candidates, actor.city);
         if (filteredCandidates.Count == 0)
             return false;
 
@@ -909,25 +912,23 @@ namespace ModernBox {
       return true;
     }
 
-        private static List<string> SuckDick(List<string> units) {
-          List<string> filtered = new List<string>();
+        private static List<string> FilterVehicleCandidates(List<string> units, City city) {
+          List<string> filtered = new List<string>(units.Count);
 
-          foreach (var unit in units) {
+          for (int i = 0; i < units.Count; i++) {
+              string unit = units[i];
+              if (string.IsNullOrEmpty(unit)) continue;
               if (!allowATAT && (unit.Contains("atst") || unit.Contains("AT9000")))
                   continue;
-
               if (!allowDreadnought && unit.Contains("dreadnaught"))
                   continue;
-
               if (!allowGunship && (unit.Contains("Gunship") || unit.Contains("Heli") || unit.Contains("bomber")))
                   continue;
-
               if (!allowTIEFighter && unit.Contains("TIEfighter"))
                   continue;
-
-              // Manu-Fix 028: the visible Space Marine switch must filter both faction variants before conversion.
-              // Explicit player spawning remains a separate god power.
               if (!allowSpaceMarines && (unit == "SpaceMarine" || unit == "spaceork"))
+                  continue;
+              if (!Development.AllowsVehicle(city, unit))
                   continue;
 
               filtered.Add(unit);
@@ -1006,16 +1007,16 @@ namespace ModernBox {
       if (!city.hasBuildingType("type_hall"))
         return false;
 
-      if (!Development.CanProduceVehicle(city)) return false;
       int vehicleLimit = Development.VehicleLimit(city);
+      if (vehicleLimit <= 0 || !Development.CanProduceVehicle(city)) return false;
       int currentVehicles = 0;
       foreach (Actor unit in city.units) {
-        if (unit.hasTrait("Unitpotential"))
+        if (Vehicles.HasUnitPotentialFast(unit)) {
           currentVehicles++;
+          if (currentVehicles >= vehicleLimit)
+            return false;
+        }
       }
-
-      if (currentVehicles >= vehicleLimit)
-        return false;
 
       if (pTile == null)
         pTile = caster.current_tile;
@@ -1040,6 +1041,7 @@ namespace ModernBox {
 
     [HarmonyPatch(typeof(KingdomBehCheckKing), "execute")]
     public static class KingdomBehCheckKing_IdeologyPatch {
+      private static readonly string[] CommonIdeologies = { "Peoplewoven", "Martial", "Mercantile", "Dynastic" };
       static void Postfix(Kingdom pKingdom) {
         if (pKingdom == null || !pKingdom.hasKing())
           return;
@@ -1059,8 +1061,7 @@ namespace ModernBox {
           }
         }
 
-        string[] commonIdeologies =
-            new string[] { "Peoplewoven", "Martial", "Mercantile", "Dynastic" };
+        string[] commonIdeologies = CommonIdeologies;
 
         bool kingHasIdeology = false;
         foreach (string trait in commonIdeologies) {
@@ -1096,37 +1097,30 @@ namespace ModernBox {
           return;
 
         List<Actor> kingdomUnits = pKingdom.units;
+        string targetIdeology = kingHasChaosvolt ? "Chaosvolt" : kingIdeology;
 
-        foreach (Actor actor in kingdomUnits) {
+        for (int uIdx = 0; uIdx < kingdomUnits.Count; uIdx++) {
+          Actor actor = kingdomUnits[uIdx];
           if (actor == null || !actor.isAlive() || actor == king)
             continue;
 
+          // Fast-path: 99%+ of kingdom units already share their king's ideology (1 lookup instead of 6!)
+          if (actor.hasTrait(targetIdeology))
+            continue;
+
           bool actorHasIdeology = false;
-          foreach (string trait in commonIdeologies) {
-            if (actor.hasTrait(trait)) {
+          for (int tIdx = 0; tIdx < commonIdeologies.Length; tIdx++) {
+            if (actor.hasTrait(commonIdeologies[tIdx])) {
               actorHasIdeology = true;
               break;
             }
           }
 
-          if (actor.hasTrait("Chaosvolt"))
+          if (!actorHasIdeology && !kingHasChaosvolt && actor.hasTrait("Chaosvolt"))
             actorHasIdeology = true;
 
-          if (kingHasChaosvolt) {
-            if (!actor.hasTrait("Chaosvolt")) {
-              if (!actorHasIdeology) {
-                actor.addTrait("Chaosvolt");
-              } else if (Randy.randomChance(0.4f)) {
-                actor.addTrait("Chaosvolt");
-              }
-            }
-          } else {
-            if (!actorHasIdeology) {
-              actor.addTrait(kingIdeology);
-            } else if (!actor.hasTrait(kingIdeology) &&
-                       Randy.randomChance(0.4f)) {
-              actor.addTrait(kingIdeology);
-            }
+          if (!actorHasIdeology || Randy.randomChance(0.4f)) {
+            actor.addTrait(targetIdeology);
           }
         }
       }

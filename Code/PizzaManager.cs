@@ -32,37 +32,37 @@ namespace ModernBox
             {
                 case 1:
                     // Manu-Fix 023: fester Hinweistext, kein Textschluessel (pTranslate false) - Begruendung in UnitTracker.SpawnVehicle.
-                    WorldTip.showNow("The first pizza click... the journey begins.", false, "top", 3f);
+                    WorldTip.showNow(ModernBoxLocale.Tr("The first pizza click... the journey begins."), false, "top", 3f);
                     break;
                 case 10:
-                    WorldTip.showNow("10 pizza clicks! You're just getting started.", false, "top", 3f);
+                    WorldTip.showNow(ModernBoxLocale.Tr("10 pizza clicks! You're just getting started."), false, "top", 3f);
                     break;
                 case 20:
-                    WorldTip.showNow("20 clicks! That's a lot of finger grease.", false, "top", 3f);
+                    WorldTip.showNow(ModernBoxLocale.Tr("20 clicks! That's a lot of finger grease."), false, "top", 3f);
                     break;
                 case 30:
-                    WorldTip.showNow("30 clicks! This pizza is feeling the pressure.", false, "top", 3f);
+                    WorldTip.showNow(ModernBoxLocale.Tr("30 clicks! This pizza is feeling the pressure."), false, "top", 3f);
                     break;
                 case 40:
-                    WorldTip.showNow("40 clicks! Are you... okay?", false, "top", 3f);
+                    WorldTip.showNow(ModernBoxLocale.Tr("40 clicks! Are you... okay?"), false, "top", 3f);
                     break;
                 case 50:
-                    WorldTip.showNow("Halfway to pizza insanity. 50 clicks!", false, "top", 3f);
+                    WorldTip.showNow(ModernBoxLocale.Tr("Halfway to pizza insanity. 50 clicks!"), false, "top", 3f);
                     break;
                 case 60:
-                    WorldTip.showNow("60 clicks. This is beyond casual pizza behavior.", false, "top", 3f);
+                    WorldTip.showNow(ModernBoxLocale.Tr("60 clicks. This is beyond casual pizza behavior."), false, "top", 3f);
                     break;
                 case 70:
-                    WorldTip.showNow("70 clicks... pizza is starting to sweat.", false, "top", 3f);
+                    WorldTip.showNow(ModernBoxLocale.Tr("70 clicks... pizza is starting to sweat."), false, "top", 3f);
                     break;
                 case 80:
-                    WorldTip.showNow("80 clicks! Your dedication to pizza is admirable.", false, "top", 3f);
+                    WorldTip.showNow(ModernBoxLocale.Tr("80 clicks! Your dedication to pizza is admirable."), false, "top", 3f);
                     break;
                 case 90:
-                    WorldTip.showNow("90 clicks! Final stretch to the ultimate pizza moment.", false, "top", 3f);
+                    WorldTip.showNow(ModernBoxLocale.Tr("90 clicks! Final stretch to the ultimate pizza moment."), false, "top", 3f);
                     break;
                 case 100:
-                    WorldTip.showNow("100 clicks! YOU HAVE ENTERED... PIZZA MODE!", false, "top", 3f);
+                    WorldTip.showNow(ModernBoxLocale.Tr("100 clicks! YOU HAVE ENTERED... PIZZA MODE!"), false, "top", 3f);
                     ActivatePizzaMode();
                     break;
             }

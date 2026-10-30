@@ -72,7 +72,8 @@ namespace ModernBox
                 actor.city == null || actor.city.amount_gold < gold)) return false;
             if (boss)
             {
-                foreach (Actor target in World.world.units)
+                var candidates = StatManager.Instance != null ? (System.Collections.Generic.IEnumerable<Actor>)StatManager.CachedBossUnits : World.world.units;
+                foreach (Actor target in candidates)
                     if (target != null && target != actor && target.isAlive() && target.kingdom != null &&
                         actor.kingdom.isEnemy(target.kingdom) && target.stats["health"] >= 10000f) return true;
                 return false;

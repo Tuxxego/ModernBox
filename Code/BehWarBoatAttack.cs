@@ -5,10 +5,15 @@ public class BehWarBoatAttack : BehBoat
 {
     public override BehResult execute(Actor pActor)
     {
-
-        foreach (var actor in World.world.units)
+        if (pActor == null || pActor.current_tile == null || pActor.kingdom == null || !pActor.kingdom.hasEnemies())
         {
-            if (actor.isAlive() && actor.kingdom != null && actor.kingdom.isEnemy(pActor.kingdom))
+            return BehResult.Stop;
+        }
+
+        // Optimization: Query only nearby map chunks instead of scanning all World.world.units globally every frame
+        foreach (Actor actor in Finder.getUnitsFromChunk(pActor.current_tile, 3))
+        {
+            if (actor != null && actor.isAlive() && actor.kingdom != null && actor.kingdom.isEnemy(pActor.kingdom))
             {
                 if (pActor.isInAttackRange(actor))
                 {
@@ -17,7 +22,8 @@ public class BehWarBoatAttack : BehBoat
                 }
             }
         }
-      if (pActor.beh_tile_target != null && Toolbox.DistTile(pActor.current_tile, pActor.beh_tile_target) <= 2)
+
+        if (pActor.beh_tile_target != null && Toolbox.DistTile(pActor.current_tile, pActor.beh_tile_target) <= 2)
         {
             return BehResult.Continue;
         }

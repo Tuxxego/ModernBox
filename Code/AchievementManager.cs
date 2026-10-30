@@ -94,6 +94,11 @@ namespace ModernBox
             return new List<M3Achievement>(m3achievements.Values);
         }
 	
+		private readonly Dictionary<string, Texture2D> _iconTextureCache = new Dictionary<string, Texture2D>();
+		private GUIStyle _titleStyle;
+		private GUIStyle _nameStyle;
+		private GUIStyle _textStyle;
+
 		private void DrawAchievementBanner()
 		{
 			if (notifications.Count == 0) return;
@@ -105,50 +110,51 @@ namespace ModernBox
 
 			GUI.Box(new Rect(startX, startY, bannerWidth, bannerHeight), "");
 
-			GUIStyle titleStyle = new GUIStyle(GUI.skin.label)
+			if (_titleStyle == null)
 			{
-				fontSize = 18,
-				alignment = TextAnchor.MiddleCenter,
-				fontStyle = FontStyle.Bold,
-				normal = { textColor = Color.yellow }
-			};
-
-			GUIStyle nameStyle = new GUIStyle(GUI.skin.label)
-			{
-				fontSize = 16,
-				alignment = TextAnchor.UpperLeft,
-				fontStyle = FontStyle.Bold,
-				normal = { textColor = Color.white }
-			};
-			GUIStyle textStyle = new GUIStyle(GUI.skin.label)
-			{
-				fontSize = 14,
-				alignment = TextAnchor.UpperLeft,
-				normal = { textColor = Color.white }
-			};
+				_titleStyle = new GUIStyle(GUI.skin.label)
+				{
+					fontSize = 18,
+					alignment = TextAnchor.MiddleCenter,
+					fontStyle = FontStyle.Bold,
+					normal = { textColor = Color.yellow }
+				};
+				_nameStyle = new GUIStyle(GUI.skin.label)
+				{
+					fontSize = 16,
+					alignment = TextAnchor.UpperLeft,
+					fontStyle = FontStyle.Bold,
+					normal = { textColor = Color.white }
+				};
+				_textStyle = new GUIStyle(GUI.skin.label)
+				{
+					fontSize = 14,
+					alignment = TextAnchor.UpperLeft,
+					normal = { textColor = Color.white }
+				};
+			}
 
 			AchievementNotification currentNotification = notifications[0];
-			Sprite iconSprite = Resources.Load<Sprite>(currentNotification.M3Achievement.SpritePath);
-			Texture2D iconTexture = null;
-
-			if (iconSprite != null)
+			string spritePath = currentNotification.M3Achievement.SpritePath ?? "";
+			if (!_iconTextureCache.TryGetValue(spritePath, out Texture2D iconTexture) || iconTexture == null)
 			{
-				iconTexture = SpriteToTexture2D(iconSprite);
-			}
-			else
-			{
-				ModernBoxLogger.Error("Achievement image not found: " + currentNotification.M3Achievement.SpritePath);
+				Sprite iconSprite = Resources.Load<Sprite>(spritePath);
+				if (iconSprite != null)
+				{
+					iconTexture = SpriteToTexture2D(iconSprite);
+					_iconTextureCache[spritePath] = iconTexture;
+				}
 			}
 
-			GUI.Label(new Rect(startX, startY + 5, bannerWidth, 25), "NEW M2 ACHIEVEMENT UNLOCKED", titleStyle);
+			GUI.Label(new Rect(startX, startY + 5, bannerWidth, 25), ModernBoxLocale.Tr("NEW M2 ACHIEVEMENT UNLOCKED"), _titleStyle);
 
 			if (iconTexture != null)
 			{
 				GUI.DrawTexture(new Rect(startX + 10, startY + 35, 50, 50), iconTexture);
 			}
 
-			GUI.Label(new Rect(startX + 70, startY + 35, 300, 30), currentNotification.M3Achievement.Name, nameStyle);
-			GUI.Label(new Rect(startX + 70, startY + 60, 300, 30), currentNotification.M3Achievement.Description, textStyle);
+			GUI.Label(new Rect(startX + 70, startY + 35, 300, 30), ModernBoxLocale.Tr(currentNotification.M3Achievement.Name), _nameStyle);
+			GUI.Label(new Rect(startX + 70, startY + 60, 300, 30), ModernBoxLocale.Tr(currentNotification.M3Achievement.Description), _textStyle);
 
 			notificationTimer += Time.deltaTime;
 			if (notificationTimer >= notificationDuration)

@@ -13,7 +13,8 @@ public class GayAndStupid : MonoBehaviour
 
     void LateUpdate()
     {
-        if (img != null && forcedSprite != null)
+        // Optimization: Only assign sprite when it actually differs to avoid dirtying UI Image every frame.
+        if (img != null && forcedSprite != null && img.sprite != forcedSprite)
         {
             img.sprite = forcedSprite;
         }

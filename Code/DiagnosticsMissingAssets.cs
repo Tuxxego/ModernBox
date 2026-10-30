@@ -141,13 +141,24 @@ namespace ModernBox
                 || path.StartsWith("ui/");
         }
 
+        private static readonly HashSet<string> _knownValidProjectiles = new HashSet<string>(StringComparer.Ordinal);
+
         [HarmonyPatch(typeof(ProjectileManager), "spawn")]
         private static class Patch_ProjectileManager_Spawn_Diagnostics
         {
             private static void Prefix(BaseSimObject pInitiator, BaseSimObject pTargetObject, string pAssetID, Vector3 pLaunchPosition, Vector3 pTargetPosition)
             {
+                if (!string.IsNullOrEmpty(pAssetID) && _knownValidProjectiles.Contains(pAssetID))
+                {
+                    return;
+                }
                 try
                 {
+                    if (!string.IsNullOrEmpty(pAssetID) && AssetManager.projectiles.get(pAssetID) != null)
+                    {
+                        _knownValidProjectiles.Add(pAssetID);
+                        return;
+                    }
                     if (string.IsNullOrEmpty(pAssetID) || AssetManager.projectiles.get(pAssetID) == null)
                     {
                         string initiatorType = pInitiator != null ? pInitiator.GetType().Name : "null";
@@ -180,6 +191,7 @@ namespace ModernBox
         {
             private static void Postfix(Actor __instance, ref Sprite __result)
             {
+                if (__result != null) return;
                 try
                 {
                     if (__result == null)
@@ -211,6 +223,7 @@ namespace ModernBox
         {
             private static void Prefix(GroupSpriteObject __instance, Sprite pSprite)
             {
+                if (pSprite != null) return;
                 try
                 {
                     if (pSprite == null)
@@ -243,6 +256,7 @@ namespace ModernBox
         {
             private static void Postfix(string pPath, ref Sprite __result)
             {
+                if (__result != null) return;
                 try
                 {
                     if (__result == null && IsInterestingPath(pPath) && ShouldLog(_seenSpritePathMissing, pPath))
@@ -262,6 +276,7 @@ namespace ModernBox
         {
             private static void Postfix(string pPath, bool pSkipIfEmpty, ref Sprite[] __result)
             {
+                if (__result != null && __result.Length > 0) return;
                 try
                 {
                     bool missing = __result == null || __result.Length == 0;
@@ -285,12 +300,9 @@ namespace ModernBox
         {
             private static bool Prefix(Actor __instance, ItemAsset pItemAsset)
             {
+                if (pItemAsset != null) return true;
                 try
                 {
-                    if (pItemAsset != null)
-                    {
-                        return true;
-                    }
 
                     string actorAsset = (__instance != null && __instance.asset != null) ? __instance.asset.id : "null";
                     string defaultAttack = (__instance != null && __instance.asset != null) ? __instance.asset.default_attack : "null";
@@ -319,12 +331,9 @@ namespace ModernBox
         {
             private static bool Prefix(Actor __instance, ItemAsset pItemAsset)
             {
+                if (pItemAsset != null) return true;
                 try
                 {
-                    if (pItemAsset != null)
-                    {
-                        return true;
-                    }
 
                     string actorAsset = (__instance != null && __instance.asset != null) ? __instance.asset.id : "null";
                     string defaultAttack = (__instance != null && __instance.asset != null) ? __instance.asset.default_attack : "null";
@@ -403,6 +412,7 @@ namespace ModernBox
         {
             private static bool Prefix(Building __instance, Sprite pMainSprite, ref Sprite __result)
             {
+                if (pMainSprite != null && __instance?.asset?.atlas_asset != null) return true;
                 try
                 {
                     BuildingAsset asset = __instance != null ? __instance.asset : null;
@@ -486,12 +496,9 @@ namespace ModernBox
         {
             private static bool Prefix(Sprite pBuildingSprite, ColorAsset pColor, DynamicSpritesAsset pAtlasAsset, ref Sprite __result)
             {
+                if (pBuildingSprite != null && pAtlasAsset != null) return true;
                 try
                 {
-                    if (pBuildingSprite != null && pAtlasAsset != null)
-                    {
-                        return true;
-                    }
 
                     string spriteName = pBuildingSprite != null ? pBuildingSprite.name : "null";
                     string atlasId = GetAtlasAssetId(pAtlasAsset);

@@ -42,7 +42,7 @@ namespace ModernBox
 			          string gold = "#FFD700";
 					  string Dgold = "#ffae00";
 					  var description =
-			@"<color='" + gold + @"'>With M3 you can travel to other planets and even galaxies!</color>
+			@"<color='" + gold + @"'>" + ModernBoxLocale.Tr("With M3 you can travel to other planets and even galaxies!") + @"</color>
 			";
 					  var name = window.transform.Find("Background").Find("Name").gameObject;
 					  var nameText = name.GetComponent<Text>();

@@ -242,32 +242,32 @@ public static void toggleMGL()
     [HarmonyPatch(typeof(Culture), "getPreferredWeaponAssets")]
     public class Patch_Culture_PreferredWeaponAssets
     {
+        internal static bool IsCustomWeaponAvailable(EquipmentAsset w, string era)
+        {
+            if (w == null || !CustomItemsList.IsWeaponAllowedForEra(w, era)) return false;
+            if (!CustomItemsList.MirvsAllowed && CustomItemsList.Kys.Contains(w.id)) return false;
+            if (!CustomItemsList.DrugsAllowed && CustomItemsList.Druggies.Contains(w.id)) return false;
+            if (!CustomItemsList.MGLAllowed && CustomItemsList.MGLs.Contains(w.id)) return false;
+            return true;
+        }
+
         static bool Prefix(Culture __instance, ref List<EquipmentAsset> __result)
         {
             if (!CustomItemsList.GunsAllowed || CustomItemsList.CustomWeapons.Count == 0)
                 return true;
 
             string era = Development.CultureEra(__instance);
-            if (era == null)
+            List<EquipmentAsset> list = new List<EquipmentAsset>();
+            if (era != null)
             {
-                __result = new List<EquipmentAsset>();
-                return false;
+                var pool = CustomItemsList.CustomWeapons;
+                for (int i = 0; i < pool.Count; i++)
+                {
+                    if (IsCustomWeaponAvailable(pool[i], era))
+                        list.Add(pool[i]);
+                }
             }
-
-            IEnumerable<EquipmentAsset> weapons =
-                CustomItemsList.CustomWeapons
-                    .Where(w => CustomItemsList.IsWeaponAllowedForEra(w, era));
-
-            if (!CustomItemsList.MirvsAllowed)
-                weapons = weapons.Where(w => !CustomItemsList.Kys.Contains(w.id));
-
-            if (!CustomItemsList.DrugsAllowed)
-                weapons = weapons.Where(w => !CustomItemsList.Druggies.Contains(w.id));
-            
-            if (!CustomItemsList.MGLAllowed)
-                weapons = weapons.Where(w => !CustomItemsList.MGLs.Contains(w.id));
-
-            __result = weapons.ToList();
+            __result = list;
             return false;
         }
     }
@@ -287,19 +287,16 @@ public static void toggleMGL()
                 return false;
             }
 
-            var validWeapons = CustomItemsList.CustomWeapons
-                .Where(w => CustomItemsList.IsWeaponAllowedForEra(w, era));
-
-            if (!CustomItemsList.MirvsAllowed)
-                validWeapons = validWeapons.Where(w => !CustomItemsList.Kys.Contains(w.id));
-
-            if (!CustomItemsList.DrugsAllowed)
-                validWeapons = validWeapons.Where(w => !CustomItemsList.Druggies.Contains(w.id));
-
-            if (!CustomItemsList.MGLAllowed)
-                validWeapons = validWeapons.Where(w => !CustomItemsList.MGLs.Contains(w.id));
-
-            __result = validWeapons.Any();
+            var pool = CustomItemsList.CustomWeapons;
+            for (int i = 0; i < pool.Count; i++)
+            {
+                if (Patch_Culture_PreferredWeaponAssets.IsCustomWeaponAvailable(pool[i], era))
+                {
+                    __result = true;
+                    return false;
+                }
+            }
+            __result = false;
             return false;
         }
     }
@@ -315,6 +312,10 @@ public static void toggleMGL()
     {
         private static readonly System.Reflection.MethodInfo GenugRessourcen =
             AccessTools.Method(typeof(ItemCrafting), "hasEnoughResourcesToCraft");
+        private static readonly Func<Actor, EquipmentAsset, City, bool> GenugRessourcenFast =
+            GenugRessourcen != null
+                ? (Func<Actor, EquipmentAsset, City, bool>)Delegate.CreateDelegate(typeof(Func<Actor, EquipmentAsset, City, bool>), GenugRessourcen, false)
+                : null;
 
         internal static bool Gesperrt(EquipmentAsset pAsset)
         {
@@ -335,7 +336,7 @@ public static void toggleMGL()
             {
                 EquipmentAsset tAsset = pItemList[i];
                 if (tAsset == null || Gesperrt(tAsset) || tAsset.equipment_value <= pCurrentItemValue) continue;
-                if ((bool)GenugRessourcen.Invoke(null, new object[] { pActor, tAsset, pCity }))
+                if (GenugRessourcenFast != null ? GenugRessourcenFast(pActor, tAsset, pCity) : (bool)GenugRessourcen.Invoke(null, new object[] { pActor, tAsset, pCity }))
                 {
                     __result = tAsset;
                     return;

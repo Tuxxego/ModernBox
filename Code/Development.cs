@@ -37,10 +37,51 @@ namespace ModernBox
         public const string PointsKey = "manu_mb_research_points";
         public const string YearKey = "manu_mb_research_year";
         public static bool Ready;
-        public static string T(string de,string en) => LocalizedTextManager.instance?.language=="de"?de:en;
+        private static readonly Dictionary<string, string> CnDevStrings = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            { "Research and development", "研发与建设" },
+            { "Research, requirements, cities and armies of every kingdom.", "查看各王国的科技研发、前置条件、城市与军队规模。" },
+            { "Automatic research", "自动科技研发" },
+            { "Clears the god override and enables all eras for research progression.", "解除上帝手动锁定，启用所有时代按研发路径自然演进。" },
+            { "Each kingdom advances through research, construction and military development. Clears a manual god override.", "各王国通过科技研发、城市建设和军事发展推进时代。解除上帝手动锁定。" },
+            { "God override: Medieval", "上帝锁定：中世纪" },
+            { "God override: Renaissance", "上帝锁定：文艺复兴" },
+            { "God override: Modern", "上帝锁定：现代" },
+            { "God override: Hyperfuture", "上帝锁定：超未来" },
+            { "ModernBox settings restored to defaults.", "ModernBox 设置已恢复为默认值。" },
+            { "<b>Research per kingdom</b>", "<b>各王国独立科技研发</b>" },
+            { "Construction, libraries and armies determine progress.", "城市建设、图书馆数量与国家规模决定研发进度。" },
+            { "Details: open Research and development", "详情：点击打开“研发与建设”面板" },
+            { "Settlement age ", "定居点历史 " },
+            { "Population ", "王国总人口 " },
+            { "Completed city buildings ", "已建成城市建筑 " },
+            { "Library required", "需要建造至少一座图书馆" },
+            { "Barracks required", "需要建造至少一座兵营" },
+            { "<color=#FFD78C><b>Research and development</b></color>\n\nAll civilization species share this research path. Libraries, funded research, cities and armies drive progress.\n\n", "<color=#FFD78C><b>科技研发与国家建设</b></color>\n\n所有文明种族共享此研发路线。图书馆、盈余金币资助、城市建筑与国家人口共同推动时代进步。\n\n" },
+            { "<color=#FFCE70>God override active: ", "<color=#FFCE70>当前已启用上帝时代锁定：" },
+            { ". Select Automatic research to restore normal progression.</color>\n\n", "。点击“自动科技研发”可恢复正常科技演进。</color>\n\n" },
+            { "Create or load a world.", "请先创建或加载一个世界。" },
+            { " people · ", " 人口 · " },
+            { " soldiers · ", " 士兵 · " },
+            { " cities\n", " 座城市\n" },
+            { "Researched: ", "当前已研发：" },
+            { "Foundations", "基础时代（中世纪）" },
+            { "Next goal: ", "下一研发目标：" },
+            { "\nResearch: ", "\n研发点数：" },
+            { "Development requirements met; research uses surplus gold", "前置建设条件已满足；正使用城市盈余金币推进研发" },
+        };
+        public static string T(string de, string en)
+        {
+            if (ModernBoxLocale.IsChinese() && en != null && CnDevStrings.TryGetValue(en, out string cn))
+                return cn;
+            return LocalizedTextManager.instance?.language == "de" ? de : en;
+        }
         private static string TechName(Technology tech) {
-            string[] names={"Architecture","Metallurgy","Education","Renaissance and firearms","Industrialization","Motorization and tanks","Aviation","Nuclear technology","Future technology"};
-            return T(tech.Name,names[Array.IndexOf(Technologies,tech)]);
+            string[] names = {"Architecture","Metallurgy","Education","Renaissance and firearms","Industrialization","Motorization and tanks","Aviation","Nuclear technology","Future technology"};
+            string[] cnNames = {"建筑学","冶金术","教育体系","文艺复兴与火器","工业化","摩托化与装甲坦克","航空技术","核能科技","未来科技"};
+            int idx = Array.IndexOf(Technologies, tech);
+            if (ModernBoxLocale.IsChinese() && idx >= 0 && idx < cnNames.Length) return cnNames[idx];
+            return T(tech.Name, names[idx]);
         }
         public static int RegisteredSpecies => SpeciesTemplates.Count;
         private static readonly Dictionary<BuildingAsset, object[]> BaselineBuildings = new Dictionary<BuildingAsset, object[]>();
@@ -49,7 +90,7 @@ namespace ModernBox
         private static readonly Dictionary<string,string> SpeciesGroups = new Dictionary<string,string>();
         private static readonly Dictionary<string,ArchitectureAsset> ExpandedArchitectures = new Dictionary<string,ArchitectureAsset>();
         private static readonly Dictionary<string,int> BuildingStages = new Dictionary<string,int>();
-        private static readonly Dictionary<string,ConstructionCost> ReserveCache = new Dictionary<string,ConstructionCost>();
+        private static readonly Dictionary<(long, int, int, bool), ConstructionCost> ReserveCache = new Dictionary<(long, int, int, bool), ConstructionCost>();
         private static readonly Dictionary<long,int> CultureStages = new Dictionary<long,int>();
         // Manu-Fix 036: terminal buildings shared by several architectures (vanilla "bonfire" for humans, elves,
         // orcs and dwarves) need one upgrade target per faction group instead of one global upgrade_to.
@@ -299,17 +340,37 @@ namespace ModernBox
         public static bool AllowsVehicle(City city,string id)
         {
             if (string.IsNullOrEmpty(id)) return false;
-            int stage=Stage(city);
             if (id=="EliteBomber") return NuclearAllowed(city?.kingdom);
-            if (id.IndexOf("Heli",StringComparison.OrdinalIgnoreCase)>=0 || id.IndexOf("Fighter",StringComparison.OrdinalIgnoreCase)>=0 || id.StartsWith("Bomber_")) return stage>=7;
+            if (Stage(city)>=7) return true;
+            if (id.IndexOf("Heli",StringComparison.OrdinalIgnoreCase)>=0 || id.IndexOf("Fighter",StringComparison.OrdinalIgnoreCase)>=0 || id.StartsWith("Bomber_")) return false;
             return true;
         }
         public static bool NuclearAllowed(Kingdom kingdom)
         {
-            if (Stage(kingdom)<8) return false;
-            if(!string.IsNullOrEmpty(StatManager.Instance?.eraoverride))return true;
-            var cities=Cities(kingdom);
-            return cities.Sum(c=>c.getPopulationPeople())>=1000 && cities.Sum(c=>c.countWarriors())>=150;
+            if (Stage(kingdom) < 8) return false;
+            if (!string.IsNullOrEmpty(StatManager.Instance?.eraoverride)) return true;
+            if (kingdom == null) return false;
+            int pop = 0, warriors = 0;
+            var cityList = kingdom.cities;
+            if (cityList != null)
+            {
+                for (int i = 0; i < cityList.Count; i++)
+                {
+                    City c = cityList[i];
+                    if (c == null || !c.isAlive() || c.kingdom != kingdom) continue;
+                    pop += c.getPopulationPeople();
+                    warriors += c.countWarriors();
+                    if (pop >= 1000 && warriors >= 150) return true;
+                }
+                return false;
+            }
+            var cities = Cities(kingdom);
+            for (int i = 0; i < cities.Count; i++)
+            {
+                pop += cities[i].getPopulationPeople();
+                warriors += cities[i].countWarriors();
+            }
+            return pop >= 1000 && warriors >= 150;
         }
         public static bool IsNuclearItem(EquipmentAsset item)
         { return item!=null&&(CustomItemsList.Kys.Contains(item.id)||item.id=="N2Attack"); }
@@ -325,89 +386,199 @@ namespace ModernBox
             }
         }
         public static List<City> Cities(Kingdom kingdom)
-        { return kingdom==null?new List<City>():World.world.cities.list.Where(c=>c!=null && c.isAlive() && c.kingdom==kingdom).ToList(); }
-        public static string Requirement(Kingdom kingdom,Technology technology)
         {
-            var cities=Cities(kingdom);
-            int pop=cities.Sum(c=>c.getPopulationPeople());
-            int buildings=cities.Sum(c=>c.buildings.Count(b=>b.asset.city_building&&!b.isUnderConstruction()));
-            int age=Math.Max(kingdom.getAge(),cities.Count==0?0:cities.Max(c=>c.getAge()));
-            if (age<technology.Age) return T("Siedlungsalter ","Settlement age ")+age+"/"+technology.Age;
-            if (pop<technology.Population) return T("Einwohner ","Population ")+pop+"/"+technology.Population;
-            // Manu-Fix 042: research no longer counts warriors. With large armies wanted for their own sake, the warrior
-            // threshold only held back kingdoms that had just lost a war. Army > 0 still marks the military stages that need
-            // a barracks; nuclear crafting and use keep their own 1,000 inhabitants / 150 warriors gate.
-            if (buildings<technology.Buildings) return T("fertige Stadtgebaeude ","Completed city buildings ")+buildings+"/"+technology.Buildings;
-            if (technology.Id!="architecture" && !cities.Any(c=>c.hasBuildingType("type_library"))) return T("Bibliothek fehlt","Library required");
-            if (technology.Army>0 && !cities.Any(c=>c.hasBuildingType("type_barracks"))) return T("Kaserne fehlt","Barracks required");
+            var result = new List<City>();
+            if (kingdom == null) return result;
+            if (kingdom.cities != null)
+            {
+                for (int i = 0; i < kingdom.cities.Count; i++)
+                {
+                    City c = kingdom.cities[i];
+                    if (c != null && c.isAlive() && c.kingdom == kingdom) result.Add(c);
+                }
+                return result;
+            }
+            if (World.world?.cities?.list != null)
+            {
+                var all = World.world.cities.list;
+                for (int i = 0; i < all.Count; i++)
+                {
+                    City c = all[i];
+                    if (c != null && c.isAlive() && c.kingdom == kingdom) result.Add(c);
+                }
+            }
+            return result;
+        }
+        public static string Requirement(Kingdom kingdom, Technology technology)
+        {
+            var cities = Cities(kingdom);
+            return CheckRequirementWithCities(kingdom, cities, technology);
+        }
+        private static string CheckRequirementWithCities(Kingdom kingdom, List<City> cities, Technology technology)
+        {
+            int pop = 0;
+            int buildings = 0;
+            int maxCityAge = 0;
+            bool hasLibrary = false;
+            bool hasBarracks = false;
+            for (int i = 0; i < cities.Count; i++)
+            {
+                City c = cities[i];
+                pop += c.getPopulationPeople();
+                int cAge = c.getAge();
+                if (cAge > maxCityAge) maxCityAge = cAge;
+                if (!hasLibrary && c.hasBuildingType("type_library")) hasLibrary = true;
+                if (!hasBarracks && c.hasBuildingType("type_barracks")) hasBarracks = true;
+                var bList = c.buildings;
+                if (bList != null)
+                {
+                    for (int j = 0; j < bList.Count; j++)
+                    {
+                        Building b = bList[j];
+                        if (b != null && b.asset != null && b.asset.city_building && !b.isUnderConstruction())
+                            buildings++;
+                    }
+                }
+            }
+            int age = Math.Max(kingdom != null ? kingdom.getAge() : 0, maxCityAge);
+            if (age < technology.Age) return T("Siedlungsalter ", "Settlement age ") + age + "/" + technology.Age;
+            if (pop < technology.Population) return T("Einwohner ", "Population ") + pop + "/" + technology.Population;
+            if (buildings < technology.Buildings) return T("fertige Stadtgebaeude ", "Completed city buildings ") + buildings + "/" + technology.Buildings;
+            if (technology.Id != "architecture" && !hasLibrary) return T("Bibliothek fehlt", "Library required");
+            if (technology.Army > 0 && !hasBarracks) return T("Kaserne fehlt", "Barracks required");
             return null;
         }
         public static void Tick()
         {
-            if (!Ready || World.world==null || !Config.game_loaded || SmoothLoader.isLoading()) return;
+            if (!Ready || World.world == null || !Config.game_loaded || SmoothLoader.isLoading()) return;
             EnsureResourceCapacity();
-            if (_lastAssets!=AssetManager.actor_library.list.Count) EnsureAllSpecies();
-            foreach(ActorAsset a in AssetManager.actor_library.list.Where(a=>a.civ&&!SpeciesTemplates.ContainsKey(a.id)).ToArray())EnsureSpecies(a);
-            int year=Date.getCurrentYear();
-            foreach (Kingdom kingdom in World.world.kingdoms.list.ToArray())
+            if (_lastAssets != AssetManager.actor_library.list.Count)
             {
-                if (kingdom?.data==null || !kingdom.isCiv() || !kingdom.isAlive()) continue;
-                var cities=Cities(kingdom);
-                // A coup, secession or conquest does not erase the knowledge retained by the inhabitants of its cities.
-                int inherited=EarnedStage(kingdom);
-                foreach(City city in cities) { city.data.get(StageKey,out int known,0);inherited=Math.Max(inherited,known); }
-                if(inherited>EarnedStage(kingdom)) { kingdom.data.set(StageKey,inherited);kingdom.data.set(PointsKey,0f); }
-                kingdom.data.get(PointsKey,out float retained,0f);
-                foreach(City city in cities) {
-                    city.data.get(StageKey,out int known,0);city.data.get(PointsKey,out float pending,0f);
-                    if(known==inherited)retained=Math.Max(retained,pending);
-                }
-                kingdom.data.set(PointsKey,retained);
-                foreach(City city in cities) {city.data.set(StageKey,inherited);city.data.set(PointsKey,retained);}
-                kingdom.data.get(YearKey,out int last,year-1);
-                if (year<=last) continue;
-                kingdom.data.set(YearKey,year);
-                int stage=EarnedStage(kingdom);
-                if (stage>=Technologies.Length) continue;
-                var tech=Technologies[stage];
-                if (Requirement(kingdom,tech)!=null) continue;
-                int paidYears=Math.Min(5,year-last);
-                City sponsor=cities.Where(c=>HasSurplus(c,"gold",2*paidYears,true) && c.hasBuildingType("type_hall")).OrderByDescending(c=>c.amount_gold).FirstOrDefault();
-                if (sponsor==null) continue;
-                // A paid research year cannot consume the city's construction reserve or be duplicated after loading.
-                sponsor.takeResource("gold",2*paidYears);
-                int libraries=cities.Sum(c=>c.countBuildingsType("type_library"));
-                float earned=1+libraries*2+Mathf.Sqrt(cities.Sum(c=>c.getPopulationPeople()))/10f;
-                kingdom.data.get(PointsKey,out float points,0f);
-                points+=earned*paidYears;
-                if (points>=tech.Points)
+                EnsureAllSpecies();
+            }
+            int year = Date.getCurrentYear();
+            var kingdomList = World.world.kingdoms.list;
+            for (int kIdx = 0; kIdx < kingdomList.Count; kIdx++)
+            {
+                Kingdom kingdom = kingdomList[kIdx];
+                if (kingdom?.data == null || !kingdom.isCiv() || !kingdom.isAlive()) continue;
+                var cities = Cities(kingdom);
+                int inherited = EarnedStage(kingdom);
+                for (int i = 0; i < cities.Count; i++)
                 {
-                    kingdom.data.set(StageKey,stage+1); kingdom.data.set(PointsKey,0f);
-                    Debug.Log("[MB-FORSCHUNG] Jahr="+year+" Reich="+kingdom.id+" Technik="+tech.Id+" Einwohner="+cities.Sum(c=>c.getPopulationPeople())+" Heer="+cities.Sum(c=>c.countWarriors()));
+                    cities[i].data.get(StageKey, out int known, 0);
+                    if (known > inherited) inherited = known;
                 }
-                else kingdom.data.set(PointsKey,points);
-                kingdom.data.get(PointsKey,out float savedPoints,0f);
-                foreach(City city in cities){city.data.set(StageKey,EarnedStage(kingdom));city.data.set(PointsKey,savedPoints);}
+                if (inherited > EarnedStage(kingdom))
+                {
+                    kingdom.data.set(StageKey, inherited);
+                    kingdom.data.set(PointsKey, 0f);
+                }
+                kingdom.data.get(PointsKey, out float retained, 0f);
+                for (int i = 0; i < cities.Count; i++)
+                {
+                    cities[i].data.get(StageKey, out int known, 0);
+                    cities[i].data.get(PointsKey, out float pending, 0f);
+                    if (known == inherited && pending > retained) retained = pending;
+                }
+                kingdom.data.set(PointsKey, retained);
+                for (int i = 0; i < cities.Count; i++)
+                {
+                    cities[i].data.set(StageKey, inherited);
+                    cities[i].data.set(PointsKey, retained);
+                }
+                kingdom.data.get(YearKey, out int last, year - 1);
+                if (year <= last) continue;
+                kingdom.data.set(YearKey, year);
+                int stage = EarnedStage(kingdom);
+                if (stage >= Technologies.Length) continue;
+                var tech = Technologies[stage];
+                if (CheckRequirementWithCities(kingdom, cities, tech) != null) continue;
+                int paidYears = Math.Min(5, year - last);
+                int goldNeeded = 2 * paidYears;
+                City sponsor = null;
+                int bestGold = -1;
+                for (int i = 0; i < cities.Count; i++)
+                {
+                    City c = cities[i];
+                    if (c.amount_gold > bestGold && c.hasBuildingType("type_hall") && HasSurplus(c, "gold", goldNeeded, true))
+                    {
+                        bestGold = c.amount_gold;
+                        sponsor = c;
+                    }
+                }
+                if (sponsor == null) continue;
+                sponsor.takeResource("gold", goldNeeded);
+                int libraries = 0;
+                int totalPop = 0;
+                for (int i = 0; i < cities.Count; i++)
+                {
+                    libraries += cities[i].countBuildingsType("type_library");
+                    totalPop += cities[i].getPopulationPeople();
+                }
+                float earned = 1f + libraries * 2f + Mathf.Sqrt(totalPop) / 10f;
+                kingdom.data.get(PointsKey, out float points, 0f);
+                points += earned * paidYears;
+                if (points >= tech.Points)
+                {
+                    int totalWarriors = 0;
+                    for (int i = 0; i < cities.Count; i++) totalWarriors += cities[i].countWarriors();
+                    kingdom.data.set(StageKey, stage + 1);
+                    kingdom.data.set(PointsKey, 0f);
+                    Debug.Log("[MB-FORSCHUNG] Jahr=" + year + " Reich=" + kingdom.id + " Technik=" + tech.Id + " Einwohner=" + totalPop + " Heer=" + totalWarriors);
+                }
+                else
+                {
+                    kingdom.data.set(PointsKey, points);
+                }
+                int finalStage = EarnedStage(kingdom);
+                kingdom.data.get(PointsKey, out float savedPoints, 0f);
+                for (int i = 0; i < cities.Count; i++)
+                {
+                    cities[i].data.set(StageKey, finalStage);
+                    cities[i].data.set(PointsKey, savedPoints);
+                }
             }
             CultureStages.Clear();
-            foreach (City city in World.world.cities.list.ToArray()) {
-                if(city==null||!city.isAlive())continue;
-                if(city.culture!=null) { CultureStages.TryGetValue(city.culture.id,out int value); CultureStages[city.culture.id]=Math.Max(value,Stage(city)); }
-                if(city.leader!=null) Traits.VehicleSummonEffect(city.leader);
+            var allCities = World.world.cities.list;
+            for (int i = 0; i < allCities.Count; i++)
+            {
+                City city = allCities[i];
+                if (city == null || !city.isAlive()) continue;
+                if (city.culture != null)
+                {
+                    CultureStages.TryGetValue(city.culture.id, out int value);
+                    int s = Stage(city);
+                    if (s > value) CultureStages[city.culture.id] = s;
+                }
+                if (city.leader != null) Traits.VehicleSummonEffect(city.leader);
             }
             ReserveCache.Clear();
         }
         private static void EnsureResourceCapacity()
         {
-            // Vanilla hard-caps a storage resource at 999 and stops deliveries at storage_max (usually 50).
-            // ModernBox's default future bonfire alone costs 1000 gold. Capacity must allow the real bill,
-            // its reserve and the food/industry needs of growing cities; this never grants resources.
-            int population=World.world?.cities?.list?.Where(c=>c!=null&&c.isAlive()).Select(c=>c.getPopulationPeople()).DefaultIfEmpty(0).Max()??0;
-            int capacity=Math.Max(_constructionCapacity,Math.Min(population,int.MaxValue/4)*4);
-            foreach(ResourceAsset resource in AssetManager.resources.list) {
-                if(!resource.food&&resource.id!="wood"&&resource.id!="stone"&&resource.id!="common_metals"&&resource.id!="gold")continue;
-                resource.maximum=Math.Max(resource.maximum,capacity);
-                resource.storage_max=Math.Max(resource.storage_max,capacity);
+            int population = 0;
+            var allCities = World.world?.cities?.list;
+            if (allCities != null)
+            {
+                for (int i = 0; i < allCities.Count; i++)
+                {
+                    City c = allCities[i];
+                    if (c != null && c.isAlive())
+                    {
+                        int p = c.getPopulationPeople();
+                        if (p > population) population = p;
+                    }
+                }
+            }
+            int capacity = Math.Max(_constructionCapacity, Math.Min(population, int.MaxValue / 4) * 4);
+            var resList = AssetManager.resources.list;
+            for (int i = 0; i < resList.Count; i++)
+            {
+                ResourceAsset resource = resList[i];
+                if (!resource.food && resource.id != "wood" && resource.id != "stone" && resource.id != "common_metals" && resource.id != "gold") continue;
+                if (capacity > resource.maximum) resource.maximum = capacity;
+                if (capacity > resource.storage_max) resource.storage_max = capacity;
             }
         }
         public static string Report()
@@ -442,7 +613,9 @@ namespace ModernBox
         // Manu-Fix 037: modern vehicles no longer require 12 common metals above the reserve. Measured over 20 years in a
         // 58-city world, all cities together received about one metal per city and year and crafting consumed it at once;
         // no city could ever hold 17 metals, so not a single modern vehicle was paid. Gold and wood flow far better.
-        private static ConstructionCost VehicleCost(City city) => Stage(city)>=6?new ConstructionCost(6,0,0,12):new ConstructionCost(8,0,0,5);
+        private static readonly ConstructionCost ModernVehicleCost = new ConstructionCost(6, 0, 0, 12);
+        private static readonly ConstructionCost EarlyVehicleCost = new ConstructionCost(8, 0, 0, 5);
+        private static ConstructionCost VehicleCost(City city) => Stage(city) >= 6 ? ModernVehicleCost : EarlyVehicleCost;
         public static void PayVehicle(City city)
         {
             var cost=VehicleCost(city); city.takeResource("wood",cost.wood);city.takeResource("common_metals",cost.common_metals);city.takeResource("gold",cost.gold);
@@ -456,7 +629,7 @@ namespace ModernBox
         public static int Reserve(City city,string resource,bool ownProgress=false)
         {
             if (city==null || _calculatingReserve || (resource!="wood"&&resource!="stone"&&resource!="gold"&&resource!="common_metals")) return 0;
-            string key=city.id+"/"+city.buildings.Count+"/"+Stage(city)+(ownProgress?"/own":"");
+            var key = (city.id, city.buildings.Count, Stage(city), ownProgress);
             if (!ReserveCache.TryGetValue(key,out ConstructionCost reserve))
             {
                 reserve=new ConstructionCost(20,20,5,100);

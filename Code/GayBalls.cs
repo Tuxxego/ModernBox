@@ -11,75 +11,49 @@ namespace ModernBox
         {
             try
             {
-                __instance.units_only_wild?.Clear();
-                __instance.units_only_civ?.Clear();
-                __instance.units_only_alive?.Clear();
-                __instance.units_only_dying?.Clear();
+                var wild = __instance.units_only_wild;
+                var civ = __instance.units_only_civ;
+                var alive = __instance.units_only_alive;
+                var dying = __instance.units_only_dying;
+
+                wild?.Clear();
+                civ?.Clear();
+                alive?.Clear();
+                dying?.Clear();
 
                 __instance.have_dying_units = false;
 
-                List<Actor> simpleList = null;
-
-                try
-                {
-                    simpleList = __instance.getSimpleList();
-                }
-                catch
-                {
-                    simpleList = null;
-                }
-
+                List<Actor> simpleList = __instance.getSimpleList();
                 if (simpleList == null)
                     return false;
 
-                for (int index = 0; index < simpleList.Count; ++index)
+                int count = simpleList.Count;
+                for (int index = 0; index < count; ++index)
                 {
                     Actor actor = simpleList[index];
-
                     if (actor == null)
                         continue;
 
-                    Kingdom kingdom = null;
-
-                    try
+                    if (actor.isAlive())
                     {
-                        kingdom = actor.kingdom;
-                    }
-                    catch
-                    {
-                        kingdom = null;
-                    }
-
-                    bool isAlive = false;
-
-                    try
-                    {
-                        isAlive = actor.isAlive();
-                    }
-                    catch
-                    {
-                        continue;
-                    }
-
-                    if (isAlive)
-                    {
+                        Kingdom kingdom = actor.kingdom;
                         if (kingdom != null && kingdom.wild)
-                            __instance.units_only_wild?.Add(actor);
+                            wild?.Add(actor);
                         else
-                            __instance.units_only_civ?.Add(actor);
+                            civ?.Add(actor);
 
-                        __instance.units_only_alive?.Add(actor);
+                        alive?.Add(actor);
                     }
                     else
                     {
-                        __instance.units_only_dying?.Add(actor);
+                        dying?.Add(actor);
                         __instance.have_dying_units = true;
                     }
                 }
             }
             catch (Exception e)
             {
-                ModernBoxLogger.Error($"Gay shit incoming: {e}");
+                ModernBoxLogger.Error($"[prepareForMetaChecks] Error: {e}");
             }
 
             return false;

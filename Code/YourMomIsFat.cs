@@ -13,148 +13,124 @@ namespace ModernBox
         private static Color? mb_originalScrollColor = null;
         public GameObject e;
         public GameObject targetObj;
-        GameObject bombsTab;
-        GameObject ErasTab;
-        GameObject ItemsTab;
-        GameObject SpaceTab;
-        GameObject MainTab;
-        List<Image> bombParticles = new List<Image>();
-        float particleTimer = 0f;
+        private Image targetImg;
+        private RectTransform targetRT;
+        private Mask targetMask;
+        private GameObject bombsTab;
+        private GameObject ErasTab;
+        private GameObject ItemsTab;
+        private GameObject SpaceTab;
+        private GameObject MainTab;
+        private readonly List<Image> bombParticles = new List<Image>();
+        private float particleTimer = 0f;
+        private float lookupTimer = 0f;
+        private const int MaxBombParticles = 60;
 
         void Update()
         {
-
-            if (e == null)
+            // Optimization: Only search scene hierarchy at most once every 0.5s when references are missing
+            if (e == null || bombsTab == null || ErasTab == null || ItemsTab == null || SpaceTab == null || MainTab == null || targetObj == null)
             {
-                e = GameObject.Find("ModernBoxUnits");
-                if (e == null) e = GameObjects.FindEvenInactive("ModernBoxUnits");
-            }
-
-            if (bombsTab == null)
-            {
-                bombsTab = GameObject.Find("ModernBoxBombs");
-                if (bombsTab == null) bombsTab = GameObjects.FindEvenInactive("ModernBoxBombs");
-            }
-
-            if (ErasTab == null)
-            {
-                ErasTab = GameObject.Find("ModernBoxEras");
-                if (ErasTab == null) ErasTab = GameObjects.FindEvenInactive("ModernBoxEras");
-            }
-
-            if (ItemsTab == null)
-            {
-                ItemsTab = GameObject.Find("ModernBoxItems");
-                if (ItemsTab == null) ItemsTab = GameObjects.FindEvenInactive("ModernBoxItems");
-            }
-
-            if (SpaceTab == null)
-            {
-                SpaceTab = GameObject.Find("ModernBoxSpace");
-                if (SpaceTab == null) SpaceTab = GameObjects.FindEvenInactive("ModernBoxSpace");
-            }
-
-            if (MainTab == null)
-            {
-                MainTab = GameObject.Find("ModernBoxTab");
-                if (MainTab == null) MainTab = GameObjects.FindEvenInactive("ModernBoxTab");
-            }
-
-            if (targetObj == null)
-            {
-                targetObj = GameObject.Find("Canvas Container Main/Canvas - UI/General/CanvasBottom/BottomElements/BottomElementsMover/CanvasScrollView/Scroll View");
-            }
-
-            if (targetObj == null)
-            {
-                GameObject scrollParent = GameObjects.FindEvenInactive("CanvasScrollView");
-                if (scrollParent != null)
+                lookupTimer -= Time.unscaledDeltaTime;
+                if (lookupTimer <= 0f)
                 {
-                    Transform t = scrollParent.transform.Find("Scroll View");
-                    if (t != null) targetObj = t.gameObject;
-                }
-            }
+                    lookupTimer = 0.5f;
+                    if (e == null) e = GameObject.Find("ModernBoxUnits") ?? GameObjects.FindEvenInactive("ModernBoxUnits");
+                    if (bombsTab == null) bombsTab = GameObject.Find("ModernBoxBombs") ?? GameObjects.FindEvenInactive("ModernBoxBombs");
+                    if (ErasTab == null) ErasTab = GameObject.Find("ModernBoxEras") ?? GameObjects.FindEvenInactive("ModernBoxEras");
+                    if (ItemsTab == null) ItemsTab = GameObject.Find("ModernBoxItems") ?? GameObjects.FindEvenInactive("ModernBoxItems");
+                    if (SpaceTab == null) SpaceTab = GameObject.Find("ModernBoxSpace") ?? GameObjects.FindEvenInactive("ModernBoxSpace");
+                    if (MainTab == null) MainTab = GameObject.Find("ModernBoxTab") ?? GameObjects.FindEvenInactive("ModernBoxTab");
 
-            if (targetObj == null)
-            {
-                targetObj = GameObjects.FindEvenInactive("Scroll View");
+                    if (targetObj == null)
+                    {
+                        targetObj = GameObject.Find("Canvas Container Main/Canvas - UI/General/CanvasBottom/BottomElements/BottomElementsMover/CanvasScrollView/Scroll View");
+                        if (targetObj == null)
+                        {
+                            GameObject scrollParent = GameObjects.FindEvenInactive("CanvasScrollView");
+                            if (scrollParent != null)
+                            {
+                                Transform t = scrollParent.transform.Find("Scroll View");
+                                if (t != null) targetObj = t.gameObject;
+                            }
+                        }
+                        if (targetObj == null) targetObj = GameObjects.FindEvenInactive("Scroll View");
+                    }
+                    if (targetObj != null)
+                    {
+                        targetImg = targetObj.GetComponent<Image>();
+                        targetRT = targetObj.GetComponent<RectTransform>();
+                    }
+                }
             }
 
             if (targetObj == null) return;
-
-            var img = targetObj.GetComponent<UnityEngine.UI.Image>();
-            if (img == null) return;
-
-            if (mb_originalScrollColor == null && img.color != Color.red && img.color != new Color(0.4f, 0f, 0f))
+            if (targetImg == null)
             {
-                mb_originalScrollColor = img.color;
+                targetImg = targetObj.GetComponent<Image>();
+                if (targetImg == null) return;
             }
 
-            bool unitsActive = (e != null && e.activeInHierarchy);
+            if (mb_originalScrollColor == null && targetImg.color != Color.red && targetImg.color != new Color(0.4f, 0f, 0f))
+            {
+                mb_originalScrollColor = targetImg.color;
+            }
+
             bool bombsActive = (bombsTab != null && bombsTab.activeInHierarchy);
-            bool ErasActive = (ErasTab != null && ErasTab.activeInHierarchy);
-            bool ItemsActive = (ItemsTab != null && ItemsTab.activeInHierarchy);
-            bool SpaceActive = (SpaceTab != null && SpaceTab.activeInHierarchy);
-            bool MainActive = (MainTab != null && MainTab.activeInHierarchy);
             if (bombsActive)
             {
-                img.color = new Color(0.4f, 0f, 0f, 0.6f); 
-
+                targetImg.color = new Color(0.4f, 0f, 0f, 0.6f);
                 HandleBombParticles(targetObj);
+                return;
             }
-            else if (unitsActive)
-            {
-                img.color = Color.red;
-                ClearBombParticles(targetObj); 
 
-            }
-            else if (ErasActive)
+            if (bombParticles.Count > 0)
             {
-                img.color = new Color(0f, 0f, 0.5450981f, 0.6f);
-                ClearBombParticles(targetObj); 
-
-            }
-            else if (ItemsActive)
-            {
-            //    img.color = new Color(1f, 0.5490196f, 0f, 1f);
-                img.color = new Color(0f, 0f, 0f, 0.6f);
-                ClearBombParticles(targetObj); 
-
-            }
-            else if (SpaceActive)
-            {
-                img.color = new Color(0.04f, 0.06f, 0.12f, 0.6f);
-                ClearBombParticles(targetObj); 
-            }
-            else if (MainActive)
-            {
-                img.color = new Color(0f, 0f, 0f, 0.6f);
-                ClearBombParticles(targetObj); 
-            }
-            else
-            {
-
-                if (mb_originalScrollColor != null)
-                {
-                    img.color = mb_originalScrollColor.Value;
-                }
                 ClearBombParticles(targetObj);
+            }
+
+            if (e != null && e.activeInHierarchy)
+            {
+                targetImg.color = Color.red;
+            }
+            else if (ErasTab != null && ErasTab.activeInHierarchy)
+            {
+                targetImg.color = new Color(0f, 0f, 0.5450981f, 0.6f);
+            }
+            else if (ItemsTab != null && ItemsTab.activeInHierarchy)
+            {
+                targetImg.color = new Color(0f, 0f, 0f, 0.6f);
+            }
+            else if (SpaceTab != null && SpaceTab.activeInHierarchy)
+            {
+                targetImg.color = new Color(0.04f, 0.06f, 0.12f, 0.6f);
+            }
+            else if (MainTab != null && MainTab.activeInHierarchy)
+            {
+                targetImg.color = new Color(0f, 0f, 0f, 0.6f);
+            }
+            else if (mb_originalScrollColor != null)
+            {
+                targetImg.color = mb_originalScrollColor.Value;
             }
         }
 
         void HandleBombParticles(GameObject parent)
         {
-            RectTransform parentRT = parent.GetComponent<RectTransform>();
-
-            if (parent.GetComponent<UnityEngine.UI.Mask>() == null)
+            if (targetRT == null) targetRT = parent.GetComponent<RectTransform>();
+            if (targetMask == null)
             {
-                var mask = parent.AddComponent<UnityEngine.UI.Mask>();
-                mask.showMaskGraphic = true; 
+                targetMask = parent.GetComponent<Mask>();
+                if (targetMask == null)
+                {
+                    targetMask = parent.AddComponent<Mask>();
+                    targetMask.showMaskGraphic = true;
+                }
             }
 
             particleTimer += Time.deltaTime;
 
-            if (particleTimer > 0.05f && bombParticles.Count < 500)
+            if (particleTimer > 0.08f && bombParticles.Count < MaxBombParticles)
             {
                 particleTimer = 0f;
 
@@ -162,14 +138,15 @@ namespace ModernBox
                 p.transform.SetParent(parent.transform, false);
                 p.transform.SetAsFirstSibling();
 
-                var img = p.AddComponent<UnityEngine.UI.Image>();
+                var img = p.AddComponent<Image>();
                 img.color = Color.yellow;
+                img.raycastTarget = false;
 
                 RectTransform rt = p.GetComponent<RectTransform>();
                 rt.sizeDelta = new Vector2(4, 4);
 
-                float width = parentRT.rect.width;
-                float height = parentRT.rect.height;
+                float width = targetRT.rect.width;
+                float height = targetRT.rect.height;
 
                 rt.anchoredPosition = new Vector2(
                     UnityEngine.Random.Range(-width / 2f, width / 2f),
@@ -179,36 +156,34 @@ namespace ModernBox
                 bombParticles.Add(img);
             }
 
+            float halfHeight = targetRT.rect.height / 2f;
+            float xOffset = Mathf.Sin(Time.time * 5f) * 0.5f;
+            float yOffset = 50f * Time.deltaTime;
+
             for (int i = bombParticles.Count - 1; i >= 0; i--)
             {
                 var p = bombParticles[i];
                 if (p == null) { bombParticles.RemoveAt(i); continue; }
 
                 RectTransform rt = p.rectTransform;
+                rt.anchoredPosition += new Vector2(xOffset, yOffset);
 
-                rt.anchoredPosition += new Vector2(
-                    Mathf.Sin(Time.time * 5f) * 0.5f, 
-                    50f * Time.deltaTime
-                );
-
-                float halfHeight = parentRT.rect.height / 2f;
                 if (rt.anchoredPosition.y > halfHeight)
                 {
                     Vector2 pos = rt.anchoredPosition;
-                    pos.y = -halfHeight; 
+                    pos.y = -halfHeight;
                     rt.anchoredPosition = pos;
                 }
 
                 Color c = p.color;
                 float normalizeY = (rt.anchoredPosition.y + halfHeight) / (halfHeight * 2f);
-                c.a = Mathf.Lerp(1f, 0.2f, normalizeY); 
+                c.a = Mathf.Lerp(1f, 0.2f, normalizeY);
                 p.color = c;
             }
         }
 
         void ClearBombParticles(GameObject parent)
         {
-
             for (int i = 0; i < bombParticles.Count; i++)
             {
                 if (bombParticles[i] != null)
@@ -216,10 +191,12 @@ namespace ModernBox
             }
             bombParticles.Clear();
 
-            var mask = parent.GetComponent<UnityEngine.UI.Mask>();
-            if (mask != null)
+            if (targetMask == null && parent != null)
+                targetMask = parent.GetComponent<Mask>();
+            if (targetMask != null)
             {
-                GameObject.Destroy(mask);
+                GameObject.Destroy(targetMask);
+                targetMask = null;
             }
         }
     }

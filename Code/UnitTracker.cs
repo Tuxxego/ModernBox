@@ -57,11 +57,17 @@ public class UnitTracker : MonoBehaviour
     private Sprite LoadSpriteForUnit(string id)
     {
         string[] spriteNames = { "walk_0", "idle_0", "swim_0" };
-        foreach (string name in spriteNames)
+        // Unity 的资源键区分大小写：游戏内置贴图用 "Actors/"，
+        // 而 Mod 自带的 GameResources/actors/ 是小写目录，必须两种都试。
+        string[] roots = { "Actors", "actors" };
+        foreach (string root in roots)
         {
-            Sprite found = Resources.Load<Sprite>($"Actors/{id}/main/{name}");
-            if (found != null)
-                return found;
+            foreach (string name in spriteNames)
+            {
+                Sprite found = Resources.Load<Sprite>($"{root}/{id}/main/{name}");
+                if (found != null)
+                    return found;
+            }
         }
         return null;
     }
@@ -72,7 +78,7 @@ public class UnitTracker : MonoBehaviour
       // LocalizedTextManager.getText meldet ihn per Debug.LogError als 'missing text' (oeffnet beim ersten Fehler die Spielkonsole
       // ueber dem Bild) und zeigt danach doch den unveraenderten Satz. Mit pTranslate false erscheint derselbe Text ohne Fehler.
       // Gleich behandelt: alle 23 festen Hinweise dieser Mod (Fahrzeug-Spawn, Pizza, Ereignisse, Ressourcen-Import).
-      WorldTip.showNow("You must spawn this vehicle within a kingdom.", false, "top", 3f);
+      WorldTip.showNow(ModernBox.ModernBoxLocale.Tr("You must spawn this vehicle within a kingdom."), false, "top", 3f);
       return false;
     }
 
@@ -95,24 +101,10 @@ public class UnitTracker : MonoBehaviour
 
     if (pCity != null)
     {
-        object kingdom = null;
-        var cityType = typeof(City);
-        var kingdomField = cityType.GetField("kingdom", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-        var kingdomProperty = cityType.GetProperty("kingdom", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-        if (kingdomField != null)
-        {
-            kingdom = kingdomField.GetValue(pCity);
-        }
-        else if (kingdomProperty != null)
-        {
-            kingdom = kingdomProperty.GetValue(pCity);
-        }
-
         baseVehicle.setCity(pCity);
-        if (kingdom is Kingdom k)
+        if (pCity.kingdom != null)
         {
-            baseVehicle.setKingdom(k);
+            baseVehicle.setKingdom(pCity.kingdom);
         }
         else
         {
@@ -148,8 +140,6 @@ public class UnitTracker : MonoBehaviour
 			}
             
     TransformUnit(baseVehicle, text, pTile);
-    return true;
-
     return true;
   }
 

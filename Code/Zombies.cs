@@ -385,14 +385,8 @@ namespace ModernBox
 
         public static bool zombie_spawnerEffect(BaseSimObject pTarget, WorldTile pTile = null)
         {
-
-            int zombieCount = 0;
-            foreach (Actor a in MapBox.instance.units)
-            {
-                if (a != null && a.hasTrait("zombie"))
-                    zombieCount++;
-            }
-
+            // Optimization: Read cached zombie count from StatManager (updated every 0.5s) instead of scanning all units on every trigger
+            int zombieCount = StatManager.Instance != null ? StatManager.Instance.zomboos : 0;
             if (zombieCount > 3000)
                 return false;
 
@@ -566,18 +560,22 @@ public static class ZombieTransformation
 
     private static string WeightedRandom(List<(string id, float weight)> options)
     {
-        float total = options.Sum(o => o.weight);
+        float total = 0f;
+        for (int i = 0; i < options.Count; i++)
+        {
+            total += options[i].weight;
+        }
         float roll = UnityEngine.Random.Range(0f, total);
         float accum = 0f;
 
-        foreach (var option in options)
+        for (int i = 0; i < options.Count; i++)
         {
-            accum += option.weight;
+            accum += options[i].weight;
             if (roll <= accum)
-                return option.id;
+                return options[i].id;
         }
 
-        return options.Last().id; 
+        return options[options.Count - 1].id;
     }
 }
 }

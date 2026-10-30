@@ -8158,43 +8158,87 @@ private static AirVehicleProfile GetAirVehicleProfileOrDefault(Actor actor)
 	return DefaultAirVehicleProfile;
 }
 
+private static readonly System.Collections.Concurrent.ConcurrentDictionary<ActorAsset, bool> UnitPotentialAssetCache =
+	new System.Collections.Concurrent.ConcurrentDictionary<ActorAsset, bool>();
+private static readonly System.Collections.Concurrent.ConcurrentDictionary<ActorAsset, bool> VehicleAssetCache =
+	new System.Collections.Concurrent.ConcurrentDictionary<ActorAsset, bool>();
+private static volatile bool _runtimeVehicleTraitGranted;
+
+[HarmonyPatch(typeof(Actor), "addTrait", new Type[] { typeof(string), typeof(bool) })]
+public static class Patch_Actor_AddTrait_InvalidateVehicleCache
+{
+	[HarmonyPostfix]
+	public static void Postfix(string pTraitID)
+	{
+		if (pTraitID == "Unitpotential" || pTraitID == "boat")
+		{
+			_runtimeVehicleTraitGranted = true;
+		}
+	}
+}
+
+internal static bool HasUnitPotentialFast(Actor actor)
+{
+	if (actor == null) return false;
+	ActorAsset asset = actor.asset;
+	if (asset != null)
+	{
+		if (!UnitPotentialAssetCache.TryGetValue(asset, out bool assetHas))
+		{
+			assetHas = asset.traits != null && asset.traits.Contains("Unitpotential");
+			UnitPotentialAssetCache[asset] = assetHas;
+		}
+		if (assetHas) return true;
+		if (!_runtimeVehicleTraitGranted) return false;
+	}
+	return actor.hasTrait("Unitpotential");
+}
+
 private static bool IsAirVehicleActor(Actor actor)
 {
 	return TryGetAirVehicleProfile(actor, out _);
 }
 
-private static bool IsVehicleActor(Actor actor)
+internal static bool IsVehicleActor(Actor actor)
 {
-	if (actor == null)
+	if (actor == null) return false;
+	ActorAsset asset = actor.asset;
+	if (asset != null)
 	{
-		return false;
+		if (asset.is_boat) return true;
+		if (!VehicleAssetCache.TryGetValue(asset, out bool isVehAsset))
+		{
+			isVehAsset = asset.traits != null && (asset.traits.Contains("Unitpotential") || asset.traits.Contains("boat"));
+			VehicleAssetCache[asset] = isVehAsset;
+		}
+		if (isVehAsset) return true;
+		if (!_runtimeVehicleTraitGranted) return false;
 	}
-
-	if (actor.hasTrait("Unitpotential") || actor.hasTrait("boat"))
-	{
-		return true;
-	}
-
-	return actor.asset != null && actor.asset.is_boat;
+	return actor.hasTrait("Unitpotential") || actor.hasTrait("boat");
 }
+
+private static readonly System.Collections.Concurrent.ConcurrentDictionary<ActorAsset, LandVehicleAmmoProfile> LandProfileByAsset =
+	new System.Collections.Concurrent.ConcurrentDictionary<ActorAsset, LandVehicleAmmoProfile>();
 
 private static bool TryGetLandVehicleAmmoProfile(Actor actor, out LandVehicleAmmoProfile profile)
 {
 	profile = null;
-	// Manu-Fix 041: the profile table is checked first; ordinary units leave before the trait lookup by name.
-	if (actor == null || actor.asset == null || !LandVehicleAmmoProfiles.TryGetValue(actor.asset.id, out profile))
+	if (actor == null || actor.asset == null)
 	{
-		profile = null;
 		return false;
 	}
 
-	if (!actor.hasTrait("Unitpotential") || IsAirVehicleActor(actor))
+	ActorAsset asset = actor.asset;
+	if (!LandProfileByAsset.TryGetValue(asset, out profile))
 	{
-		profile = null;
-		return false;
+		if (!LandVehicleAmmoProfiles.TryGetValue(asset.id, out profile) || !HasUnitPotentialFast(actor) || IsAirVehicleActor(actor))
+		{
+			profile = null;
+		}
+		LandProfileByAsset[asset] = profile;
 	}
 
-	return true;
+	return profile != null;
 }
 
 private static bool IsLandVehicleAmmoActor(Actor actor)
@@ -8230,7 +8274,7 @@ private static bool ShouldProtectCivilianFromVehicle(Actor attacker, BaseSimObje
 		return false;
 	}
 
-	if (targetActor.hasTrait("Unitpotential") || targetActor.hasTrait("boat") || targetActor.asset.is_boat || targetActor.isWarrior())
+	if (IsVehicleActor(targetActor) || targetActor.isWarrior())
 	{
 		return false;
 	}
@@ -8332,28 +8376,14 @@ private static void EnsureLandVehicleAmmoState(Actor actor)
 	}
 
 	actor.data.get(LandVehicleAmmoCurrentKey, out int ammo, -1);
-	if (ammo < 0)
+	if (ammo >= 0)
 	{
-		actor.data.set(LandVehicleAmmoCurrentKey, profile.ammoMax);
+		return;
 	}
-
-	actor.data.get(LandVehicleReloadTickKey, out int reloadTicks, -1);
-	if (reloadTicks < 0)
-	{
-		actor.data.set(LandVehicleReloadTickKey, 0);
-	}
-
-	actor.data.get(LandVehicleNavTickKey, out int navTicks, -1);
-	if (navTicks < 0)
-	{
-		actor.data.set(LandVehicleNavTickKey, 0);
-	}
-
-	actor.data.get(LandVehicleReloadTimerKey, out float reloadTimer, -1f);
-	if (reloadTimer < 0f)
-	{
-		actor.data.set(LandVehicleReloadTimerKey, 0f);
-	}
+	actor.data.set(LandVehicleAmmoCurrentKey, profile.ammoMax);
+	actor.data.set(LandVehicleReloadTickKey, 0);
+	actor.data.set(LandVehicleNavTickKey, 0);
+	actor.data.set(LandVehicleReloadTimerKey, 0f);
 }
 
 private static int GetLandVehicleAmmo(Actor actor)
@@ -8392,37 +8422,16 @@ private static void EnsureBomberState(Actor actor)
 {
 	AirVehicleProfile profile = GetAirVehicleProfileOrDefault(actor);
 	actor.data.get(BomberAmmoCurrentKey, out int ammo, -1);
-	if (ammo < 0)
+	if (ammo >= 0)
 	{
-		actor.data.set(BomberAmmoCurrentKey, profile.ammoMax);
+		return;
 	}
-	actor.data.get(BomberReloadTickKey, out int reloadTicks, -1);
-	if (reloadTicks < 0)
-	{
-		actor.data.set(BomberReloadTickKey, 0);
-	}
-	actor.data.get(BomberFireTickKey, out int fireTicks, -1);
-	if (fireTicks < 0)
-	{
-		actor.data.set(BomberFireTickKey, 0);
-	}
-	actor.data.get(BomberNavTickKey, out int navTicks, -1);
-	if (navTicks < 0)
-	{
-		actor.data.set(BomberNavTickKey, 0);
-	}
-
-	actor.data.get(BomberReloadTimerKey, out float reloadTimer, -1f);
-	if (reloadTimer < 0f)
-	{
-		actor.data.set(BomberReloadTimerKey, 0f);
-	}
-
-	actor.data.get(BomberTargetRefreshTickKey, out int refreshTick, -1);
-	if (refreshTick < 0)
-	{
-		actor.data.set(BomberTargetRefreshTickKey, 0);
-	}
+	actor.data.set(BomberAmmoCurrentKey, profile.ammoMax);
+	actor.data.set(BomberReloadTickKey, 0);
+	actor.data.set(BomberFireTickKey, 0);
+	actor.data.set(BomberNavTickKey, 0);
+	actor.data.set(BomberReloadTimerKey, 0f);
+	actor.data.set(BomberTargetRefreshTickKey, 0);
 }
 
 private static bool AdvanceReloadTimer(Actor actor, string timerKey, float pElapsed, float durationSeconds)
@@ -8448,7 +8457,11 @@ private static bool AdvanceReloadTimer(Actor actor, string timerKey, float pElap
 
 private static void ResetReloadTimer(Actor actor, string timerKey)
 {
-	actor.data.set(timerKey, 0f);
+	actor.data.get(timerKey, out float currentTimer, 0f);
+	if (currentTimer != 0f)
+	{
+		actor.data.set(timerKey, 0f);
+	}
 }
 
 private static void RecoverHealthPercentOverTime(Actor actor, string poolKey, float pElapsed, float percentPerSecond)
@@ -8890,7 +8903,7 @@ private static bool IsPreferredAirEnemyActor(Actor actor)
 		return false;
 	}
 
-	if (actor.hasTrait("Unitpotential") || actor.isWarrior() || actor.hasTrait("boat") || actor.asset.is_boat)
+	if (IsVehicleActor(actor) || actor.isWarrior())
 	{
 		return true;
 	}
@@ -9049,6 +9062,13 @@ private static BaseSimObject AcquireAirEngageTarget(Actor actor, WorldTile searc
 	BaseSimObject existing = GetValidExistingAirTarget(actor);
 	bool refreshNow = ShouldRefreshAirTarget(actor, existing);
 
+	// Optimization: When an aircraft already has a valid Actor target and the refresh interval has not elapsed,
+	// return it immediately instead of scanning 3 chunks of units and buildings on every AI tick!
+	if (existing != null && !refreshNow && existing.isActor())
+	{
+		return existing;
+	}
+
 	BaseSimObject preferred = FindPreferredAirTargetAroundTile(actor, searchCenter, searchRadius);
 	if (preferred == null && actor != null && actor.current_tile != null && actor.current_tile != searchCenter)
 	{
@@ -9112,7 +9132,7 @@ private static bool TryFindEnemyPriorityTarget(Actor caster, out Vector2 targetP
 			continue;
 		}
 
-		bool highValue = other.hasTrait("Unitpotential") || other.isWarrior();
+		bool highValue = HasUnitPotentialFast(other) || other.isWarrior();
 		if (!highValue && other.profession_asset != null)
 		{
 			UnitProfession profession = other.profession_asset.profession_id;
@@ -9279,30 +9299,49 @@ private static void UpdateBomberHumanRuntime(Actor actor, float pElapsed)
 
 	int ammo = GetBomberAmmo(actor);
 	bool forceRtb = GetBomberBool(actor, BomberForceRtbKey) || ammo <= 0;
-	WorldTile baseTile = FindBomberBaseTile(actor);
 	bool hasWar = actor.kingdom != null && actor.kingdom.hasEnemies();
-	bool enemyNearby = HasNearbyEnemy(actor, 35f);
-	bool canTakeoffFromLanded = ammo >= profile.takeoffAmmoThreshold && !forceRtb && (hasWar || enemyNearby);
 	bool landed = GetBomberBool(actor, BomberLandedKey);
+	bool enemyNearby = false;
+	bool enemyNearbyChecked = false;
 
-	if (landed && !canTakeoffFromLanded)
+	if (landed)
 	{
-		actor.clearAttackTarget();
-		actor.stopMovement();
-		actor.setFlying(false);
-		SetBomberBool(actor, BomberLandedKey, true);
-		RecoverHealthPercentOverTime(actor, BomberRepairPoolKey, pElapsed, AirVehicleRepairPercentPerSecond);
-		if (GetBomberAmmo(actor) < profile.ammoMax && AdvanceReloadTimer(actor, BomberReloadTimerKey, pElapsed, profile.reloadDurationSeconds))
+		bool canTakeoffFromLanded = false;
+		if (ammo >= profile.takeoffAmmoThreshold && !forceRtb)
 		{
-			SetBomberAmmo(actor, profile.ammoMax);
-			SetBomberBool(actor, BomberForceRtbKey, false);
+			if (hasWar)
+			{
+				canTakeoffFromLanded = true;
+			}
+			else
+			{
+				enemyNearby = HasNearbyEnemy(actor, 35f);
+				enemyNearbyChecked = true;
+				canTakeoffFromLanded = enemyNearby;
+			}
 		}
-		else if (GetBomberAmmo(actor) >= profile.ammoMax)
+
+		if (!canTakeoffFromLanded)
 		{
-			ResetReloadTimer(actor, BomberReloadTimerKey);
+			actor.clearAttackTarget();
+			actor.stopMovement();
+			actor.setFlying(false);
+			SetBomberBool(actor, BomberLandedKey, true);
+			RecoverHealthPercentOverTime(actor, BomberRepairPoolKey, pElapsed, AirVehicleRepairPercentPerSecond);
+			if (ammo < profile.ammoMax && AdvanceReloadTimer(actor, BomberReloadTimerKey, pElapsed, profile.reloadDurationSeconds))
+			{
+				SetBomberAmmo(actor, profile.ammoMax);
+				SetBomberBool(actor, BomberForceRtbKey, false);
+			}
+			else if (ammo >= profile.ammoMax)
+			{
+				ResetReloadTimer(actor, BomberReloadTimerKey);
+			}
+			return;
 		}
-		return;
 	}
+
+	WorldTile baseTile = FindBomberBaseTile(actor);
 
 	if (forceRtb)
 	{
@@ -9333,6 +9372,10 @@ private static void UpdateBomberHumanRuntime(Actor actor, float pElapsed)
 		return;
 	}
 
+	if (!enemyNearbyChecked)
+	{
+		enemyNearby = HasNearbyEnemy(actor, 35f);
+	}
 	WorldTile localDefenseCenter = actor.current_tile ?? baseTile;
 	bool localDefenseMode = enemyNearby && ammo >= profile.takeoffAmmoThreshold;
 	if (localDefenseMode)
@@ -9854,7 +9897,10 @@ public static bool AntiBossNuke(BaseSimObject pTarget, WorldTile pTile = null)
         return false;
 
     List<Actor> validTargets = new List<Actor>();
-    foreach (var other in World.world.units)
+    var bossPool = StatManager.Instance != null && StatManager.CachedBossUnits.Count > 0
+        ? (System.Collections.Generic.IEnumerable<Actor>)StatManager.CachedBossUnits
+        : World.world.units;
+    foreach (var other in bossPool)
     {
         if (other == null || !other.isAlive() || other == caster)
             continue;
@@ -9922,6 +9968,10 @@ public static class Patch_ActorAnimationLoader_Fix
 			[HarmonyPostfix]
 			public static void Postfix(Actor __instance, float pElapsed)
 			{
+				if (__instance == null || (!TryGetAirVehicleProfile(__instance, out _) && !TryGetLandVehicleAmmoProfile(__instance, out _)))
+				{
+					return;
+				}
 				try
 				{
 					UpdateBomberHumanRuntime(__instance, pElapsed);
@@ -10126,7 +10176,7 @@ public static class Patch_Actor_Exclude_Unitpotential_Family
 {
     static bool Prefix(Actor __instance, Family pObject)
     {
-        if (__instance.hasTrait("Unitpotential"))
+        if (HasUnitPotentialFast(__instance))
             return false;
         return true;
     }
@@ -10138,7 +10188,7 @@ public static class Patch_Kingdom_Exclude_Unitpotential_King
 {
     static bool Prefix(Kingdom __instance, Actor pActor)
     {
-        if (pActor.hasTrait("Unitpotential"))
+        if (HasUnitPotentialFast(pActor))
             return false;
         return true;
     }
@@ -10155,7 +10205,7 @@ public static class Patch_City_Exclude_Unitpotential_Leader
     // save whose city still pointed at a leader that had died before saving).
     static bool Prefix(City __instance, Actor pActor, bool pNew)
     {
-        if (pActor != null && pActor.hasTrait("Unitpotential"))
+        if (pActor != null && HasUnitPotentialFast(pActor))
             return false;
         return true;
     }
@@ -10168,7 +10218,7 @@ public static class Patch_TileZone_CanBeClaimedByCity_Unitpotential
 {
     static bool Prefix(TileZone __instance, City pCity, ref bool __result)
     {
-        if (pCity != null && pCity.leader != null && pCity.leader.hasTrait("Unitpotential"))
+        if (pCity != null && pCity.leader != null && HasUnitPotentialFast(pCity.leader))
         {
             __result = false;
             return false;
@@ -10183,7 +10233,7 @@ public static class Patch_TileZone_IsGoodForNewCity_Unitpotential
 {
     static bool Prefix(TileZone __instance, Actor pActor, ref bool __result)
     {
-        if (pActor != null && pActor.hasTrait("Unitpotential"))
+        if (pActor != null && HasUnitPotentialFast(pActor))
         {
             __result = false;
             return false;
@@ -10200,7 +10250,7 @@ public static class Patch_Clan_NewClan
 {
     static bool Prefix(Actor pFounder, bool pAddDefaultTraits)
     {
-        return pFounder != null && !pFounder.hasTrait("Unitpotential");
+        return pFounder != null && !HasUnitPotentialFast(pFounder);
     }
 }
 
@@ -10350,7 +10400,7 @@ public static class Patch_UtilityBasedDecisionSystem_RegisterBasicDecisionLists
 {
     static bool Prefix(Actor pActor, bool pGameplay)
     {
-        if (pActor.asset.is_boat || pActor.hasTrait("Unitpotential"))
+        if (pActor.asset.is_boat || HasUnitPotentialFast(pActor))
         {
             return false;
         }
@@ -10358,24 +10408,7 @@ public static class Patch_UtilityBasedDecisionSystem_RegisterBasicDecisionLists
     }
 }
 
-[HarmonyPatch(typeof(ItemCrafting), nameof(ItemCrafting.tryToCraftRandomWeapon))]
-public class Patch_TryToCraftRandomWeapon
-{
-    static bool Prefix(Actor pActor, City pCity)
-    {
-        if (pActor.hasTrait("Unitpotential"))
-        {
-            return false;
-        }
-
-        if (pActor.equipment?.getSlot(EquipmentType.Weapon) == null)
-        {
-            return false;
-        }
-
-        return true;
-    }
-}
+// Optimization: Removed duplicate Patch_TryToCraftRandomWeapon (already handled by Patch_ItemCrafting_ExcludeUnitpotential below).
 
 
 [HarmonyPatch]
@@ -10397,7 +10430,7 @@ public static class Patch_ItemCrafting_ExcludeUnitpotential
 
     private static bool isSafeToCraft(Actor pActor, EquipmentType type)
     {
-        if (pActor == null || pActor.hasTrait("Unitpotential"))
+        if (pActor == null || HasUnitPotentialFast(pActor))
             return false;
 
         if (pActor.equipment == null)

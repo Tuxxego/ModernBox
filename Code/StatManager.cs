@@ -9,6 +9,7 @@ using ModernBox;
 
 public class StatManager : MonoBehaviour
 {
+    public static readonly List<Actor> CachedBossUnits = new List<Actor>();
     public static StatManager Instance { get; private set; }
 
     public float timePlayed;
@@ -202,24 +203,20 @@ public class StatManager : MonoBehaviour
         bool statsJetzt = _manuStatTimer >= 0.5f;
         if (statsJetzt) _manuStatTimer = 0f;
 
-        int potentialUnits = currentVehicles;
-        if (statsJetzt) { potentialUnits = 0; foreach (Actor actor in MapBox.instance.units)
+        if (statsJetzt)
         {
-            if (actor != null && actor.hasTrait("Unitpotential"))
+            int potentialUnits = 0;
+            int zombieCount = 0;
+            CachedBossUnits.Clear();
+            foreach (Actor actor in MapBox.instance.units)
             {
-                potentialUnits++;
+                if (actor == null || !actor.isAlive()) continue;
+                if (Vehicles.HasUnitPotentialFast(actor)) potentialUnits++;
+                if (actor.hasTrait("zombie")) zombieCount++;
+                if (actor.stats != null && actor.stats["health"] >= 10000f) CachedBossUnits.Add(actor);
             }
-        }
-        }
-        currentVehicles = potentialUnits;
-
-        int zomboos = 0;
-        if (statsJetzt) foreach (Actor actor in MapBox.instance.units)
-        {
-            if (actor != null && actor.hasTrait("zombie"))
-            {
-                zomboos++;
-            }
+            currentVehicles = potentialUnits;
+            this.zomboos = zombieCount;
         }
 
         if (statsJetzt && statLabel != null)
@@ -234,25 +231,25 @@ public class StatManager : MonoBehaviour
             if (!typedBombs && bombsDropped > 0 && !isTyping)
             {
                 typedBombs = true;
-                StartCoroutine(TypeLine($"<b>Bombs Dropped:</b> {bombsDropped}"));
+                StartCoroutine(TypeLine(ModernBoxLocale.IsChinese() ? $"<b>已投下炸弹:</b> {bombsDropped}" : $"<b>Bombs Dropped:</b> {bombsDropped}"));
             }
 
             if (!typedVehicles && currentVehicles > 0 && !isTyping)
             {
                 typedVehicles = true;
-                StartCoroutine(TypeLine($"<b>Current Vehicles:</b> {currentVehicles}"));
+                StartCoroutine(TypeLine(ModernBoxLocale.IsChinese() ? $"<b>当前载具数:</b> {currentVehicles}" : $"<b>Current Vehicles:</b> {currentVehicles}"));
             }
 
             if (!typedAI && unitsSpawned > 0 && !isTyping)
             {
                 typedAI = true;
-                StartCoroutine(TypeLine($"<b>AI Nukes Dropped:</b> {unitsSpawned}"));
+                StartCoroutine(TypeLine(ModernBoxLocale.IsChinese() ? $"<b>AI 核打击次数:</b> {unitsSpawned}" : $"<b>AI Nukes Dropped:</b> {unitsSpawned}"));
             }
 
-            if (!typedZombies && zomboos > 0 && !isTyping)
+            if (!typedZombies && this.zomboos > 0 && !isTyping)
             {
                 typedZombies = true;
-                StartCoroutine(TypeLine($"<b>Zombies:</b> {zomboos}"));
+                StartCoroutine(TypeLine(ModernBoxLocale.IsChinese() ? $"<b>当前丧尸数:</b> {this.zomboos}" : $"<b>Zombies:</b> {this.zomboos}"));
             }
         }
 
@@ -268,9 +265,18 @@ public class StatManager : MonoBehaviour
         if (statsJetzt && statLabel3 != null)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"<color=#70D4FC><b>Planet</b></color>  <color=#F0F0E0>{currentPlanet}</color>");
-            sb.AppendLine($"<color=#70D4FC><b>Planet Type</b></color>  <color=#A8E08A>{currentPlanetType}</color>");
-            sb.AppendLine($"<color=#70D4FC><b>Planets Visited</b></color>  <color=#F0F0E0>{PlanetManager.instance.getplanettotalcount()}</color>");
+            if (ModernBoxLocale.IsChinese())
+            {
+                sb.AppendLine($"<color=#70D4FC><b>当前星球</b></color>  <color=#F0F0E0>{currentPlanet}</color>");
+                sb.AppendLine($"<color=#70D4FC><b>星球类型</b></color>  <color=#A8E08A>{currentPlanetType}</color>");
+                sb.AppendLine($"<color=#70D4FC><b>已探索星球</b></color>  <color=#F0F0E0>{PlanetManager.instance.getplanettotalcount()}</color>");
+            }
+            else
+            {
+                sb.AppendLine($"<color=#70D4FC><b>Planet</b></color>  <color=#F0F0E0>{currentPlanet}</color>");
+                sb.AppendLine($"<color=#70D4FC><b>Planet Type</b></color>  <color=#A8E08A>{currentPlanetType}</color>");
+                sb.AppendLine($"<color=#70D4FC><b>Planets Visited</b></color>  <color=#F0F0E0>{PlanetManager.instance.getplanettotalcount()}</color>");
+            }
             statLabel3.text = sb.ToString();
         }
 
@@ -414,27 +420,37 @@ public class StatManager : MonoBehaviour
     private string GoofyShit()
     {
         StringBuilder sb = new StringBuilder();
+        bool cn = ModernBoxLocale.IsChinese();
 
         if (ModernBoxPrefs.Balance == BalanceMode.Carnage)
         {
-            sb.AppendLine("<color=red><b>CARNAGE</b></color>");
+            sb.AppendLine(cn ? "<color=red><b>纯粹屠戮模式 (CARNAGE)</b></color>" : "<color=red><b>CARNAGE</b></color>");
         }
 
-        sb.AppendLine($"<b>Time Playing:</b> {FormatTime(timePlayed)}");
-        sb.AppendLine($"<b>Current Era:</b> {currentEra}");
-        sb.AppendLine($"<b>Version: 5.01</b>");
+        sb.AppendLine(cn ? $"<b>游玩时长:</b> {FormatTime(timePlayed)}" : $"<b>Time Playing:</b> {FormatTime(timePlayed)}");
+        string displayEra = currentEra;
+        if (cn)
+        {
+            displayEra = currentEra == "Medieval" || currentEra == "medieval" ? "中世纪" :
+                         currentEra == "Renaissance" || currentEra == "renaissance" ? "文艺复兴" :
+                         currentEra == "Modern" || currentEra == "modern" ? "现代" :
+                         currentEra == "Hyperfuture" || currentEra == "hyperfuture" ? "超未来" :
+                         currentEra == "none" ? "无（待建立王国）" : currentEra;
+        }
+        sb.AppendLine(cn ? $"<b>当前时代:</b> {displayEra}" : $"<b>Current Era:</b> {currentEra}");
+        sb.AppendLine(cn ? "<b>版本: 5.01 (中文优化版)</b>" : "<b>Version: 5.01</b>");
 
         if (typedBombs)
-            sb.AppendLine($"<b>Bombs Dropped:</b> {bombsDropped}");
+            sb.AppendLine(cn ? $"<b>已投下炸弹:</b> {bombsDropped}" : $"<b>Bombs Dropped:</b> {bombsDropped}");
 
         if (typedVehicles)
-            sb.AppendLine($"<b>Current Vehicles:</b> {currentVehicles}");
+            sb.AppendLine(cn ? $"<b>当前载具数:</b> {currentVehicles}" : $"<b>Current Vehicles:</b> {currentVehicles}");
 
         if (typedAI)
-            sb.AppendLine($"<b>AI Nukes Dropped:</b> {unitsSpawned}");
+            sb.AppendLine(cn ? $"<b>AI 核打击次数:</b> {unitsSpawned}" : $"<b>AI Nukes Dropped:</b> {unitsSpawned}");
 
         if (typedZombies)
-            sb.AppendLine($"<b>Zombies:</b> {zomboos}");
+            sb.AppendLine(cn ? $"<b>当前丧尸数:</b> {this.zomboos}" : $"<b>Zombies:</b> {this.zomboos}");
 
         return sb.ToString().TrimEnd();
     }

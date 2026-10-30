@@ -35,7 +35,7 @@ namespace ModernBox
 			          string gold = "#FFD700";
 					  string Dgold = "#ffae00";
 					  var description =
-			@"<color='" + gold + @"'>Welcome to ModernBox 3</color>
+			@"<color='" + gold + @"'>" + ModernBoxLocale.Tr("Welcome to ModernBox 3") + @"</color>
 			";
 					  var name = window.transform.Find("Background").Find("Name").gameObject;
 					  var nameText = name.GetComponent<Text>();
