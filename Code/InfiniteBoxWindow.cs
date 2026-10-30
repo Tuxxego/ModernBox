@@ -35,7 +35,7 @@ namespace ModernBox
 			          string gold = "#FFD700";
 					  string Dgold = "#ffae00";
 					  var description =
-			@"<color='" + gold + @"'>InfiniteBox is a god simulator game similar to WorldBox but more built for eras, space, and more advanced AI. It will also have a built in modloader with full documentation. Learn More by Joining the Discord Server!</color>
+			@"<color='" + gold + @"'>" + ModernBoxLocale.Tr("InfiniteBox is a god simulator game similar to WorldBox but more built for eras, space, and more advanced AI. It will also have a built in modloader with full documentation. Learn More by Joining the Discord Server!") + @"</color>
 			";
 					  var name = window.transform.Find("Background").Find("Name").gameObject;
 					  var nameText = name.GetComponent<Text>();

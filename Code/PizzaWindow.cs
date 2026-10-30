@@ -35,7 +35,7 @@ namespace ModernBox
 			          string gold = "#FFD700";
 					  string Dgold = "#ffae00";
 					  var description =
-			@"<color='" + gold + @"'>Welcome to Tux's Pizza shop! I have to work on the multiplayer mod so you will take over my duty as a pizza shop owner for a bit. Please treat my employees (bluenight, dank, and morfos) with respect! oh, and to leave pizza mode, just restart the game.</color>
+			@"<color='" + gold + @"'>" + ModernBoxLocale.Tr("Welcome to Tux's Pizza shop! I have to work on the multiplayer mod so you will take over my duty as a pizza shop owner for a bit. Please treat my employees (bluenight, dank, and morfos) with respect! oh, and to leave pizza mode, just restart the game.") + @"</color>
 			";
 					  var name = window.transform.Find("Background").Find("Name").gameObject;
 					  var nameText = name.GetComponent<Text>();

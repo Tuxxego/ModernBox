@@ -383,14 +383,33 @@ namespace ModernBox
             World.world.StartCoroutine(NoLongerStupid(centerTile, radius, tilesPerFrame, toptiletype, tiletype, terraform, coolThing, traitAdd, zombie, StopTerraform));
         }
 
-private IEnumerator NoLongerStupid(WorldTile centerTile, float radius, float tilesPerFrame, string toptiletype, string tiletype, string terraform = "czar_bomba", bool coolThing = false, string traitAdd = null, bool zombie = false, bool StopTerraform = false)
+        private static Dictionary<WorldTile, List<Actor>> BuildTileActorLookup(MapBox bombWorld, int minX, int maxX, int minY, int maxY)
+        {
+            var map = new Dictionary<WorldTile, List<Actor>>();
+            if (bombWorld?.units == null) return map;
+            foreach (Actor a in bombWorld.units)
+            {
+                if (a == null || !a.isAlive()) continue;
+                WorldTile t = a.current_tile;
+                if (t == null || t.x < minX || t.x > maxX || t.y < minY || t.y > maxY) continue;
+                if (!map.TryGetValue(t, out List<Actor> list))
+                {
+                    list = new List<Actor>(2);
+                    map[t] = list;
+                }
+                list.Add(a);
+            }
+            return map;
+        }
+
+        private IEnumerator NoLongerStupid(WorldTile centerTile, float radius, float tilesPerFrame, string toptiletype, string tiletype, string terraform = "czar_bomba", bool coolThing = false, string traitAdd = null, bool zombie = false, bool StopTerraform = false)
         {
             MapBox bombWorld = World.world;
             int bombSeed = MapBox.current_world_seed_id;
             if (centerTile == null || !IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
             Vector2Int center = centerTile.pos;
             int intRadius = Mathf.CeilToInt(radius);
-            int inttilesPerFrame = Mathf.Max(1, Mathf.CeilToInt(tilesPerFrame)); 
+            int inttilesPerFrame = Mathf.Max(1, Mathf.CeilToInt(tilesPerFrame));
 
             TileType balls = null;
             TopTileType tiley = null;
@@ -406,46 +425,72 @@ private IEnumerator NoLongerStupid(WorldTile centerTile, float radius, float til
 
             TerraformOptions terry = AssetManager.terraform.get(terraform);
             bool ct = coolThing;
+            bool needActors = !string.IsNullOrEmpty(traitAdd) || zombie;
+
+            int minMapX = Mathf.Max(0, center.x - intRadius);
+            int maxMapX = center.x + intRadius;
+            int minMapY = Mathf.Max(0, center.y - intRadius);
+            int maxMapY = center.y + intRadius;
+
+            // Optimization: Only build a tile->actors lookup once per frame when traitAdd or zombie is actually used,
+            // instead of scanning all 20,000+ units in bombWorld.units via LINQ for every single tile!
+            Dictionary<WorldTile, List<Actor>> actorsByTile = needActors
+                ? BuildTileActorLookup(bombWorld, minMapX, maxMapX, minMapY, maxMapY)
+                : null;
 
             int tilesProcessed = 0;
 
             for (int r = 0; r <= intRadius; r++)
             {
+                int minD2 = r > 0 ? (r * r - r + 1) : 0;
+                int maxD2 = r * r + r;
+
                 for (int x = -r; x <= r; x++)
                 {
-                    for (int y = -r; y <= r; y++)
-                    {
-                        if (Mathf.RoundToInt(Vector2.Distance(new Vector2(x, y), Vector2.zero)) != r)
-                            continue;
+                    int checkX = center.x + x;
+                    if (checkX < 0) continue;
 
-                        int checkX = center.x + x;
+                    int x2 = x * x;
+                    int maxY2 = maxD2 - x2;
+                    if (maxY2 < 0) continue;
+
+                    int maxAbsY = Mathf.Min(r, (int)Mathf.Sqrt(maxY2));
+                    int minY2 = minD2 - x2;
+                    int minAbsY = minY2 <= 0 ? 0 : ((int)Mathf.Sqrt(minY2 - 1) + 1);
+
+                    for (int y = -maxAbsY; y <= maxAbsY; y++)
+                    {
+                        if (minAbsY > 0 && y == -minAbsY + 1)
+                        {
+                            y = minAbsY - 1;
+                            continue;
+                        }
+
                         int checkY = center.y + y;
+                        if (checkY < 0) continue;
 
                         if (!IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
                         WorldTile tile = bombWorld.GetTile(checkX, checkY);
                         if (tile != null)
                         {
-
-                            List<Actor> actorsOnTile = bombWorld.units.Cast<Actor>()
-                                .Where(a => a != null && a.isAlive() && a.current_tile == tile)
-                                .ToList();
-
-                            foreach (Actor actor in actorsOnTile)
+                            if (needActors && actorsByTile != null && actorsByTile.TryGetValue(tile, out List<Actor> actorsOnTile))
                             {
-                                if (!string.IsNullOrEmpty(traitAdd))
+                                for (int i = 0; i < actorsOnTile.Count; i++)
                                 {
-                                    actor.addTrait(traitAdd);
-                                }
-
-                                if (zombie)
-                                {
-                                    ActionLibrary.turnIntoZombie(actor);
-                                    continue; 
-
+                                    Actor actor = actorsOnTile[i];
+                                    if (actor == null || !actor.isAlive() || actor.current_tile != tile) continue;
+                                    if (!string.IsNullOrEmpty(traitAdd))
+                                    {
+                                        actor.addTrait(traitAdd);
+                                    }
+                                    if (zombie)
+                                    {
+                                        ActionLibrary.turnIntoZombie(actor);
+                                    }
                                 }
                             }
+
                             // Manu-Fix 033: infection-only blasts need the same per-frame tile budget.
-                            // Skipping terraforming must not skip the counter/yield below.
                             if (!StopTerraform)
                             {
                                 if (!ct)
@@ -470,11 +515,14 @@ private IEnumerator NoLongerStupid(WorldTile centerTile, float radius, float til
                                 tilesProcessed = 0;
                                 yield return null;
                                 if (!IsBombWorldCurrent(bombWorld, bombSeed)) yield break;
+                                if (needActors)
+                                {
+                                    actorsByTile = BuildTileActorLookup(bombWorld, minMapX, maxMapX, minMapY, maxMapY);
+                                }
                             }
                         }
                     }
                 }
-
             }
 
             if (tilesProcessed > 0)
@@ -568,12 +616,20 @@ private IEnumerator NoLongerStupid(WorldTile centerTile, float radius, float til
             for (int r = 0; r <= intRadius; r++)
             {
                 int tilesProcessed = 0;
+                int minD2 = r > 0 ? (r * r - r + 1) : 0;
+                int maxD2 = r * r + r;
                 for (int x = -r; x <= r; x++)
                 {
-                    for (int y = -r; y <= r; y++)
+                    if (center.x + x < 0) continue;
+                    int x2 = x * x;
+                    int maxY2 = maxD2 - x2;
+                    if (maxY2 < 0) continue;
+                    int maxAbsY = Mathf.Min(r, (int)Mathf.Sqrt(maxY2));
+                    int minY2 = minD2 - x2;
+                    int minAbsY = minY2 <= 0 ? 0 : ((int)Mathf.Sqrt(minY2 - 1) + 1);
+                    for (int y = -maxAbsY; y <= maxAbsY; y++)
                     {
-                        if (Mathf.RoundToInt(Vector2.Distance(new Vector2(x, y), Vector2.zero)) != r)
-                            continue;
+                        if (minAbsY > 0 && y == -minAbsY + 1) { y = minAbsY - 1; continue; }
 
                         int checkX = center.x + x;
                         int checkY = center.y + y;
@@ -619,12 +675,20 @@ private IEnumerator NoLongerStupid(WorldTile centerTile, float radius, float til
             for (int r = 0; r <= intRadius; r++)
             {
                 int tilesProcessed = 0;
+                int minD2 = r > 0 ? (r * r - r + 1) : 0;
+                int maxD2 = r * r + r;
                 for (int x = -r; x <= r; x++)
                 {
-                    for (int y = -r; y <= r; y++)
+                    if (center.x + x < 0) continue;
+                    int x2 = x * x;
+                    int maxY2 = maxD2 - x2;
+                    if (maxY2 < 0) continue;
+                    int maxAbsY = Mathf.Min(r, (int)Mathf.Sqrt(maxY2));
+                    int minY2 = minD2 - x2;
+                    int minAbsY = minY2 <= 0 ? 0 : ((int)Mathf.Sqrt(minY2 - 1) + 1);
+                    for (int y = -maxAbsY; y <= maxAbsY; y++)
                     {
-                        if (Mathf.RoundToInt(Vector2.Distance(new Vector2(x, y), Vector2.zero)) != r)
-                            continue;
+                        if (minAbsY > 0 && y == -minAbsY + 1) { y = minAbsY - 1; continue; }
 
                         int checkX = center.x + x;
                         int checkY = center.y + y;

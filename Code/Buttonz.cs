@@ -52,7 +52,7 @@ namespace ModernBox
             statText.fontSize = 9;
             statText.color = new Color(1f, 0.95f, 0.8f); 
             statText.supportRichText = true;
-            statText.text = "Loading stats...";
+            statText.text = ModernBoxLocale.IsChinese() ? "正在加载统计数据..." : "Loading stats...";
 
             RectTransform textRect = statLabelObject.GetComponent<RectTransform>();
             textRect.sizeDelta = new Vector2(200, 100);
@@ -71,7 +71,7 @@ namespace ModernBox
             statText2.fontSize = 9;
             statText2.color = new Color(1f, 0.95f, 0.8f); 
             statText2.supportRichText = true;
-            statText2.text = "Loading stats...";
+            statText2.text = ModernBoxLocale.IsChinese() ? "正在加载统计数据..." : "Loading stats...";
 
             RectTransform textRect2 = stat2LabelObject.GetComponent<RectTransform>();
             textRect2.sizeDelta = new Vector2(200, 100);
@@ -154,7 +154,7 @@ namespace ModernBox
             // Rich text example — your StatManager can push strings like this:
             // "<color=#7DD4FC><b>Kills</b></color>  <color=#FFFFFF>42</color>\n
             //  <color=#7DD4FC><b>Deaths</b></color>  <color=#FF6B6B>7</color>"
-            statText3.text = "<color=#7DD4FC>Loading</color> <color=#AAAAAA>stats...</color>";
+            statText3.text = ModernBoxLocale.IsChinese() ? "<color=#7DD4FC>正在加载</color> <color=#AAAAAA>星球数据...</color>" : "<color=#7DD4FC>Loading</color> <color=#AAAAAA>stats...</color>";
 
             // Shadow for depth
             Shadow statShadow = stat3LabelObject.AddComponent<Shadow>();
@@ -896,7 +896,7 @@ namespace ModernBox
 
         private static void comingSoon() {
             // Manu-Fix 023: fester Hinweistext, kein Textschluessel (pTranslate false) - Begruendung in UnitTracker.SpawnVehicle.
-            WorldTip.showNow("Coming soon. Maybe", false, "top", 3f);
+            WorldTip.showNow(ModernBoxLocale.Tr("Coming soon. Maybe"), false, "top", 3f);
         }
         private static void openAboutWindow() {
 

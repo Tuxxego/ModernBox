@@ -1,32 +1,62 @@
-﻿using System;
+using System;
+using System.Collections.Concurrent;
 using System.Reflection;
 
 namespace TuxModLoader.Reflection
 {
     public static class ReflectionHelper
     {
+        private const BindingFlags AllFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
+        private static readonly ConcurrentDictionary<(Type, string), MethodInfo> MethodCache = new ConcurrentDictionary<(Type, string), MethodInfo>();
+        private static readonly ConcurrentDictionary<(Type, string), FieldInfo> FieldCache = new ConcurrentDictionary<(Type, string), FieldInfo>();
+        private static readonly ConcurrentDictionary<(Type, string), PropertyInfo> PropertyCache = new ConcurrentDictionary<(Type, string), PropertyInfo>();
+        private static readonly ConcurrentDictionary<string, Type> TypeCache = new ConcurrentDictionary<string, Type>();
+
+        private static MethodInfo GetCachedMethod(Type type, string methodName)
+        {
+            return MethodCache.GetOrAdd((type, methodName), k => k.Item1.GetMethod(k.Item2, AllFlags));
+        }
+
+        private static FieldInfo GetCachedField(Type type, string fieldName)
+        {
+            return FieldCache.GetOrAdd((type, fieldName), k => k.Item1.GetField(k.Item2, AllFlags));
+        }
+
+        private static PropertyInfo GetCachedProperty(Type type, string propertyName)
+        {
+            return PropertyCache.GetOrAdd((type, propertyName), k => k.Item1.GetProperty(k.Item2, AllFlags));
+        }
+
+        private static Type GetCachedType(string typeName)
+        {
+            return TypeCache.GetOrAdd(typeName, Type.GetType);
+        }
+
         public static object InvokeMethod(object target, string methodName, params object[] parameters)
         {
-            MethodInfo method = target.GetType().GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+            Type type = target.GetType();
+            MethodInfo method = GetCachedMethod(type, methodName);
             if (method == null)
             {
-                throw new MissingMethodException(target.GetType().Name, methodName);
+                throw new MissingMethodException(type.Name, methodName);
             }
             return method.Invoke(target, parameters);
         }
 
         public static T GetFieldValue<T>(object target, string fieldName)
         {
-            FieldInfo field = target.GetType().GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+            Type type = target.GetType();
+            FieldInfo field = GetCachedField(type, fieldName);
             if (field == null)
             {
-                throw new MissingFieldException(target.GetType().Name, fieldName);
+                throw new MissingFieldException(type.Name, fieldName);
             }
             return (T)field.GetValue(target);
         }
+
         public static T GetStaticFieldValue<T>(Type type, string fieldName)
         {
-            FieldInfo field = type.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+            FieldInfo field = GetCachedField(type, fieldName);
             if (field == null)
             {
                 throw new MissingFieldException(type.Name, fieldName);
@@ -36,16 +66,18 @@ namespace TuxModLoader.Reflection
 
         public static void SetFieldValue(object target, string fieldName, object value)
         {
-            FieldInfo field = target.GetType().GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+            Type type = target.GetType();
+            FieldInfo field = GetCachedField(type, fieldName);
             if (field == null)
             {
-                throw new MissingFieldException(target.GetType().Name, fieldName);
+                throw new MissingFieldException(type.Name, fieldName);
             }
             field.SetValue(target, value);
         }
+
         public static void SetStaticFieldValue(Type type, string fieldName, object value)
         {
-            FieldInfo field = type.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+            FieldInfo field = GetCachedField(type, fieldName);
             if (field == null)
             {
                 throw new MissingFieldException(type.Name, fieldName);
@@ -55,27 +87,29 @@ namespace TuxModLoader.Reflection
 
         public static T GetPropertyValue<T>(object target, string propertyName)
         {
-            PropertyInfo property = target.GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+            Type type = target.GetType();
+            PropertyInfo property = GetCachedProperty(type, propertyName);
             if (property == null)
             {
-                throw new MissingMemberException(target.GetType().Name, propertyName);
+                throw new MissingMemberException(type.Name, propertyName);
             }
             return (T)property.GetValue(target);
         }
 
         public static void SetPropertyValue(object target, string propertyName, object value)
         {
-            PropertyInfo property = target.GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+            Type type = target.GetType();
+            PropertyInfo property = GetCachedProperty(type, propertyName);
             if (property == null)
             {
-                throw new MissingMemberException(target.GetType().Name, propertyName);
+                throw new MissingMemberException(type.Name, propertyName);
             }
             property.SetValue(target, value);
         }
 
         public static T CreateInstance<T>(string typeName)
         {
-            Type type = Type.GetType(typeName);
+            Type type = GetCachedType(typeName);
             if (type == null)
             {
                 throw new TypeLoadException($"Could not load type: {typeName}");
@@ -85,12 +119,12 @@ namespace TuxModLoader.Reflection
 
         public static object InvokeStaticMethod(string typeName, string methodName, params object[] parameters)
         {
-            Type type = Type.GetType(typeName);
+            Type type = GetCachedType(typeName);
             if (type == null)
             {
                 throw new TypeLoadException($"Could not load type: {typeName}");
             }
-            MethodInfo method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+            MethodInfo method = GetCachedMethod(type, methodName);
             if (method == null)
             {
                 throw new MissingMethodException(typeName, methodName);

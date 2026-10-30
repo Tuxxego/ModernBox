@@ -163,10 +163,17 @@ namespace ModernBox
         {
             SavePlanetType(planetType);
         }
+        private int _cachedPlanetTotalCount = 1;
+        private float _lastPlanetCountReadTime = -10f;
+
         public int getplanettotalcount()
         {
-	     string planetCountFilePath = Path.Combine(Application.persistentDataPath, "ModernBox", "PlanetCount.txt");
-
+            if (Time.unscaledTime - _lastPlanetCountReadTime < 5f)
+            {
+                return _cachedPlanetTotalCount;
+            }
+            _lastPlanetCountReadTime = Time.unscaledTime;
+            string planetCountFilePath = Path.Combine(Application.persistentDataPath, "ModernBox", "PlanetCount.txt");
             int planetCount = 1;
             if (File.Exists(planetCountFilePath))
             {
@@ -176,6 +183,7 @@ namespace ModernBox
                     planetCount = count;
                 }
             }
+            _cachedPlanetTotalCount = planetCount;
             return planetCount;
         }
     }

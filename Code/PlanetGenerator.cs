@@ -21,6 +21,7 @@ namespace ModernBox
 
 		public static int mapSizeX = 13;
 		public static int mapSizeY = 13;
+		private static bool _mapSizePatched = false;
         private MapGenTemplateLibrary mapGenTemplateLibrary; 
 
 		public void Awake()
@@ -73,12 +74,15 @@ namespace ModernBox
 
 
 
-			Harmony harmony = new Harmony("tuxxego.worldbox.spaceindabox");
-
-			MethodInfo original = AccessTools.Method(typeof(MapBox), "setMapSize");
-			MethodInfo patch = AccessTools.Method(typeof(PlanetGenerator), "setMapSize_Prefix");
-			harmony.Patch(original, new HarmonyMethod(patch));
-			Debug.Log("Pre patch: MapBox.setMapSize");
+			if (!_mapSizePatched)
+			{
+				_mapSizePatched = true;
+				Harmony harmony = new Harmony("tuxxego.worldbox.spaceindabox");
+				MethodInfo original = AccessTools.Method(typeof(MapBox), "setMapSize");
+				MethodInfo patch = AccessTools.Method(typeof(PlanetGenerator), "setMapSize_Prefix");
+				harmony.Patch(original, new HarmonyMethod(patch));
+				Debug.Log("Pre patch: MapBox.setMapSize");
+			}
 
 				Config.current_map_template = "ballsass";
 

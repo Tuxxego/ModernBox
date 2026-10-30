@@ -117,7 +117,7 @@ public class PizzaSimulator : MonoBehaviour
         {
             worldTipTimer = 0f;
             // Manu-Fix 023: fester Hinweistext, kein Textschluessel (pTranslate false) - Begruendung in UnitTracker.SpawnVehicle.
-            WorldTip.showNow($"🍕 Total pizzas made: {Mathf.FloorToInt(pizzaCount)}", false, "top", 1.5f);
+            WorldTip.showNow(ModernBoxLocale.IsChinese() ? $"🍕 已制作披萨总数: {Mathf.FloorToInt(pizzaCount)}" : $"🍕 Total pizzas made: {Mathf.FloorToInt(pizzaCount)}", false, "top", 1.5f);
         }
         
     }
@@ -136,7 +136,7 @@ public class PizzaSimulator : MonoBehaviour
         if (!eventWindows.ContainsKey(randomEvent.id))
         {
             ScrollWindow window = ModernBoxLocale.Window("PizzaEvent_" + randomEvent.id, "ModernBox");
-            Transform content = PrepareContent(window, randomEvent.description);
+            Transform content = PrepareContent(window, ModernBoxLocale.Tr(randomEvent.description));
             new ButtonBuilder($"{randomEvent.id}_option1")
                 .SetSprite(Resources.Load<Sprite>("ui/icons/authors/sss"))
                 .SetTitle(randomEvent.option1Title)
@@ -205,7 +205,7 @@ public class PizzaSimulator : MonoBehaviour
     {
         if (emp == null || string.IsNullOrEmpty(emp.id) || employeeWindows.ContainsKey(emp.id)) return;
         ScrollWindow window = ModernBoxLocale.Window("PizzaEmployee_" + emp.id, "ModernBox");
-        PrepareContent(window, $"{emp.name}\nPizzas/sec: {emp.pizzasPerSecond:F2}");
+        PrepareContent(window, ModernBoxLocale.IsChinese() ? $"{emp.name}\n每秒制作披萨: {emp.pizzasPerSecond:F2}" : $"{emp.name}\nPizzas/sec: {emp.pizzasPerSecond:F2}");
         employeeWindows.Add(emp.id, window);
     }
 

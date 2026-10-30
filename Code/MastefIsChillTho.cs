@@ -7,30 +7,19 @@ namespace ModernBox
     [HarmonyPatch(typeof(Actor), "calculateMainSprite")]
     public static class Patch_Actor_calculateMainSprite
     {
-        static bool Prefix(Actor __instance, ref Sprite __result)
-        {
-            try
-            {
-                return true;
-            }
-            catch (Exception e)
-            {
-                return true;
-            }
-        }
-
+        // Optimization: Removed empty no-op Prefix that ran on every Actor every frame.
         static Exception Finalizer(Actor __instance, Exception __exception, ref Sprite __result)
         {
             if (__exception != null)
             {
-                __result = FuckMaxim(__instance);
+                __result = FallbackIdleSprite(__instance);
                 return null;
             }
 
             return null;
         }
 
-        static Sprite FuckMaxim(Actor actor)
+        static Sprite FallbackIdleSprite(Actor actor)
         {
             if (actor?.animation_container?.idle?.frames != null &&
                 actor.animation_container.idle.frames.Length > 0)

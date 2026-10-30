@@ -109,7 +109,7 @@ namespace ModernBox
                 string localeId = asset.getLocaleID();
                 if (string.IsNullOrEmpty(localeId) || localeId == asset.name_locale) continue;
                 if (LocalizedTextManager.stringExists(localeId) || !LocalizedTextManager.stringExists(asset.name_locale)) continue;
-                TextFix.Register(localeId, LocalizedTextManager.getText(asset.name_locale));
+                ModernBoxLocale.Register(localeId, asset.name_locale);
             }
         }
     }
@@ -151,7 +151,7 @@ namespace ModernBox
 
         internal static void Register(string key, string text)
         {
-            if (string.IsNullOrEmpty(key) || LocalizedTextManager.stringExists(key)) return;
+            if (string.IsNullOrEmpty(key) || ModernBoxLocale.HasKey(key)) return;
             ModernBoxLocale.Register(key, text); // Manu-Fix 024: restore before the first text refresh.
         }
     }
@@ -191,6 +191,10 @@ namespace ModernBox
             string key = power.getDescriptionID();
             if (string.IsNullOrEmpty(key)) return 1;
             string text;
+            if (ModernBoxLocale.HasKey(key))
+            {
+                return 1;
+            }
             if (LocalizedTextManager.stringExists(key))
             {
                 text = LocalizedTextManager.getText(key);

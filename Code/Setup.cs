@@ -751,7 +751,7 @@ namespace ModernBox
             var go = new GameObject("Txt");
             go.transform.SetParent(parent.transform, false);
             var t = go.AddComponent<Text>();
-            t.text              = text;
+            t.text              = ModernBoxLocale.Tr(text);
             t.font              = _font;
             t.fontSize          = size;
             t.color             = C_WHITE;

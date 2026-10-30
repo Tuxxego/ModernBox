@@ -384,9 +384,12 @@ namespace ModernBox{
                 .ToList();
             var randomGenerator = new System.Random();
 
-            var selectedFile = Path.GetFileName(files[randomGenerator.Next(files.Count)]);
-
-            backgroundImage.sprite = Toolbox.LoadSprite($"{path}/{selectedFile}");
+            // 源码包未附带 LoadingScreen.zip 时 files 可能为空，原写法 files[Next(0)] 必然越界并中断 Awake。
+            if (files.Count > 0)
+            {
+                var selectedFile = Path.GetFileName(files[randomGenerator.Next(files.Count)]);
+                backgroundImage.sprite = Toolbox.LoadSprite($"{path}/{selectedFile}");
+            }
             transitionScreen.enabled = true;
             StupidStuffOne();
         }
@@ -503,6 +506,8 @@ namespace ModernBox{
     [HarmonyPatch]
     public static class Patch_DisableSortButtons
     {
+        private static readonly FieldInfo AssetField = AccessTools.Field(typeof(PowersTab), "_asset");
+
         static MethodBase TargetMethod()
         {
             return AccessTools.Method(typeof(PowersTab), "sortButtons");
@@ -510,10 +515,9 @@ namespace ModernBox{
 
         static bool Prefix(object __instance)
         {
-            FieldInfo assetField = AccessTools.Field(__instance.GetType(), "_asset");
-            if (assetField == null) return true;
+            if (AssetField == null) return true;
 
-            var asset = assetField.GetValue(__instance) as PowerTabAsset;
+            var asset = AssetField.GetValue(__instance) as PowerTabAsset;
             if (asset == null) return true;
 
             if (asset.id == "ModernBoxTab" || asset.id == "ModernBoxEras")

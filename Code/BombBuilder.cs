@@ -6,6 +6,7 @@ using NCMS;
 
 public class BombBuilder
 {
+    private static readonly FieldInfo CachedDropAssetField = typeof(GodPower).GetField("cached_drop_asset", BindingFlags.NonPublic | BindingFlags.Instance);
     private string id;
     private string texturePath;
     private float dropScale = 0.2f;
@@ -93,13 +94,10 @@ public class BombBuilder
             falling_chance = fallingChance,
             drop_id = drop.id,
             click_power_action = clickPowerAction,
-            click_power_brush_action = new PowerAction((WorldTile pTile, GodPower pPower) =>
-            {
-                return (bool)AssetManager.powers.CallMethod("loopWithCurrentBrushPowerForDropsFull", pTile, pPower);
-            })
+            click_power_brush_action = AssetManager.powers.loopWithCurrentBrushPowerForDropsFull
         };
 
-        FieldInfo dropField = typeof(GodPower).GetField("cached_drop_asset", BindingFlags.NonPublic | BindingFlags.Instance);
+        FieldInfo dropField = CachedDropAssetField;
         if (dropField != null)
             dropField.SetValue(power, drop);
 

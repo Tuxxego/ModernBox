@@ -1190,7 +1190,7 @@ float infoTextHeight = 20f;
 float galaxyNameHeight = 30f; 
 
 
-GUI.Label(new Rect(blockX, blockY - galaxyNameHeight - textSpacing, blockWidth, infoTextHeight), "You are currently in", galaxyInfoStyle);
+GUI.Label(new Rect(blockX, blockY - galaxyNameHeight - textSpacing, blockWidth, infoTextHeight), (ModernBoxLocale.IsChinese() ? "当前所在星系" : "You are currently in"), galaxyInfoStyle);
 GUI.Label(new Rect(blockX, blockY - galaxyNameHeight, blockWidth, galaxyNameHeight), galaxyName, galaxyNameStyle);
 
 }
@@ -1253,7 +1253,7 @@ private void FilterWindow(int windowID)
 {
     GUILayout.BeginVertical("box");
 
-    GUILayout.Label("Filter Options:");
+    GUILayout.Label(ModernBoxLocale.IsChinese() ? "筛选选项：" : "Filter Options:");
 
     string[] starTypes = { 
         "Any", 
@@ -1274,10 +1274,10 @@ private void FilterWindow(int windowID)
 
     selectedStarType = starTypes[selectedIndex];
 
-    GUILayout.Label("Minimum Number of Planets:");
+    GUILayout.Label(ModernBoxLocale.IsChinese() ? "最少行星数量：" : "Minimum Number of Planets:");
     int.TryParse(GUILayout.TextField(minPlanets.ToString()), out minPlanets);
 
-    GUILayout.Label("Maximum Number of Planets:");
+    GUILayout.Label(ModernBoxLocale.IsChinese() ? "最多行星数量：" : "Maximum Number of Planets:");
     int.TryParse(GUILayout.TextField(maxPlanets.ToString()), out maxPlanets);
 
     if (GUILayout.Button(localizationManager.Localize("apply")))
@@ -1419,10 +1419,10 @@ private void StarLoadingWindow(int windowID)
     GUILayout.Label("Starmap", sysBadgeStyle);
     GUILayout.Space(8);
 
-    GUILayout.Label("Loading stars...", mainTitleStyle);
+    GUILayout.Label(ModernBoxLocale.IsChinese() ? "正在生成星图..." : "Loading stars...", mainTitleStyle);
     GUILayout.Space(6);
 
-    GUILayout.Label("You are gay", subtitleStyle);
+    GUILayout.Label(ModernBoxLocale.IsChinese() ? "星际跃迁引擎启动中" : "Starmap Engine Initializing", subtitleStyle);
     GUILayout.Space(20);
 
     DrawHorizontalRule(new Color(0.47f, 0.63f, 1f, 0.18f));
@@ -1431,7 +1431,7 @@ private void StarLoadingWindow(int windowID)
     GUILayout.Label(loadingMessage, loadingMsgStyle);
     GUILayout.Space(16);
 
-    GUILayout.Label("Did you know?", dykLabelStyle);
+    GUILayout.Label(ModernBoxLocale.IsChinese() ? "你知道吗？" : "Did you know?", dykLabelStyle);
     GUILayout.Space(6);
     GUILayout.Box($"{randomFact}", factStyle, GUILayout.MinHeight(80));
 
@@ -1444,7 +1444,7 @@ private void StarLoadingWindow(int windowID)
     GUILayout.BeginVertical(GUILayout.Width(200));
     GUILayout.Label("Galaxies", engineNameStyle);
     GUILayout.Label($"{loadedGalaxyCount}", galaxyCountStyle);
-    GUILayout.Label("custom galaxies created", galaxySubStyle);
+    GUILayout.Label(ModernBoxLocale.IsChinese() ? "个自定义星系已加载" : "custom galaxies created", galaxySubStyle);
     GUILayout.EndVertical();
 
     GUILayout.FlexibleSpace();
@@ -1610,20 +1610,14 @@ private Texture2D CreateGradientTexture(int width, int height, Color startColor,
 
     private void FavoritesWindow(int windowID)
     {
-        List<string> favoriteStarNames = LoadFavorites();
-        List<Star> allStars = GetAllStarGameObjects();
-
-        Debug.Log("Loading favorites window.");
-
-        foreach (string favoriteName in favoriteStarNames)
+        for (int i = 0; i < favoritesList.Count; i++)
         {
-            Star star = allStars.Find(s => s.name.Equals(favoriteName, StringComparison.OrdinalIgnoreCase));
-
+            string favoriteName = favoritesList[i];
+            Star star = FindStarByName(favoriteName);
             if (star != null)
             {
                 if (GUILayout.Button(star.name))
                 {
-                    Debug.Log($"Favorite star selected: {star.name}");
                     selectedStar = star;
                     showPlanetWindow = false;
                     showFavoritesWindow = false;
@@ -1631,15 +1625,10 @@ private Texture2D CreateGradientTexture(int width, int height, Color startColor,
                     break;
                 }
             }
-            else
-            {
-                Debug.Log($"Star not found: {favoriteName}");
-            }
         }
 
         if (GUILayout.Button(localizationManager.Localize("close")))
         {
-            Debug.Log("Closing favorites window.");
             showFavoritesWindow = false;
         }
     }
@@ -1697,24 +1686,19 @@ private Texture2D CreateGradientTexture(int width, int height, Color startColor,
 
 private List<Star> GetAllStarGameObjects()
 {
-    List<Star> stars = GameObject.FindObjectsOfType<Star>().ToList();
-  //  Debug.Log($"Found {stars.Count} stars in the scene.");
-    return stars;
+    if (stars != null && stars.Count > 0) return stars;
+    return GameObject.FindObjectsOfType<Star>().ToList();
 }
 
 private Star FindStarByName(string starName)
 {
-
-    List<Star> stars = GetAllStarGameObjects();
-
-    Star foundStar = stars.FirstOrDefault(star => star.name == starName);
-
-    if (foundStar == null)
+    if (string.IsNullOrEmpty(starName) || stars == null) return null;
+    for (int i = 0; i < stars.Count; i++)
     {
-        Debug.LogWarning($"Star with name {starName} not found.");
+        Star s = stars[i];
+        if (s != null && string.Equals(s.name, starName, StringComparison.OrdinalIgnoreCase)) return s;
     }
-
-    return foundStar;
+    return null;
 }
 
 private List<string> LoadFavorites()
@@ -2097,27 +2081,24 @@ private Texture2D MakeGradientTexture(int width, int height, Color topColor, Col
 
 private string hoveredGalaxy = null; 
 
+private float _lastPlanetCountCheckTime = -10f;
 private void GalaxySelectionWindow(int windowID)
 {
-    string planetCountFilePath = Path.Combine(Application.persistentDataPath, "ModernBox", "PlanetCount.txt");
-
-    if (File.Exists(planetCountFilePath))
+    if (Time.unscaledTime - _lastPlanetCountCheckTime > 2f)
     {
-        string fileContents = File.ReadAllText(planetCountFilePath);
-        if (int.TryParse(fileContents, out int visitedCount))
+        _lastPlanetCountCheckTime = Time.unscaledTime;
+        string planetCountFilePath = Path.Combine(Application.persistentDataPath, "ModernBox", "PlanetCount.txt");
+        if (File.Exists(planetCountFilePath))
         {
-            planetsVisited = visitedCount;
+            if (int.TryParse(File.ReadAllText(planetCountFilePath), out int visitedCount))
+                planetsVisited = visitedCount;
+            else
+                planetsVisited = 0;
         }
         else
         {
-            Debug.LogError("Failed to parse planetsVisited from PlanetCount.txt");
             planetsVisited = 0;
         }
-    }
-    else
-    {
-        Debug.LogWarning("PlanetCount.txt not found, initializing planetsVisited to 0.");
-        planetsVisited = 0;
     }
 
     GUIStyle galaxyButtonStyle = new GUIStyle(GUI.skin.button)
@@ -2140,7 +2121,7 @@ private void GalaxySelectionWindow(int windowID)
         normal = { textColor = new Color(1f, 0.3f, 0.3f) }  
     };
 
-    GUILayout.Label("Explore the Galaxies", new GUIStyle(GUI.skin.label)
+    GUILayout.Label(ModernBoxLocale.IsChinese() ? "探索宇宙星系" : "Explore the Galaxies", new GUIStyle(GUI.skin.label)
     {
         fontSize = 30,
         fontStyle = FontStyle.BoldAndItalic,
@@ -2199,7 +2180,7 @@ private void GalaxySelectionWindow(int windowID)
         }
         else
         {
-            string labelText = $"{galaxy} (Requires {requiredPlanets} planets, you have {planetsVisited})";
+            string labelText = ModernBoxLocale.IsChinese() ? $"{galaxy} (需要已探索 {requiredPlanets} 颗行星，当前已探索 {planetsVisited} 颗)" : $"{galaxy} (Requires {requiredPlanets} planets, you have {planetsVisited})";
             GUILayout.Label(labelText, unavailableLabelStyle);
         }
 
@@ -2322,7 +2303,7 @@ private void StarM3InfoWindow(int windowID)
 
     
     bool isFavorite = favoritesList.Contains(selectedStar.name);
-    if (GUILayout.Button(isFavorite ? "★ Unfavorite Star" : "☆ Favorite Star", favoriteButtonStyle))
+    if (GUILayout.Button(isFavorite ? (ModernBoxLocale.IsChinese() ? "★ 取消收藏该恒星系" : "★ Unfavorite Star") : (ModernBoxLocale.IsChinese() ? "☆ 收藏该恒星系" : "☆ Favorite Star"), favoriteButtonStyle))
     {
         if (isFavorite) RemoveFavorite(selectedStar.name);
         else AddFavorite(selectedStar.name);
@@ -2331,7 +2312,7 @@ private void StarM3InfoWindow(int windowID)
     GUILayout.Space(15); 
 
     
-    GUILayout.Label("Planets in System:", contentStyle);
+    GUILayout.Label(ModernBoxLocale.IsChinese() ? "恒星系内的行星列表：" : "Planets in System:", contentStyle);
     for (int i = 0; i < selectedStar.planetCount; i++)
     {
         PlanetInfo planetInfo = selectedStar.planetInfo[i];
@@ -2502,7 +2483,7 @@ GUILayout.BeginVertical();
     GUILayout.Space(12);
     DrawPlanetOrb(t);
     GUILayout.Space(10);
-    GUILayout.Label("PLANET INFORMATION", orbitronTitle);
+    GUILayout.Label(ModernBoxLocale.IsChinese() ? "行星详细信息" : "PLANET INFORMATION", orbitronTitle);
     GUILayout.Space(14);
 
     DrawDataRow("NAME", planetInfo.name, dataLabel, dataValue);
@@ -2516,7 +2497,7 @@ GUILayout.BeginVertical();
 
     if (_cachedSaveExists)
     {
-        GUILayout.Label("COLONY STATS", orbitronTitle);
+        GUILayout.Label(ModernBoxLocale.IsChinese() ? "星球殖民地数据" : "COLONY STATS", orbitronTitle);
         DrawDataRow("KINGDOMS", _cachedKingdomCount.ToString(), dataLabel, dataValue);
         DrawDataRow("YEAR", _cachedWorldYear.ToString(), dataLabel, dataValue);
         GUILayout.Space(10);
@@ -2529,7 +2510,7 @@ GUILayout.BeginVertical();
         if (_cachedSaveExists)
         {
 
-            if (GUILayout.Button("RESUME", btnVisit, GUILayout.Height(34)))
+            if (GUILayout.Button(ModernBoxLocale.IsChinese() ? "继续探索该星球" : "RESUME", btnVisit, GUILayout.Height(34)))
             {
                 SpaceManager.GeneratePlanet(planetInfo.name, planetInfo.planetType, planetInfo.size, planetInfo.hasFauna);
             }
@@ -2611,7 +2592,7 @@ private void PlanetParametersWindow(int windowID)
     DrawHLine(new Color(0.25f, 0.78f, 1f, 0.3f + Mathf.Sin(t * 2f) * 0.15f));
     GUILayout.Space(12);
 
-    GUILayout.Label("PLANET PARAMETERS", orbitronTitle);
+    GUILayout.Label(ModernBoxLocale.IsChinese() ? "行星环境参数" : "PLANET PARAMETERS", orbitronTitle);
     GUILayout.Space(16);
 
     GUILayout.BeginHorizontal();
@@ -2624,7 +2605,7 @@ private void PlanetParametersWindow(int windowID)
     DrawHLine(new Color(0.25f, 0.78f, 1f, 0.12f));
     GUILayout.Space(10);
 
-    if (GUILayout.Button("CLOSE", btnClose, GUILayout.Height(34)))
+    if (GUILayout.Button(ModernBoxLocale.IsChinese() ? "关闭" : "CLOSE", btnClose, GUILayout.Height(34)))
         showParametersWindow = false;
 
     GUILayout.FlexibleSpace();
@@ -2689,7 +2670,7 @@ private void DrawBetaNotice(GUIStyle style)
 {
     var noticeRect = GUILayoutUtility.GetRect(GUIContent.none, style, GUILayout.MinHeight(44), GUILayout.ExpandWidth(true));
     GUI.DrawTexture(noticeRect, MakeTex(1, 1, new Color(1f, 0.78f, 0.31f, 0.04f)));
-    GUI.Label(noticeRect, "Planet Parameters are in beta — more parameters will be added in future updates.", style);
+    GUI.Label(noticeRect, ModernBoxLocale.IsChinese() ? "行星参数功能目前处于测试阶段，未来更新将加入更多参数。" : "Planet Parameters are in beta — more parameters will be added in future updates.", style);
 }
 
 private void SaveVisitedPlanet(string planetName)
